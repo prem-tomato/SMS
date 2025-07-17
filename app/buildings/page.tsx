@@ -24,7 +24,7 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -33,47 +33,54 @@ import { z } from 'zod';
 
 const inputSchema = z.object({
   society_id: z.string().min(1, 'Select society'),
-  name: z.string().min(1, 'Name required'),
-  total_floors: z.string().min(1, 'Total floors required'),
+  name: z.string().min(1, 'Building name is required'),
+  total_floors: z.string().min(1, 'Total floors is required'),
 });
 
 const outputSchema = z.object({
   society_id: z.string().min(1, 'Select society'),
-  name: z.string().min(1, 'Name required'),
-  total_floors: z
-    .string()
-    .transform((val) => Number(val))
-    .refine(val => val > 0, { message: 'At least one floor' }),
+  name: z.string().min(1, 'Building name is required'),
+  total_floors: z.string()
+    .transform(val => Number(val))
+    .refine(val => val > 0, 'At least one floor required'),
 });
 
 type FormValues = z.infer<typeof inputSchema>;
+type OutputValues = z.infer<typeof outputSchema>;
 
 export default function BuildingsPage() {
   const queryClient = useQueryClient();
+
   const { data: buildings, isLoading: loadingBuildings } = useQuery({
     queryKey: ['buildings'],
     queryFn: fetchBuildings,
   });
+
   const { data: societies, isLoading: loadingSocieties } = useQuery({
     queryKey: ['societies'],
     queryFn: fetchSocietyOptions,
   });
-  
+
   const [open, setOpen] = useState(false);
+
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(inputSchema),
     defaultValues: { society_id: '', name: '', total_floors: '' },
   });
 
   const mutation = useMutation({
-    mutationFn: createBuilding,
+    mutationFn: (data: OutputValues) =>
+      createBuilding(data.society_id, {
+        name: data.name,
+        total_floors: data.total_floors,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
       setOpen(false);
       reset();
     },
   });
-  
+
   const onSubmit = (data: FormValues) => {
     const result = outputSchema.safeParse(data);
     if (result.success) {
@@ -91,7 +98,7 @@ export default function BuildingsPage() {
       </Box>
 
       {loadingBuildings ? (
-        <Box display="flex" justifyContent="center"><CircularProgress /></Box>
+        <Box display="flex" justifyContent="center" my={4}><CircularProgress /></Box>
       ) : (
         <List sx={{ bgcolor: 'white', borderRadius: 2 }}>
           {buildings?.map((b: any, i: number) => (
@@ -113,7 +120,7 @@ export default function BuildingsPage() {
         </List>
       )}
 
-      {/* Add Modal */}
+      {/* Add Building Modal */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Add Building</DialogTitle>
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
@@ -128,7 +135,7 @@ export default function BuildingsPage() {
                     {loadingSocieties ? (
                       <MenuItem disabled>Loading...</MenuItem>
                     ) : (
-                      societies?.map(s => (
+                      societies?.map((s: any) => (
                         <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
                       ))
                     )}
@@ -143,7 +150,13 @@ export default function BuildingsPage() {
               name="name"
               control={control}
               render={({ field }) => (
-                <TextField {...field} label="Building Name" error={!!errors.name} helperText={errors.name?.message} />
+                <TextField
+                  {...field}
+                  label="Building Name"
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                  fullWidth
+                />
               )}
             />
             <Controller
@@ -156,6 +169,7 @@ export default function BuildingsPage() {
                   type="number"
                   error={!!errors.total_floors}
                   helperText={errors.total_floors?.message}
+                  fullWidth
                 />
               )}
             />

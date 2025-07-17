@@ -12,17 +12,24 @@ export async function fetchBuildings() {
   return json.data;
 }
 
-export async function createBuilding(payload: { society_id: string; name: string; total_floors: number }) {
+export async function createBuilding(
+  societyId: string,
+  payload: { name: string; total_floors: number }
+) {
   const token = getAccessToken();
-  const res = await fetch('/api/buildings', {
+  const res = await fetch(`/api/socities/${societyId}/building`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(payload),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || 'Failed to create building');
   return json;
 }
+
 
 export async function fetchBuildingsBySociety(societyId: string) {
   const token = getAccessToken();

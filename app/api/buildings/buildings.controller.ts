@@ -3,18 +3,11 @@ import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import { StatusCodes } from "http-status-codes";
 import socitiesLogger from "../socities/socities.logger";
 
-import { findSocietyById } from "../socities/socities.model";
-import { Societies } from "../socities/socities.types";
 import {
-  addBuildingAnother,
   listBuildingOptionsBySocietyId,
   listBuildings,
 } from "./buildings.model";
-import {
-  AddBuildingReqBodyAnother,
-  BuildingOptions,
-  ListBuildingResponse,
-} from "./buildings.types";
+import { BuildingOptions, ListBuildingResponse } from "./buildings.types";
 
 export const listBuildingsController = async (): Promise<
   Response<ListBuildingResponse[]>
@@ -29,40 +22,6 @@ export const listBuildingsController = async (): Promise<
     );
   } catch (error: any) {
     socitiesLogger.error("Error in listBuildingsController:", error);
-
-    return generateResponseJSON(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      error.message,
-      error
-    );
-  }
-};
-
-export const addBuildingControllerAnother = async (
-  request: Request,
-  reqBody: AddBuildingReqBodyAnother
-): Promise<Response<void>> => {
-  try {
-    const userId: string = request.headers.get("userId")!;
-
-    const society: Societies | undefined = await findSocietyById(
-      reqBody.society_id
-    );
-    if (!society) {
-      return generateResponseJSON(
-        StatusCodes.NOT_FOUND,
-        getMessage("SOCIETY_NOT_FOUND")
-      );
-    }
-
-    await addBuildingAnother(reqBody, userId);
-
-    return generateResponseJSON(
-      StatusCodes.CREATED,
-      getMessage("BUILDING_CREATED_SUCCESSFULLY")
-    );
-  } catch (error: any) {
-    socitiesLogger.error("Error in addBuildingController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
