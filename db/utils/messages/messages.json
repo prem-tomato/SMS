@@ -1,0 +1,20 @@
+{
+    "VALIDATION_ERROR": "validation error",
+    "LOGIN_SUCCESS": "login successful",
+    "TOKEN_REQUIRED": "token required",
+    "UNAUTHORIZED": "unauthorized",
+    "LOGIN_KEY_NOT_FOUND": "login key not found",
+    "SOCIETY_NAME_ALREADY_EXISTS": "society name already exists",
+    "SOCIETY_CREATED_SUCCESSFULLY": "society created successfully",
+    "SOCIETY_NOT_FOUND": "society not found",
+    "ADMIN_CREATED_SUCCESSFULLY": "admin created successfully",
+    "LOGIN_KEY_ALREADY_EXISTS": "login key already exists",
+    "MEMBER_CREATED_SUCCESSFULLY": "member created successfully",
+    "BUILDING_CREATED_SUCCESSFULLY": "building created successfully",
+    "BUILDING_NOT_FOUND": "building not found",
+    "FLAT_CREATED_SUCCESSFULLY": "flat created successfully",
+    "FLAT_NOT_FOUND": "flat not found",
+    "USER_IS_NOT_A_MEMBER": "user is not a member",
+    "MEMBER_ASSIGNED_SUCCESSFULLY": "member assigned successfully",
+    "LIST_SUCCESSFULL": "list successful"
+}
