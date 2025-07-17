@@ -12,7 +12,9 @@ import {
   AssignMemberReqBody,
   Building,
   Flat,
+  FlatOptions,
   Societies,
+  SocietyOptions,
 } from "./socities.types";
 
 export const findSocityByName = async (
@@ -358,5 +360,51 @@ export const listSocieties = async (): Promise<Societies[]> => {
     return res.rows;
   } catch (error) {
     throw new Error(`Error getting societies: ${error}`);
+  }
+};
+
+export const listSocietiesOptions = async (): Promise<SocietyOptions[]> => {
+  try {
+    const queryText: string = `
+      SELECT id, name FROM societies
+    `;
+
+    const res: QueryResult<SocietyOptions> = await query<SocietyOptions>(
+      queryText
+    );
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting societies options: ${error}`);
+  }
+};
+
+export const listFlats = async (params: {
+  id: string;
+  buildingId: string;
+}): Promise<FlatOptions[]> => {
+  try {
+    const queryText: string = `
+      SELECT
+        f.id,
+        f.flat_number,
+        f.floor_number,
+        f.is_occupied,
+        b.name AS building_name,
+        societies.name AS society_name
+      FROM flats f
+      LEFT JOIN buildings b ON b.id = f.building_id
+      LEFT JOIN societies ON societies.id = f.society_id
+      WHERE f.society_id = $1 AND f.building_id = $2
+    `;
+
+    const res: QueryResult<FlatOptions> = await query<FlatOptions>(queryText, [
+      params.id,
+      params.buildingId,
+    ]);
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting flats: ${error}`);
   }
 };

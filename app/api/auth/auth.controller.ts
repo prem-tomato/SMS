@@ -10,7 +10,7 @@ import authorizeServices from "@/services/auth.services";
 import config from "@/services/config";
 import { StatusCodes } from "http-status-codes";
 import authLogger from "./auth.logger";
-import { addToken, findUserByLoginKey } from "./auth.model";
+import { addToken, findUserById, findUserByLoginKey } from "./auth.model";
 import { LoginBody, LoginResponse, User } from "./auth.types";
 
 const JWT_SECRET: string = config.JWT_SECRET!;
@@ -72,6 +72,32 @@ export const loginController = async (
     authLogger.error(`Error from login controller => ${error}`);
 
     await rollbackTransaction(transaction);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getMeController = async (
+  request: Request
+): Promise<Response<User>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const user: User | undefined = await findUserById(userId);
+    if (!user) {
+      return generateResponseJSON(
+        StatusCodes.UNAUTHORIZED,
+        getMessage("USER_NOT_FOUND")
+      );
+    }
+
+    return generateResponseJSON(StatusCodes.OK, getMessage("USER_FOUND"), user);
+  } catch (error: any) {
+    authLogger.error(`Error from login controller => ${error}`);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

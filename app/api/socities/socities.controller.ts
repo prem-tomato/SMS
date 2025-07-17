@@ -19,7 +19,9 @@ import {
   getBuildings,
   getFlats,
   getSocieties,
+  listFlats,
   listSocieties,
+  listSocietiesOptions,
 } from "./socities.model";
 import {
   AddAdminReqBody,
@@ -33,9 +35,11 @@ import {
   Building,
   BuildingResponse,
   Flat,
+  FlatOptions,
   FlatResponse,
   MemberResponse,
   Societies,
+  SocietyOptions,
 } from "./socities.types";
 
 export const addSocietyController = async (
@@ -443,6 +447,51 @@ export const listSocietiesController = async (): Promise<
     );
   } catch (error: any) {
     socitiesLogger.error("Error in listSocietiesController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const listSocietiesOptionsController = async (): Promise<
+  Response<SocietyOptions[]>
+> => {
+  try {
+    const societies: SocietyOptions[] = await listSocietiesOptions();
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      societies
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in listSocietiesOptionsController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getFlatController = async (params: {
+  id: string;
+  buildingId: string;
+}): Promise<Response<FlatOptions[]>> => {
+  try {
+    const flats: FlatOptions[] = await listFlats(params);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      flats
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getFlatController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

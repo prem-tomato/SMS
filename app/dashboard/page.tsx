@@ -11,7 +11,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!token) return router.push('/login');
+    if (!token) return router.push('/auth/login');
 
     fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.json())

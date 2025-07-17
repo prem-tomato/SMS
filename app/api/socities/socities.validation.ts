@@ -1,5 +1,5 @@
 import { adminType, memberType } from "@/db/utils/enums/enum";
-import { date, enum as enum_, number, object, string } from "zod";
+import { enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
   body: object({
@@ -90,5 +90,12 @@ export const assignMemberValidation = object({
   body: object({
     user_id: idValidation,
     move_in_date: string().date(),
+  }),
+});
+
+export const flatResponseValidation = object({
+  params: object({
+    id: idValidation,
+    buildingId: idValidation,
   }),
 });

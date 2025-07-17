@@ -36,3 +36,21 @@ export const addToken = async (
     throw new Error(`Error adding token: ${error}`);
   }
 };
+
+export const findUserById = async (
+  userId: string
+): Promise<User | undefined> => {
+  try {
+    const queryText = `
+        SELECT * FROM users
+        WHERE id = $1::uuid
+        AND is_deleted = false
+    `;
+
+    const res: QueryResult<User> = await query<User>(queryText, [userId]);
+
+    return res.rows[0];
+  } catch (error) {
+    throw new Error(`Error finding user by id: ${error}`);
+  }
+};

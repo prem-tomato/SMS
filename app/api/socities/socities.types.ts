@@ -31,6 +31,7 @@ export type Building = {
 
 export type Flat = {
   id: string;
+  society_id: string;
   building_id: string;
   flat_number: string;
   floor_number: number;
@@ -99,4 +100,14 @@ export type AssignMemberResponse = {
     building_name: string;
     flat_number: string;
   };
+};
+
+export type SocietyOptions = Pick<Societies, "id" | "name">;
+
+export type FlatOptions = Pick<
+  Flat,
+  "id" | "flat_number" | "floor_number" | "is_occupied"
+> & {
+  society_name: string;
+  building_name: string;
 };
