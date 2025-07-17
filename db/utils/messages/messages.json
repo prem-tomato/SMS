@@ -18,5 +18,7 @@
     "MEMBER_ASSIGNED_SUCCESSFULLY": "member assigned successfully",
     "LIST_SUCCESSFULL": "list successful",
     "USER_NOT_FOUND": "user not found",
-    "USER_FOUND": "user found"
+    "USER_FOUND": "user found",
+    "USER_CREATED_SUCCESSFULLY": "user created successfully",
+    "SUPER_ADMIN_ROLE_NOT_ALLOWED": "super admin role not allowed"
 }
