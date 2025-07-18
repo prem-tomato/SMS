@@ -8,6 +8,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import {
   Box,
   Button,
+  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -97,45 +98,54 @@ export default function SocietiesPage() {
         </Button>
       </Box>
 
-      <List sx={{ bgcolor: "background.paper", borderRadius: 2 }}>
-        {filteredSocieties.map((society: any) => (
-          <ListItem key={society.id} divider>
-            <ListItemIcon>
-              <ApartmentIcon color="primary" />
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <Typography fontWeight="bold">{society.name}</Typography>
-              }
-              secondary={
-                <>
-                  <Typography variant="body2" color="text.secondary">
-                    <LocationOnIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    {society.address}, {society.city}, {society.state},{" "}
-                    {society.country}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Created At:{" "}
-                    {society.created_at
-                      ? new Date(society.created_at).toLocaleDateString()
-                      : "N/A"}
-                  </Typography>
-                </>
-              }
-            />
-          </ListItem>
-        ))}
-        {!isLoading && filteredSocieties.length === 0 && (
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            align="center"
-            sx={{ p: 3 }}
-          >
-            No societies found.
-          </Typography>
-        )}
-      </List>
+      {isLoading ? (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {filteredSocieties.length === 0 ? (
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              align="center"
+              sx={{ p: 3 }}
+            >
+              No societies found.
+            </Typography>
+          ) : (
+            <List sx={{ bgcolor: "background.paper", borderRadius: 2 }}>
+              {filteredSocieties.map((society: any) => (
+                <ListItem key={society.id} divider>
+                  <ListItemIcon>
+                    <ApartmentIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Typography fontWeight="bold">{society.name}</Typography>
+                    }
+                    secondary={
+                      <>
+                        <Typography variant="body2" color="text.secondary">
+                          <LocationOnIcon fontSize="small" sx={{ mr: 0.5 }} />
+                          {society.address}, {society.city}, {society.state},{" "}
+                          {society.country}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Created At:{" "}
+                          {society.created_at
+                            ? new Date(society.created_at).toLocaleDateString()
+                            : "N/A"}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </>
+      )}
 
       {/* Modal */}
       <Dialog
