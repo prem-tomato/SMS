@@ -1,5 +1,4 @@
 import { query } from "@/db/database-connect";
-import { MEMBER } from "@/db/utils/enums/enum";
 import { QueryResult } from "pg";
 import { User } from "../auth/auth.types";
 import {
@@ -8,6 +7,7 @@ import {
   AddFlatReqBody,
   AddMemberReqBody,
   AddSocietyReqBody,
+  AssignedFlatOptions,
   AssignFlatMembers,
   AssignMemberReqBody,
   Building,
@@ -85,8 +85,8 @@ export const addAdmin = async (
 ): Promise<User> => {
   try {
     const queryText: string = `
-        INSERT INTO users (society_id, role, first_name, last_name, login_key, phone, created_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO users (society_id, role, first_name, last_name, login_key, phone, created_by, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         RETURNING *
     `;
 
@@ -235,56 +235,30 @@ export const findFlatById = async (id: string): Promise<Flat | undefined> => {
   }
 };
 
-export const findUserByIdAndType = async (
-  userId: string,
-  societyId: string
-): Promise<User | undefined> => {
-  try {
-    const queryText: string = `
-            SELECT * FROM users
-            WHERE id = $1 AND role = $2 AND society_id = $3
-        `;
-
-    const res: QueryResult<User> = await query<User>(queryText, [
-      userId,
-      MEMBER,
-      societyId,
-    ]);
-
-    return res.rows[0];
-  } catch (error) {
-    throw new Error(`Error finding user by ID: ${error}`);
-  }
-};
-
-export const assignMemberToFlat = async (
+export const assignMembersToFlat = async (
+  userIds: string[],
   reqBody: AssignMemberReqBody,
   params: { id: string; buildingId: string; flatId: string },
-  userId: string
-): Promise<AssignFlatMembers> => {
+  createdBy: string
+): Promise<void> => {
   try {
+    const values = userIds
+      .map(
+        (userId) =>
+          `('${userId}', '${params.id}', '${params.buildingId}', '${params.flatId}', '${reqBody.move_in_date}', '${createdBy}')`
+      )
+      .join(",");
+
     const queryText: string = `
       INSERT INTO members
       (user_id, society_id, building_id, flat_id, move_in_date, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ${values}
       RETURNING *
     `;
 
-    const res: QueryResult<AssignFlatMembers> = await query<AssignFlatMembers>(
-      queryText,
-      [
-        reqBody.user_id,
-        params.id,
-        params.buildingId,
-        params.flatId,
-        reqBody.move_in_date,
-        userId,
-      ]
-    );
-
-    return res.rows[0];
+    await query<AssignFlatMembers>(queryText);
   } catch (error) {
-    throw new Error(`Error assigning member to flat: ${error}`);
+    throw new Error(`Error assigning members to flat: ${error}`);
   }
 };
 
@@ -406,5 +380,87 @@ export const listFlats = async (params: {
     return res.rows;
   } catch (error) {
     throw new Error(`Error getting flats: ${error}`);
+  }
+};
+
+export const listVacantFlats = async (params: {
+  id: string;
+  buildingId: string;
+}): Promise<FlatOptions[]> => {
+  try {
+    const queryText: string = `
+      SELECT
+        f.id,
+        f.flat_number,
+        f.floor_number,
+        f.is_occupied,
+        b.name AS building_name,
+        societies.name AS society_name
+      FROM flats f
+      LEFT JOIN buildings b ON b.id = f.building_id
+      LEFT JOIN societies ON societies.id = f.society_id
+      WHERE f.society_id = $1 AND f.building_id = $2 AND f.is_occupied = false
+    `;
+
+    const res: QueryResult<FlatOptions> = await query<FlatOptions>(queryText, [
+      params.id,
+      params.buildingId,
+    ]);
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting flats: ${error}`);
+  }
+};
+
+export const toggleForIsOccupied = async (
+  flatId: string,
+  isOccupied: boolean
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      UPDATE flats
+      SET is_occupied = $1
+      WHERE id = $2
+    `;
+
+    await query(queryText, [isOccupied, flatId]);
+  } catch (error) {
+    throw new Error(`Error toggling for is occupied: ${error}`);
+  }
+};
+
+export const getAssignedFlatsUser = async (params: {
+  id: string;
+  buildingId: string;
+}): Promise<AssignedFlatOptions[]> => {
+  try {
+    const queryText: string = `
+      SELECT
+        f.id,
+        f.flat_number,
+        f.floor_number,
+        f.is_occupied,
+        u.first_name,
+        u.last_name,
+        b.name AS building_name,
+        societies.name AS society_name
+      FROM flats f
+      LEFT JOIN buildings b ON b.id = f.building_id
+      LEFT JOIN societies ON societies.id = f.society_id
+      LEFT JOIN members m ON m.flat_id = f.id
+      LEFT JOIN users u ON u.id = m.user_id
+      WHERE f.society_id = $1 AND f.building_id = $2 AND f.is_occupied = true
+    `;
+
+    const res: QueryResult<AssignedFlatOptions> =
+      await query<AssignedFlatOptions>(queryText, [
+        params.id,
+        params.buildingId,
+      ]);
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting assigned flats: ${error}`);
   }
 };

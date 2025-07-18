@@ -1,7 +1,6 @@
 import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import { StatusCodes } from "http-status-codes";
-import { User } from "../auth/auth.types";
 import socitiesLogger from "./socities.logger";
 import {
   addAdmin,
@@ -9,19 +8,21 @@ import {
   addFlat,
   addMember,
   addSocieties,
-  assignMemberToFlat,
+  assignMembersToFlat,
   checkLoginKeyUnique,
   findBuildingById,
   findFlatById,
   findSocietyById,
   findSocityByName,
-  findUserByIdAndType,
+  getAssignedFlatsUser,
   getBuildings,
   getFlats,
   getSocieties,
   listFlats,
   listSocieties,
   listSocietiesOptions,
+  listVacantFlats,
+  toggleForIsOccupied,
 } from "./socities.model";
 import {
   AddAdminReqBody,
@@ -30,8 +31,8 @@ import {
   AddMemberReqBody,
   AddSocietyReqBody,
   AdminResponse,
+  AssignedFlatOptions,
   AssignMemberReqBody,
-  AssignMemberResponse,
   Building,
   BuildingResponse,
   Flat,
@@ -291,21 +292,9 @@ export const assignMemberController = async (
     buildingId: string;
     flatId: string;
   }
-): Promise<Response<AssignMemberResponse>> => {
+): Promise<Response<void>> => {
   try {
     const userId: string = request.headers.get("userId")!;
-
-    // Check if the user is member
-    const user: User | undefined = await findUserByIdAndType(
-      reqBody.user_id,
-      params.id
-    );
-    if (!user) {
-      return generateResponseJSON(
-        StatusCodes.NOT_FOUND,
-        getMessage("USER_IS_NOT_A_MEMBER")
-      );
-    }
 
     // Check if the society exists
     const society: Societies | undefined = await findSocietyById(params.id);
@@ -336,20 +325,13 @@ export const assignMemberController = async (
       );
     }
 
-    const assignedMember = await assignMemberToFlat(reqBody, params, userId);
+    await assignMembersToFlat(reqBody.user_id, reqBody, params, userId);
 
-    const responseData = {
-      member_name: user.first_name,
-      move_in_date: assignedMember.move_in_date,
-      society_name: society.name,
-      building_name: building.name,
-      flat_number: flat.flat_number,
-    };
+    await toggleForIsOccupied(params.flatId, true);
 
     return generateResponseJSON(
       StatusCodes.OK,
-      getMessage("MEMBER_ASSIGNED_SUCCESSFULLY"),
-      { data: responseData }
+      getMessage("MEMBER_ASSIGNED_SUCCESSFULLY")
     );
   } catch (error: any) {
     socitiesLogger.error("Error in assignMemberController:", error);
@@ -484,6 +466,52 @@ export const getFlatController = async (params: {
 }): Promise<Response<FlatOptions[]>> => {
   try {
     const flats: FlatOptions[] = await listFlats(params);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      flats
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getFlatController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getVacantFlatController = async (params: {
+  id: string;
+  buildingId: string;
+}): Promise<Response<FlatOptions[]>> => {
+  try {
+    const flats: FlatOptions[] = await listVacantFlats(params);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      flats
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getFlatController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getAssignedFlatUserController = async (params: {
+  id: string;
+  buildingId: string;
+}): Promise<Response<AssignedFlatOptions[]>> => {
+  try {
+    const flats: AssignedFlatOptions[] = await getAssignedFlatsUser(params);
 
     return generateResponseJSON(
       StatusCodes.OK,

@@ -77,11 +77,6 @@ export default function Topbar() {
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Box />
         <Box display="flex" alignItems="center" gap={2}>
-          <IconButton>
-            <Badge variant="dot" color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
           <Avatar sx={{ bgcolor: '#1e1ee4' }}>
             {user.first_name.charAt(0).toUpperCase()}
           </Avatar>

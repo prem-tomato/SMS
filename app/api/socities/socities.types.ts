@@ -111,3 +111,12 @@ export type FlatOptions = Pick<
   society_name: string;
   building_name: string;
 };
+
+export type AssignedFlatOptions = Pick<
+  Flat,
+  "id" | "flat_number" | "floor_number" | "is_occupied"
+> & {
+  member_name: string[];
+  society_name: string;
+  building_name: string;
+};

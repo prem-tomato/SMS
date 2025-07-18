@@ -1,5 +1,5 @@
-import { adminType, memberType } from "@/db/utils/enums/enum";
-import { enum as enum_, number, object, string } from "zod";
+import { addRoleType, memberType } from "@/db/utils/enums/enum";
+import { array, enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
   body: object({
@@ -28,7 +28,7 @@ export const addAdminValidation = object({
     id: idValidation,
   }),
   body: object({
-    role: enum_(adminType),
+    role: enum_(addRoleType),
     first_name: string()
       .min(1, "First name is required")
       .max(50, "First name must be less than 50 characters"),
@@ -88,7 +88,7 @@ export const assignMemberValidation = object({
     flatId: idValidation,
   }),
   body: object({
-    user_id: idValidation,
+    user_id: array(idValidation),
     move_in_date: string().date(),
   }),
 });
