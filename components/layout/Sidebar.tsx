@@ -12,6 +12,7 @@ import {
     People,
     Receipt,
     Settings,
+    ExitToApp,
 } from '@mui/icons-material';
 import {
     Avatar,
@@ -21,9 +22,10 @@ import {
     ListItemIcon,
     ListItemText,
     Typography,
+    Divider,
 } from '@mui/material';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 const navItems = [
   { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -43,35 +45,105 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Clear auth token
+    localStorage.removeItem('access_token');
+    // Redirect to login
+    router.push('/auth/login');
+  };
 
   return (
-    <Box width="240px" bgcolor="white" boxShadow={1} p={2} display="flex" flexDirection="column">
+    <Box 
+      width="240px" 
+      bgcolor="white" 
+      boxShadow={1} 
+      p={2} 
+      display="flex" 
+      flexDirection="column"
+      height="100vh"
+    >
+      {/* Logo Section */}
       <Box display="flex" alignItems="center" gap={1} mb={4}>
-        <Avatar sx={{ bgcolor: '#1e1ee4' }}>
-          <Apartment />
-        </Avatar>
-        <Typography fontWeight="bold">SocietyManager</Typography>
+        <Box 
+          sx={{ 
+            bgcolor: '#3f51b5', 
+            borderRadius: 1, 
+            p: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center' 
+          }}
+        >
+          <Apartment sx={{ color: 'white', fontSize: 20 }} />
+        </Box>
+        <Typography fontWeight="bold" fontSize="18px" color="#333">
+          SocietyManager
+        </Typography>
       </Box>
-      <List>
+
+      {/* Navigation Items */}
+      <List sx={{ flex: 1 }}>
         {navItems.map((item) => (
-          <Link key={item.path} href={item.path} passHref>
+          <Link key={item.path} href={item.path} passHref style={{ textDecoration: 'none' }}>
             <ListItem
               sx={{
-                mb: 1,
+                mb: 0.5,
                 borderRadius: 2,
-                bgcolor: pathname === item.path ? '#1e1ee4' : 'transparent',
-                color: pathname === item.path ? 'white' : 'inherit',
-                '&:hover': { bgcolor: '#1e1ee4', color: 'white' },
+                bgcolor: pathname === item.path ? '#3f51b5' : 'transparent',
+                color: pathname === item.path ? 'white' : '#666',
+                cursor: 'pointer',
+                '&:hover': { 
+                  bgcolor: pathname === item.path ? '#3f51b5' : '#f5f5f5',
+                  color: pathname === item.path ? 'white' : '#333'
+                },
               }}
             >
-              <ListItemIcon sx={{ color: pathname === item.path ? 'white' : 'inherit' }}>
+              <ListItemIcon 
+                sx={{ 
+                  color: pathname === item.path ? 'white' : '#666',
+                  minWidth: 40 
+                }}
+              >
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemText 
+                primary={item.label} 
+                primaryTypographyProps={{ 
+                  fontSize: '14px', 
+                  fontWeight: pathname === item.path ? 600 : 400 
+                }}
+              />
             </ListItem>
           </Link>
         ))}
       </List>
+
+      {/* Logout Section */}
+      <Box>
+        <Divider sx={{ mb: 2 }} />
+        <ListItem
+          onClick={handleLogout}
+          sx={{
+            borderRadius: 2,
+            color: '#666',
+            cursor: 'pointer',
+            '&:hover': { 
+              bgcolor: '#f5f5f5',
+              color: '#333'
+            },
+          }}
+        >
+          <ListItemIcon sx={{ color: '#666', minWidth: 40 }}>
+            <ExitToApp />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Logout" 
+            primaryTypographyProps={{ fontSize: '14px' }}
+          />
+        </ListItem>
+      </Box>
     </Box>
   );
 }

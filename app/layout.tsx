@@ -1,5 +1,4 @@
-import MainLayout from "@/components/layout/MainLayout";
-import { Providers } from "@/providers";
+import Providers from "@/providers";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -13,15 +12,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-       <body>
-        <Providers>
-          <MainLayout>{children}</MainLayout>
-        </Providers>
+      <body>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

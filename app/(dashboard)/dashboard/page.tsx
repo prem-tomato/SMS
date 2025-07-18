@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { getAccessToken } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { User } from '../api/auth/auth.types';
+import { getAccessToken } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { User } from "../../api/auth/auth.types";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -11,11 +11,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!token) return router.push('/auth/login');
+    if (!token) return router.push("/auth/login");
 
-    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(res => {
+    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((res) => {
         if (res.data) setUser(res.data);
       });
   }, [router]);
