@@ -104,6 +104,7 @@ export default function AddUserModal({
                 <InputLabel>Role</InputLabel>
                 <Select {...field} label="Role">
                   <MenuItem value="member">Member</MenuItem>
+                  <MenuItem value="admin">Admin</MenuItem>
                 </Select>
                 {errors.role && (
                   <Typography color="error" variant="caption">
