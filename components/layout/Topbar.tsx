@@ -106,18 +106,6 @@ export default function Topbar() {
           <Box />
           
           <Box display="flex" alignItems="center" gap={2}>
-            {/* Notification Icon */}
-            <IconButton
-              size="large"
-              sx={{ 
-                color: '#666',
-                '&:hover': { bgcolor: '#f5f5f5' }
-              }}
-            >
-              <Badge badgeContent={3} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
 
             {/* User Profile Section */}
             <Box 

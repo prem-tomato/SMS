@@ -10,6 +10,7 @@ import {
   addSocieties,
   assignMembersToFlat,
   checkLoginKeyUnique,
+  createNotice,
   findBuildingById,
   findFlatById,
   findSocietyById,
@@ -17,18 +18,21 @@ import {
   getAssignedFlatsUser,
   getBuildings,
   getFlats,
+  getNotices,
   getSocieties,
   listFlats,
   listSocieties,
   listSocietiesOptions,
   listVacantFlats,
   toggleForIsOccupied,
+  toggleNoticeStatus,
 } from "./socities.model";
 import {
   AddAdminReqBody,
   AddBuildingReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
+  AddNoticeReqBody,
   AddSocietyReqBody,
   AdminResponse,
   AssignedFlatOptions,
@@ -39,6 +43,7 @@ import {
   FlatOptions,
   FlatResponse,
   MemberResponse,
+  NoticeResponse,
   Societies,
   SocietyOptions,
 } from "./socities.types";
@@ -520,6 +525,91 @@ export const getAssignedFlatUserController = async (params: {
     );
   } catch (error: any) {
     socitiesLogger.error("Error in getFlatController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const createNoticeController = async (
+  request: Request,
+  reqBody: AddNoticeReqBody,
+  societyId: string
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    await createNotice(reqBody, societyId, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("NOTICE_CREATED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in createNoticeController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getNoticesController = async (
+  societyId: string
+): Promise<Response<NoticeResponse[]>> => {
+  try {
+    const notices: NoticeResponse[] = await getNotices(societyId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      notices
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getNoticesController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const toggleNoticeStatusController = async (
+  id: string,
+  noticeId: string
+): Promise<Response<void>> => {
+  try {
+    const society: Societies | undefined = await findSocietyById(id);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    await toggleNoticeStatus(id, noticeId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("NOTICE_STATUS_TOGGLED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in toggleNoticeStatusController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

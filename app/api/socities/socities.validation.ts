@@ -99,3 +99,30 @@ export const flatResponseValidation = object({
     buildingId: idValidation,
   }),
 });
+
+export const noticeResponseValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+  body: object({
+    title: string()
+      .min(1, "Title is required")
+      .max(100, "Title must be less than 100 characters"),
+    content: string()
+      .min(1, "Content is required")
+      .max(255, "Content must be less than 255 characters"),
+  }),
+});
+
+export const getNoticeValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+});
+
+export const toggleNoticeStatusValidation = object({
+  params: object({
+    id: idValidation,
+    noticeId: idValidation,
+  }),
+});

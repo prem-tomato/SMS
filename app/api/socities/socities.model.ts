@@ -6,6 +6,7 @@ import {
   AddBuildingReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
+  AddNoticeReqBody,
   AddSocietyReqBody,
   AssignedFlatOptions,
   AssignFlatMembers,
@@ -13,6 +14,7 @@ import {
   Building,
   Flat,
   FlatOptions,
+  NoticeResponse,
   Societies,
   SocietyOptions,
 } from "./socities.types";
@@ -473,3 +475,76 @@ export const getAssignedFlatsUser = async (params: {
   }
 };
 
+export const createNotice = async (
+  reqBody: AddNoticeReqBody,
+  societyId: string,
+  createdBy: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      INSERT INTO notices
+      (title, content, society_id, created_by)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `;
+
+    await query(queryText, [
+      reqBody.title,
+      reqBody.content,
+      societyId,
+      createdBy,
+    ]);
+  } catch (error) {
+    throw new Error(`Error creating notice: ${error}`);
+  }
+};
+
+export const getNotices = async (
+  societyId: string
+): Promise<NoticeResponse[]> => {
+  try {
+    const queryText: string = `
+      SELECT 
+        n.id,
+        n.title,
+        n.content,
+        n.created_at,
+        n.status,
+        s.name AS society_name,
+        concat(u.first_name, ' ', u.last_name) AS created_by
+      FROM notices n
+      LEFT JOIN societies s ON s.id = n.society_id
+      LEFT JOIN users u ON u.id = n.created_by
+      WHERE s.id = $1
+    `;
+
+    const res: QueryResult<NoticeResponse> = await query<NoticeResponse>(
+      queryText,
+      [societyId]
+    );
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting notices: ${error}`);
+  }
+};
+
+export const toggleNoticeStatus = async (
+  societyId: string,
+  noticeId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      UPDATE notices
+      SET status = CASE 
+        WHEN status = 'open'::notice_status THEN 'closed'::notice_status 
+        ELSE 'open'::notice_status 
+      END
+      WHERE society_id = $1 AND id = $2
+    `;
+
+    await query(queryText, [societyId, noticeId]);
+  } catch (error) {
+    throw new Error(`Error toggling notice status: ${error}`);
+  }
+};

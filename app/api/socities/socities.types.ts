@@ -7,6 +7,7 @@ import {
   addMemberValidation,
   addSocietyValidation,
   assignMemberValidation,
+  noticeResponseValidation,
 } from "./socities.validation";
 
 export type Societies = {
@@ -122,4 +123,26 @@ export type AssignedFlatOptions = Pick<
   }[];
   society_name: string;
   building_name: string;
+};
+
+export type Notices = {
+  id: string;
+  society_id: string;
+  status: string;
+  title: string;
+  content: string;
+  created_at: string;
+  created_by: string;
+};
+
+export type AddNoticeReqBody = z.infer<
+  typeof noticeResponseValidation.shape.body
+>;
+
+export type NoticeResponse = {
+  data: Pick<Notices, "id" | "title" | "content" | "created_at"> & {
+    society_name: string;
+    created_by: string;
+    status: string;
+  };
 };

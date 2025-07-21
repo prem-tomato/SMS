@@ -1,8 +1,8 @@
 "use client";
 import {
   Apartment,
+  Campaign,
   Dashboard,
-  ExitToApp,
   Face,
   House,
   People,
@@ -10,7 +10,6 @@ import {
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import {
   Box,
-  Divider,
   List,
   ListItem,
   ListItemIcon,
@@ -18,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 const navItems = [
   { label: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
   { label: "Societies", icon: <AccountBalanceIcon />, path: "/societies" },
@@ -27,25 +26,16 @@ const navItems = [
   { label: "Add Member", icon: <Face />, path: "/add-member" },
   { label: "Assign Flat", icon: <House />, path: "/assign-flats" },
 
-  // { label: 'Members', icon: <Face />, path: '/members' },
   // { label: 'Bills', icon: <Receipt />, path: '/bills' },
   // { label: 'Payments', icon: <Payment />, path: '/payments' },
   // { label: 'Complaints', icon: <Chat />, path: '/complaints' },
-  // { label: 'Notices', icon: <Campaign />, path: '/notices' },
+  { label: "Notices", icon: <Campaign />, path: "/notices" },
   // { label: 'Events', icon: <Event />, path: '/events' },
   // { label: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    // Clear auth token
-    localStorage.removeItem("access_token");
-    // Redirect to login
-    router.push("/auth/login");
-  };
 
   return (
     <Box
@@ -117,31 +107,6 @@ export default function Sidebar() {
           </Link>
         ))}
       </List>
-
-      {/* Logout Section */}
-      <Box>
-        <Divider sx={{ mb: 2 }} />
-        <ListItem
-          onClick={handleLogout}
-          sx={{
-            borderRadius: 2,
-            color: "#666",
-            cursor: "pointer",
-            "&:hover": {
-              bgcolor: "#f5f5f5",
-              color: "#333",
-            },
-          }}
-        >
-          <ListItemIcon sx={{ color: "#666", minWidth: 40 }}>
-            <ExitToApp />
-          </ListItemIcon>
-          <ListItemText
-            primary="Logout"
-            primaryTypographyProps={{ fontSize: "14px" }}
-          />
-        </ListItem>
-      </Box>
     </Box>
   );
 }
