@@ -178,6 +178,7 @@ export default function AddFlatModal({
             type="submit"
             variant="contained"
             loading={mutation.isPending}
+            sx={{ bgcolor: "#1e1ee4" }}
           >
             Save Flat
           </CommonButton>

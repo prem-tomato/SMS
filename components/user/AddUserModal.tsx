@@ -17,10 +17,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CountryCode } from "libphonenumber-js/core";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { z } from "zod";
 
-// Define the input schema (what the form receives)
+// Schema
 const inputSchema = z.object({
   role: z.enum(["admin", "member"]),
   first_name: z.string().min(1, "First name required"),
@@ -28,23 +32,16 @@ const inputSchema = z.object({
   login_key: z
     .string()
     .min(1, "Login key required")
-    .regex(/^\d+$/, "Login key must contain only digits")
-    .refine((val) => val.length <= 6, "Login key must be at most 6 digits"),
-  phone: z.string().min(1, "Phone required"),
+    .regex(/^\d+$/, "Login key must be digits")
+    .refine((val) => val.length <= 6, "Max 6 digits"),
+  phone: z
+    .string()
+    .min(1, "Phone required")
+    .refine((val) => isValidPhoneNumber(val), "Invalid phone number"),
 });
 
-// Define the output schema (what gets sent to the API)
-const outputSchema = z.object({
-  role: z.enum(["admin", "member"]),
-  first_name: z.string().min(1, "First name required"),
-  last_name: z.string().min(1, "Last name required"),
-  login_key: z
-    .string()
-    .regex(/^\d+$/, "Login key must contain only digits")
-    .refine((val) => val.length <= 6, "Login key must be at most 6 digits")
-    .refine((val) => Number(val) > 0, "Login key must be a positive number")
-    .transform((val) => Number(val)), // Convert to number for API
-  phone: z.string().min(1, "Phone required"),
+const outputSchema = inputSchema.extend({
+  login_key: z.string().transform((val) => Number(val)),
 });
 
 type FormValues = z.infer<typeof inputSchema>;
@@ -60,6 +57,8 @@ export default function AddUserModal({
   societyId: string;
 }) {
   const queryClient = useQueryClient();
+  const [country, setCountry] = useState<CountryCode>("IN");
+
   const {
     control,
     handleSubmit,
@@ -78,56 +77,23 @@ export default function AddUserModal({
   });
 
   const mutation = useMutation({
-    mutationFn: (data: OutputValues) =>
-      createUser(societyId, data as any),
+    mutationFn: (data: OutputValues) => createUser(societyId, data as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users", societyId] });
       reset();
       onClose();
     },
     onError: (error: any) => {
-      console.log("API Error:", error);
-      
-      // Handle specific API errors
       const errorData = error?.response?.data;
-      const errorMessage = errorData?.message || error?.message;
-      const validationError = errorData?.error?.login_key;
-      
-      if (errorMessage === "login key already exists") {
-        setError("login_key", {
-          type: "manual",
-          message: "This login key already exists. Please use a different one.",
-        });
-      } else if (validationError) {
-        setError("login_key", {
-          type: "manual",
-          message: validationError,
-        });
-      } else if (errorMessage) {
-        setError("login_key", {
-          type: "manual",
-          message: errorMessage,
-        });
+      if (errorData?.message?.includes("login key")) {
+        setError("login_key", { type: "manual", message: errorData.message });
       }
     },
   });
 
   const onSubmit = (data: FormValues) => {
-    // Transform the data before sending to the API
     const result = outputSchema.safeParse(data);
-    if (result.success) {
-      mutation.mutate(result.data);
-    } else {
-      // Handle validation errors
-      result.error.issues.forEach((issue) => {
-        if (issue.path[0] === "login_key") {
-          setError("login_key", {
-            type: "manual",
-            message: issue.message,
-          });
-        }
-      });
-    }
+    if (result.success) mutation.mutate(result.data);
   };
 
   return (
@@ -136,11 +102,9 @@ export default function AddUserModal({
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: { borderRadius: 2 },
-      }}
+      PaperProps={{ sx: { borderRadius: 2 } }}
     >
-      <DialogTitle sx={{ pb: 2 }}>
+      <DialogTitle>
         <Typography variant="h6" fontWeight="bold">
           Add New Member
         </Typography>
@@ -151,28 +115,19 @@ export default function AddUserModal({
 
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 3 }}
         >
-          {/* Role Select */}
+          {/* Role */}
           <Controller
             name="role"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.role}>
+              <FormControl fullWidth>
                 <InputLabel>Role</InputLabel>
-                <Select
-                  {...field}
-                  label="Role"
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                >
+                <Select {...field} label="Role">
                   <MenuItem value="member">Member</MenuItem>
                   <MenuItem value="admin">Admin</MenuItem>
                 </Select>
-                {errors.role && (
-                  <Typography color="error" variant="caption">
-                    {errors.role.message}
-                  </Typography>
-                )}
               </FormControl>
             )}
           />
@@ -185,11 +140,9 @@ export default function AddUserModal({
               <TextField
                 {...field}
                 label="First Name"
-                placeholder="e.g., John"
                 error={!!errors.first_name}
                 helperText={errors.first_name?.message}
                 fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             )}
           />
@@ -202,11 +155,9 @@ export default function AddUserModal({
               <TextField
                 {...field}
                 label="Last Name"
-                placeholder="e.g., Doe"
                 error={!!errors.last_name}
                 helperText={errors.last_name?.message}
                 fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             )}
           />
@@ -218,47 +169,44 @@ export default function AddUserModal({
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Login Key"
-                placeholder="e.g., 123456 (max 6 digits)"
-                type="text"
-                inputProps={{ 
-                  maxLength: 6,
-                  pattern: "[0-9]*"
-                }}
+                label="Login Key (max 6 digits)"
+                inputProps={{ maxLength: 6 }}
                 error={!!errors.login_key}
-                helperText={errors.login_key?.message || "Enter a unique 6-digit number"}
+                helperText={errors.login_key?.message}
                 fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             )}
           />
 
-          {/* Phone */}
+          {/* Phone Input with Country Code */}
           <Controller
             name="phone"
             control={control}
             render={({ field }) => (
-              <TextField
-                {...field}
-                label="Phone"
-                placeholder="e.g., 9876543210"
-                error={!!errors.phone}
-                helperText={errors.phone?.message}
-                fullWidth
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-              />
+              <Box>
+                <PhoneInput
+                  {...field}
+                  defaultCountry={country}
+                  onChange={(val) => field.onChange(val)}
+                  onCountryChange={(country) =>
+                    setCountry(country as CountryCode)
+                  }
+                  international
+                  countryCallingCodeEditable={false}
+                  className="phone-input"
+                />
+                {errors.phone && (
+                  <Typography variant="caption" color="error">
+                    {errors.phone.message}
+                  </Typography>
+                )}
+              </Box>
             )}
           />
         </DialogContent>
 
-        <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button
-            onClick={onClose}
-            disabled={isSubmitting}
-            sx={{ textTransform: "none" }}
-          >
-            Cancel
-          </Button>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={onClose}>Cancel</Button>
           <CommonButton
             type="submit"
             variant="contained"
