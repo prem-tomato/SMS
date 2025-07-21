@@ -4,11 +4,10 @@ import Logger from "./configs/logger";
 const databaseLogger = new Logger('database-connect');
 
 const pool = new Pool({
-    host: process.env.POSTGRES_HOST,
-    port: 5432,
-    user: process.env.POSTGRES_USER,
-    database: process.env.POSTGRES_DB,
-    password: process.env.POSTGRES_PASSWORD,
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 export default pool;
