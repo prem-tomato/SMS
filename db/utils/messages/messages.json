@@ -22,5 +22,6 @@
     "USER_CREATED_SUCCESSFULLY": "user created successfully",
     "SUPER_ADMIN_ROLE_NOT_ALLOWED": "super admin role not allowed",
     "NOTICE_CREATED_SUCCESSFULLY": "notice created successfully",
-    "NOTICE_STATUS_TOGGLED_SUCCESSFULLY": "notice status toggled successfully"
+    "NOTICE_STATUS_TOGGLED_SUCCESSFULLY": "notice status toggled successfully",
+    "ADMIN_DASHBOARD_LISTED_SUCCESSFULLY": "admin dashboard listed successfully"
 }
