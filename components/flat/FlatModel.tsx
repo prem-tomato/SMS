@@ -1,3 +1,4 @@
+import CommonButton from "@/components/common/CommonButton";
 import { createFlat } from "@/services/flats";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -149,18 +150,14 @@ export default function AddFlatModal({
           >
             Cancel
           </Button>
-          <Button
+          <CommonButton
             type="submit"
             variant="contained"
-            disabled={isSubmitting}
-            sx={{
-              textTransform: "none",
-              bgcolor: "#1e1ee4",
-              px: 3,
-            }}
+            loading={mutation.isPending}
+            sx={{ bgcolor: "#1e1ee4" }}
           >
-            {isSubmitting ? "Saving..." : "Save Flat"}
-          </Button>
+            Save Flat
+          </CommonButton>
         </DialogActions>
       </Box>
     </Dialog>

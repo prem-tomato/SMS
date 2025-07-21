@@ -1,4 +1,5 @@
 "use client";
+import CommonButton from "@/components/common/CommonButton";
 import { createUser } from "@/services/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -215,18 +216,14 @@ export default function AddUserModal({
           >
             Cancel
           </Button>
-          <Button
+          <CommonButton
             type="submit"
             variant="contained"
-            disabled={isSubmitting}
-            sx={{
-              textTransform: "none",
-              bgcolor: "#1e1ee4",
-              px: 3,
-            }}
+            loading={mutation.isPending}
+            sx={{ bgcolor: "#1e1ee4" }}
           >
-            {isSubmitting ? "Saving..." : "Save Member"}
-          </Button>
+            Save Member
+          </CommonButton>
         </DialogActions>
       </Box>
     </Dialog>

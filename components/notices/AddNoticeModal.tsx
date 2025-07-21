@@ -14,6 +14,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
+import CommonButton from "../common/CommonButton";
 
 const schema = z.object({
   title: z.string().min(1, "Title required"),
@@ -125,18 +126,14 @@ export default function AddNoticeModal({
           >
             Cancel
           </Button>
-          <Button
+          <CommonButton
             type="submit"
             variant="contained"
-            disabled={isSubmitting}
-            sx={{
-              textTransform: "none",
-              bgcolor: "#1e1ee4",
-              px: 3,
-            }}
+            loading={mutation.isPending}
+            sx={{ bgcolor: "#1e1ee4" }}
           >
-            {isSubmitting ? "Saving..." : "Save Notice"}
-          </Button>
+            Save Notice
+          </CommonButton>
         </DialogActions>
       </Box>
     </Dialog>

@@ -1,6 +1,6 @@
 "use client";
 
-import AssignMemberModal from "@/components/AssignMemberModal";
+import AssignMemberModal from "@/components/assignMember/AssignMemberModal";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import { fetchBuildingsBySociety } from "@/services/building";
 import { fetchAssignedMembers, getVacantFlats } from "@/services/flats";
@@ -157,7 +157,7 @@ export default function AssignFlatsPage() {
             borderRadius: 2,
             border: "1px solid #1e1ee4", // mimic outlined style
             color: "#1e1ee4",
-        }}
+          }}
           onClick={() => setFilterOpen(true)}
         >
           <FilterListIcon />

@@ -1,5 +1,6 @@
 "use client";
 
+import CommonButton from "@/components/common/CommonButton";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import { createBuilding, fetchBuildings } from "@/services/building";
 import { fetchSocietyOptions } from "@/services/societies";
@@ -26,6 +27,7 @@ import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+// ✅ Zod Schemas
 const inputSchema = z.object({
   society_id: z.string().min(1, "Select society"),
   name: z.string().min(1, "Building name is required"),
@@ -63,7 +65,7 @@ export default function BuildingsPage() {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(inputSchema),
     defaultValues: { society_id: "", name: "", total_floors: "" },
@@ -89,7 +91,6 @@ export default function BuildingsPage() {
     }
   };
 
-  // ✅ DataGrid columns
   const columns = useMemo(
     () => [
       { field: "name", headerName: "Building Name", flex: 1 },
@@ -111,6 +112,11 @@ export default function BuildingsPage() {
     ],
     []
   );
+
+  const handleClose = () => {
+    setOpen(false);
+    reset();
+  };
 
   return (
     <Container maxWidth="xl">
@@ -137,22 +143,20 @@ export default function BuildingsPage() {
         </Button>
       </Box>
 
-      {/* ✅ Common DataGrid */}
+      {/* DataGrid */}
       <CommonDataGrid
         rows={buildings}
         columns={columns}
         loading={loadingBuildings}
       />
 
-      {/* Add Building Modal */}
+      {/* Add Building Dialog */}
       <Dialog
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={handleClose}
         fullWidth
         maxWidth="sm"
-        PaperProps={{
-          sx: { borderRadius: 2 },
-        }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ pb: 2 }}>
           <Typography variant="h6" fontWeight="bold">
@@ -165,7 +169,12 @@ export default function BuildingsPage() {
 
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
           <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              pb: 2,
+            }}
           >
             {/* Society Select */}
             <Controller
@@ -200,7 +209,7 @@ export default function BuildingsPage() {
               )}
             />
 
-            {/* Name */}
+            {/* Building Name */}
             <Controller
               name="name"
               control={control}
@@ -242,24 +251,20 @@ export default function BuildingsPage() {
 
           <DialogActions sx={{ p: 3, pt: 1 }}>
             <Button
-              onClick={() => setOpen(false)}
-              disabled={isSubmitting}
+              onClick={handleClose}
+              disabled={mutation.isPending}
               sx={{ textTransform: "none" }}
             >
               Cancel
             </Button>
-            <Button
+            <CommonButton
               type="submit"
               variant="contained"
-              disabled={isSubmitting}
-              sx={{
-                textTransform: "none",
-                bgcolor: "#1e1ee4",
-                px: 3,
-              }}
+              loading={mutation.isPending}
+              sx={{ bgcolor: "#1e1ee4" }}
             >
-              {isSubmitting ? "Saving..." : "Save Building"}
-            </Button>
+              Save Building
+            </CommonButton>
           </DialogActions>
         </Box>
       </Dialog>

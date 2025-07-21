@@ -1,10 +1,10 @@
 "use client";
 
+import CommonButton from "@/components/common/CommonButton";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import { createSociety, fetchSocieties } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
-import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
   Button,
@@ -15,8 +15,6 @@ import {
   DialogTitle,
   TextField,
   Typography,
-  InputAdornment,
-  Paper,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -66,50 +64,56 @@ export default function SocietiesPage() {
   };
 
   const filteredSocieties = useMemo(() => {
-    return societies.filter((s: any) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.city.toLowerCase().includes(search.toLowerCase()) ||
-      s.state.toLowerCase().includes(search.toLowerCase()) ||
-      s.country.toLowerCase().includes(search.toLowerCase())
+    return societies.filter(
+      (s: any) =>
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.city.toLowerCase().includes(search.toLowerCase()) ||
+        s.state.toLowerCase().includes(search.toLowerCase()) ||
+        s.country.toLowerCase().includes(search.toLowerCase())
     );
   }, [societies, search]);
 
   // MUI DataGrid column definitions
   const columns = useMemo(
     () => [
-      { 
-        field: "name", 
-        headerName: "Society Name", 
+      {
+        field: "name",
+        headerName: "Society Name",
         flex: 1,
         minWidth: 200,
       },
-      { 
-        field: "address", 
-        headerName: "Address", 
+      {
+        field: "address",
+        headerName: "Address",
         flex: 1.5,
         minWidth: 250,
       },
-      { 
-        field: "city", 
-        headerName: "City", 
+      {
+        field: "city",
+        headerName: "City",
         flex: 1,
         minWidth: 150,
       },
-      { 
-        field: "state", 
-        headerName: "State", 
+      {
+        field: "state",
+        headerName: "State",
         flex: 1,
         minWidth: 150,
       },
-      { 
-        field: "country", 
-        headerName: "Country", 
+      {
+        field: "country",
+        headerName: "Country",
         flex: 1,
         minWidth: 150,
       },
     ],
     []
   );
+
+  const handleClose = () => {
+    setOpen(false);
+    reset();
+  };
 
   return (
     <Container maxWidth="xl">
@@ -124,9 +128,9 @@ export default function SocietiesPage() {
           variant="outlined"
           startIcon={<AddIcon />}
           onClick={() => setOpen(true)}
-          sx={{ 
-            textTransform: "none", 
-            fontWeight: "bold", 
+          sx={{
+            textTransform: "none",
+            fontWeight: "bold",
             px: 2,
             py: 0.8,
             borderRadius: 2,
@@ -137,20 +141,20 @@ export default function SocietiesPage() {
       </Box>
 
       {/* Enhanced DataGrid with better pagination */}
-        <CommonDataGrid
-          rows={filteredSocieties}
-          columns={columns}
-          loading={isLoading}
-        />
+      <CommonDataGrid
+        rows={filteredSocieties}
+        columns={columns}
+        loading={isLoading}
+      />
 
       {/* Add Society Modal */}
       <Dialog
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={handleClose}
         fullWidth
         maxWidth="sm"
         PaperProps={{
-          sx: { borderRadius: 2 }
+          sx: { borderRadius: 2 },
         }}
       >
         <DialogTitle sx={{ pb: 2 }}>
@@ -161,21 +165,41 @@ export default function SocietiesPage() {
             Fill in the society details below
           </Typography>
         </DialogTitle>
-        
+
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}>
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
+          >
             {[
-              { field: "name", label: "Society Name", placeholder: "e.g., ABC Complex" },
-              { field: "address", label: "Address", placeholder: "e.g., 123 Main Street" },
+              {
+                field: "name",
+                label: "Society Name",
+                placeholder: "e.g., ABC Complex",
+              },
+              {
+                field: "address",
+                label: "Address",
+                placeholder: "e.g., 123 Main Street",
+              },
               { field: "city", label: "City", placeholder: "e.g., Mumbai" },
-              { field: "state", label: "State", placeholder: "e.g., Maharashtra" },
-              { field: "country", label: "Country", placeholder: "e.g., India" },
+              {
+                field: "state",
+                label: "State",
+                placeholder: "e.g., Maharashtra",
+              },
+              {
+                field: "country",
+                label: "Country",
+                placeholder: "e.g., India",
+              },
             ].map(({ field, label, placeholder }) => (
               <TextField
                 key={field}
                 label={label}
                 placeholder={placeholder}
-                {...register(field as keyof FormData)}
+                {...register(field as keyof FormData, {
+                  required: `${label} is required`,
+                })}
                 error={!!errors[field as keyof FormData]}
                 helperText={errors[field as keyof FormData]?.message}
                 fullWidth
@@ -187,27 +211,23 @@ export default function SocietiesPage() {
               />
             ))}
           </DialogContent>
-          
+
           <DialogActions sx={{ p: 3, pt: 1 }}>
-            <Button 
-              onClick={() => setOpen(false)} 
+            <Button
+              onClick={handleClose}
               disabled={isSubmitting}
               sx={{ textTransform: "none" }}
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              disabled={isSubmitting}
-              sx={{ 
-                textTransform: "none",
-                bgcolor: "#1e1ee4",
-                px: 3,
-              }}
+            <CommonButton
+              type="submit"
+              variant="contained"
+              loading={isSubmitting}
+              sx={{ bgcolor: "#1e1ee4" }}
             >
-              {isSubmitting ? "Saving..." : "Save Society"}
-            </Button>
+              Save Building
+            </CommonButton>
           </DialogActions>
         </Box>
       </Dialog>

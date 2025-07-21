@@ -20,6 +20,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
+import CommonButton from "../common/CommonButton";
 
 const schema = z.object({
   user_id: z.array(z.string()).min(1, "Select at least one user"),
@@ -186,18 +187,15 @@ export default function AssignMemberModal({
           >
             Cancel
           </Button>
-          <Button
+
+          <CommonButton
             type="submit"
             variant="contained"
-            disabled={isSubmitting}
-            sx={{
-              textTransform: "none",
-              bgcolor: "#1e1ee4",
-              px: 3,
-            }}
+            loading={mut.isPending}
+            sx={{ bgcolor: "#1e1ee4" }}
           >
-            {isSubmitting ? "Assigning..." : "Assign Members"}
-          </Button>
+            Assign Members
+          </CommonButton>
         </DialogActions>
       </Box>
     </Dialog>
