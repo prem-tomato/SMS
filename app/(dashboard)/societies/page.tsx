@@ -137,21 +137,11 @@ export default function SocietiesPage() {
       </Box>
 
       {/* Enhanced DataGrid with better pagination */}
-      <Paper sx={{ borderRadius: 2, overflow: "hidden" }}>
         <CommonDataGrid
           rows={filteredSocieties}
           columns={columns}
           loading={isLoading}
-          pageSize={10}
-          pageSizeOptions={[5, 10, 20, 50, 100]}
-          height={650}
-          emptyText={
-            search 
-              ? `No societies found matching "${search}"`
-              : "No societies registered yet. Click 'Add Society' to get started."
-          }
         />
-      </Paper>
 
       {/* Add Society Modal */}
       <Dialog
