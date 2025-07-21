@@ -134,7 +134,7 @@ export default function Topbar() {
             >
               <Avatar 
                 sx={{ 
-                  bgcolor: '#3f51b5', 
+                  bgcolor: '#1e1ee4', 
                   width: 32, 
                   height: 32,
                   fontSize: '14px',

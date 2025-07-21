@@ -435,32 +435,41 @@ export const getAssignedFlatsUser = async (params: {
   buildingId: string;
 }): Promise<AssignedFlatOptions[]> => {
   try {
-    const queryText: string = `
+    const queryText = `
       SELECT
         f.id,
         f.flat_number,
         f.floor_number,
         f.is_occupied,
-        u.first_name,
-        u.last_name,
         b.name AS building_name,
-        societies.name AS society_name
+        societies.name AS society_name,
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'first_name', u.first_name,
+              'last_name', u.last_name
+            )
+          ) FILTER (WHERE u.id IS NOT NULL),
+          '[]'
+        ) AS members
       FROM flats f
       LEFT JOIN buildings b ON b.id = f.building_id
       LEFT JOIN societies ON societies.id = f.society_id
       LEFT JOIN members m ON m.flat_id = f.id
       LEFT JOIN users u ON u.id = m.user_id
       WHERE f.society_id = $1 AND f.building_id = $2 AND f.is_occupied = true
+      GROUP BY f.id, f.flat_number, f.floor_number, f.is_occupied, b.name, societies.name
+      ORDER BY f.floor_number, f.flat_number
     `;
 
-    const res: QueryResult<AssignedFlatOptions> =
-      await query<AssignedFlatOptions>(queryText, [
-        params.id,
-        params.buildingId,
-      ]);
+    const res = await query<AssignedFlatOptions>(queryText, [
+      params.id,
+      params.buildingId,
+    ]);
 
     return res.rows;
   } catch (error) {
     throw new Error(`Error getting assigned flats: ${error}`);
   }
 };
+

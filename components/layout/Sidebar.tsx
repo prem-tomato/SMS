@@ -61,7 +61,7 @@ export default function Sidebar() {
       <Box display="flex" alignItems="center" gap={1} mb={4}>
         <Box
           sx={{
-            bgcolor: "#3f51b5",
+            bgcolor: "#1e1ee4",
             borderRadius: 1,
             p: 1,
             display: "flex",
@@ -89,11 +89,11 @@ export default function Sidebar() {
               sx={{
                 mb: 0.5,
                 borderRadius: 2,
-                bgcolor: pathname === item.path ? "#3f51b5" : "transparent",
+                bgcolor: pathname === item.path ? "#1e1ee4" : "transparent",
                 color: pathname === item.path ? "white" : "#666",
                 cursor: "pointer",
                 "&:hover": {
-                  bgcolor: pathname === item.path ? "#3f51b5" : "#f5f5f5",
+                  bgcolor: pathname === item.path ? "#1e1ee4" : "#f5f5f5",
                   color: pathname === item.path ? "white" : "#333",
                 },
               }}

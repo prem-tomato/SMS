@@ -1,15 +1,14 @@
-'use client';
+"use client";
 
-import { createBuilding, fetchBuildings } from '@/services/building';
-import { fetchSocietyOptions } from '@/services/societies';
-import { zodResolver } from '@hookform/resolvers/zod';
-import AddIcon from '@mui/icons-material/Add';
-import BusinessIcon from '@mui/icons-material/Business';
+import CommonDataGrid from "@/components/common/CommonDataGrid";
+import { createBuilding, fetchBuildings } from "@/services/building";
+import { fetchSocietyOptions } from "@/services/societies";
+import { zodResolver } from "@hookform/resolvers/zod";
+import AddIcon from "@mui/icons-material/Add";
 import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -17,32 +16,29 @@ import {
   DialogTitle,
   FormControl,
   InputLabel,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   MenuItem,
   Select,
   TextField,
   Typography,
-} from '@mui/material';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
+} from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 const inputSchema = z.object({
-  society_id: z.string().min(1, 'Select society'),
-  name: z.string().min(1, 'Building name is required'),
-  total_floors: z.string().min(1, 'Total floors is required'),
+  society_id: z.string().min(1, "Select society"),
+  name: z.string().min(1, "Building name is required"),
+  total_floors: z.string().min(1, "Total floors is required"),
 });
 
 const outputSchema = z.object({
-  society_id: z.string().min(1, 'Select society'),
-  name: z.string().min(1, 'Building name is required'),
-  total_floors: z.string()
-    .transform(val => Number(val))
-    .refine(val => val > 0, 'At least one floor required'),
+  society_id: z.string().min(1, "Select society"),
+  name: z.string().min(1, "Building name is required"),
+  total_floors: z
+    .string()
+    .transform((val) => Number(val))
+    .refine((val) => val > 0, "At least one floor required"),
 });
 
 type FormValues = z.infer<typeof inputSchema>;
@@ -51,21 +47,26 @@ type OutputValues = z.infer<typeof outputSchema>;
 export default function BuildingsPage() {
   const queryClient = useQueryClient();
 
-  const { data: buildings, isLoading: loadingBuildings } = useQuery({
-    queryKey: ['buildings'],
+  const { data: buildings = [], isLoading: loadingBuildings } = useQuery({
+    queryKey: ["buildings"],
     queryFn: fetchBuildings,
   });
 
-  const { data: societies, isLoading: loadingSocieties } = useQuery({
-    queryKey: ['societies'],
+  const { data: societies = [], isLoading: loadingSocieties } = useQuery({
+    queryKey: ["societies"],
     queryFn: fetchSocietyOptions,
   });
 
   const [open, setOpen] = useState(false);
 
-  const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
     resolver: zodResolver(inputSchema),
-    defaultValues: { society_id: '', name: '', total_floors: '' },
+    defaultValues: { society_id: "", name: "", total_floors: "" },
   });
 
   const mutation = useMutation({
@@ -75,7 +76,7 @@ export default function BuildingsPage() {
         total_floors: data.total_floors,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      queryClient.invalidateQueries({ queryKey: ["buildings"] });
       setOpen(false);
       reset();
     },
@@ -88,43 +89,73 @@ export default function BuildingsPage() {
     }
   };
 
+  // ✅ DataGrid columns
+  const columns = useMemo(
+    () => [
+      { field: "name", headerName: "Building Name", flex: 1 },
+      { field: "society_name", headerName: "Society", flex: 1 },
+      { field: "total_floors", headerName: "Total Floors", flex: 1 },
+      {
+        field: "action_by",
+        headerName: "Action By",
+        flex: 1,
+        renderCell: (params: any) => (
+          <Chip
+            label={params.value}
+            size="small"
+            color="primary"
+            sx={{ fontSize: "0.75rem" }}
+          />
+        ),
+      },
+    ],
+    []
+  );
+
   return (
-    <Container maxWidth="md" sx={{ py: 5 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" fontWeight="bold">Buildings</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+    <Container maxWidth="xl">
+      {/* Header */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
+        <Button
+          variant="outlined"
+          startIcon={<AddIcon />}
+          onClick={() => setOpen(true)}
+          sx={{ 
+            textTransform: "none", 
+            fontWeight: "bold", 
+            px: 2,
+            py: 0.8,
+            borderRadius: 2,
+          }}
+        >
           Add Building
         </Button>
       </Box>
 
-      {loadingBuildings ? (
-        <Box display="flex" justifyContent="center" my={4}><CircularProgress /></Box>
-      ) : (
-        <List sx={{ bgcolor: 'white', borderRadius: 2 }}>
-          {buildings?.map((b: any, i: number) => (
-            <ListItem key={i} divider>
-              <ListItemIcon><BusinessIcon color="primary" /></ListItemIcon>
-              <ListItemText
-                primary={<Typography fontWeight="bold">{b.name}</Typography>}
-                secondary={
-                  <>
-                    <Typography variant="body2" color="text.secondary">
-                      {b.society_name} • {b.total_floors} Floors
-                    </Typography>
-                    <Chip label={`Action by: ${b.action_by}`} size="small" sx={{ mt: 1 }} />
-                  </>
-                }
-              />
-            </ListItem>
-          ))}
-        </List>
-      )}
+      {/* ✅ Common DataGrid */}
+      <CommonDataGrid
+        rows={buildings}
+        columns={columns}
+        loading={loadingBuildings}
+      />
 
       {/* Add Building Modal */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>Add Building</DialogTitle>
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          >
             <Controller
               name="society_id"
               control={control}
@@ -135,13 +166,17 @@ export default function BuildingsPage() {
                     {loadingSocieties ? (
                       <MenuItem disabled>Loading...</MenuItem>
                     ) : (
-                      societies?.map((s: any) => (
-                        <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                      societies.map((s: any) => (
+                        <MenuItem key={s.id} value={s.id}>
+                          {s.name}
+                        </MenuItem>
                       ))
                     )}
                   </Select>
                   {errors.society_id && (
-                    <Typography color="error" variant="caption">{errors.society_id.message}</Typography>
+                    <Typography color="error" variant="caption">
+                      {errors.society_id.message}
+                    </Typography>
                   )}
                 </FormControl>
               )}
@@ -175,9 +210,11 @@ export default function BuildingsPage() {
             />
           </DialogContent>
           <DialogActions sx={{ pr: 3, pb: 2 }}>
-            <Button onClick={() => setOpen(false)} disabled={isSubmitting}>Cancel</Button>
+            <Button onClick={() => setOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
             <Button type="submit" variant="contained" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
+              {isSubmitting ? "Saving..." : "Save"}
             </Button>
           </DialogActions>
         </Box>

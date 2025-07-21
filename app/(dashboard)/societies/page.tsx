@@ -1,37 +1,34 @@
 "use client";
 
+import CommonDataGrid from "@/components/common/CommonDataGrid";
 import { createSociety, fetchSocieties } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
-import ApartmentIcon from "@mui/icons-material/Apartment";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
   Button,
-  CircularProgress,
   Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   TextField,
   Typography,
+  InputAdornment,
+  Paper,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const schema = z.object({
-  name: z.string().min(1),
-  address: z.string().min(1),
-  city: z.string().min(1),
-  state: z.string().min(1),
-  country: z.string().min(1),
+  name: z.string().min(1, "Society name is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  country: z.string().min(1, "Country is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -68,113 +65,158 @@ export default function SocietiesPage() {
     await createMutation(data);
   };
 
-  const filteredSocieties = societies.filter((s: any) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
+  const filteredSocieties = useMemo(() => {
+    return societies.filter((s: any) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.city.toLowerCase().includes(search.toLowerCase()) ||
+      s.state.toLowerCase().includes(search.toLowerCase()) ||
+      s.country.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [societies, search]);
+
+  // MUI DataGrid column definitions
+  const columns = useMemo(
+    () => [
+      { 
+        field: "name", 
+        headerName: "Society Name", 
+        flex: 1,
+        minWidth: 200,
+      },
+      { 
+        field: "address", 
+        headerName: "Address", 
+        flex: 1.5,
+        minWidth: 250,
+      },
+      { 
+        field: "city", 
+        headerName: "City", 
+        flex: 1,
+        minWidth: 150,
+      },
+      { 
+        field: "state", 
+        headerName: "State", 
+        flex: 1,
+        minWidth: 150,
+      },
+      { 
+        field: "country", 
+        headerName: "Country", 
+        flex: 1,
+        minWidth: 150,
+      },
+    ],
+    []
   );
 
   return (
-    <Container maxWidth="md" sx={{ py: 5 }}>
+    <Container maxWidth="xl">
+      {/* Header */}
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mb={3}
+        mb={2}
       >
-        <Box>
-          <Typography variant="h4" fontWeight="bold">
-            Societies
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Manage all societies in your network
-          </Typography>
-        </Box>
         <Button
-          variant="contained"
+          variant="outlined"
           startIcon={<AddIcon />}
           onClick={() => setOpen(true)}
-          sx={{ textTransform: "none", fontWeight: "bold", bgcolor: "#1e1ee4" }}
+          sx={{ 
+            textTransform: "none", 
+            fontWeight: "bold", 
+            px: 2,
+            py: 0.8,
+            borderRadius: 2,
+          }}
         >
           Add Society
         </Button>
       </Box>
 
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" mt={4}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          {filteredSocieties.length === 0 ? (
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              align="center"
-              sx={{ p: 3 }}
-            >
-              No societies found.
-            </Typography>
-          ) : (
-            <List sx={{ bgcolor: "background.paper", borderRadius: 2 }}>
-              {filteredSocieties.map((society: any) => (
-                <ListItem key={society.id} divider>
-                  <ListItemIcon>
-                    <ApartmentIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Typography fontWeight="bold">{society.name}</Typography>
-                    }
-                    secondary={
-                      <>
-                        <Typography variant="body2" color="text.secondary">
-                          <LocationOnIcon fontSize="small" sx={{ mr: 0.5 }} />
-                          {society.address}, {society.city}, {society.state},{" "}
-                          {society.country}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Created At:{" "}
-                          {society.created_at
-                            ? new Date(society.created_at).toLocaleDateString()
-                            : "N/A"}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          )}
-        </>
-      )}
+      {/* Enhanced DataGrid with better pagination */}
+      <Paper sx={{ borderRadius: 2, overflow: "hidden" }}>
+        <CommonDataGrid
+          rows={filteredSocieties}
+          columns={columns}
+          loading={isLoading}
+          pageSize={10}
+          pageSizeOptions={[5, 10, 20, 50, 100]}
+          height={650}
+          emptyText={
+            search 
+              ? `No societies found matching "${search}"`
+              : "No societies registered yet. Click 'Add Society' to get started."
+          }
+        />
+      </Paper>
 
-      {/* Modal */}
+      {/* Add Society Modal */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          sx: { borderRadius: 2 }
+        }}
       >
-        <DialogTitle>Add New Society</DialogTitle>
+        <DialogTitle sx={{ pb: 2 }}>
+          <Typography variant="h6" fontWeight="bold">
+            Add New Society
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Fill in the society details below
+          </Typography>
+        </DialogTitle>
+        
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
-            {["name", "address", "city", "state", "country"].map((field) => (
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}>
+            {[
+              { field: "name", label: "Society Name", placeholder: "e.g., ABC Complex" },
+              { field: "address", label: "Address", placeholder: "e.g., 123 Main Street" },
+              { field: "city", label: "City", placeholder: "e.g., Mumbai" },
+              { field: "state", label: "State", placeholder: "e.g., Maharashtra" },
+              { field: "country", label: "Country", placeholder: "e.g., India" },
+            ].map(({ field, label, placeholder }) => (
               <TextField
                 key={field}
-                label={field.charAt(0).toUpperCase() + field.slice(1)}
+                label={label}
+                placeholder={placeholder}
                 {...register(field as keyof FormData)}
                 error={!!errors[field as keyof FormData]}
                 helperText={errors[field as keyof FormData]?.message}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                  },
+                }}
               />
             ))}
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpen(false)} disabled={isSubmitting}>
+          
+          <DialogActions sx={{ p: 3, pt: 1 }}>
+            <Button 
+              onClick={() => setOpen(false)} 
+              disabled={isSubmitting}
+              sx={{ textTransform: "none" }}
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="contained" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save"}
+            <Button 
+              type="submit" 
+              variant="contained" 
+              disabled={isSubmitting}
+              sx={{ 
+                textTransform: "none",
+                bgcolor: "#1e1ee4",
+                px: 3,
+              }}
+            >
+              {isSubmitting ? "Saving..." : "Save Society"}
             </Button>
           </DialogActions>
         </Box>

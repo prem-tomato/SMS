@@ -9,7 +9,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Sidebar />
       <Box flexGrow={1} display="flex" flexDirection="column">
         <Topbar />
-        <Box component="main" flexGrow={1} bgcolor="#f8f9fb" p={3} overflow="auto">
+        <Box component="main" flexGrow={1} bgcolor="#f8f9fb" p={2} overflow="auto">
           {children}
         </Box>
       </Box>
