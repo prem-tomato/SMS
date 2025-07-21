@@ -125,9 +125,9 @@ export default function BuildingsPage() {
           variant="outlined"
           startIcon={<AddIcon />}
           onClick={() => setOpen(true)}
-          sx={{ 
-            textTransform: "none", 
-            fontWeight: "bold", 
+          sx={{
+            textTransform: "none",
+            fontWeight: "bold",
             px: 2,
             py: 0.8,
             borderRadius: 2,
@@ -150,19 +150,37 @@ export default function BuildingsPage() {
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{
+          sx: { borderRadius: 2 },
+        }}
       >
-        <DialogTitle>Add Building</DialogTitle>
+        <DialogTitle sx={{ pb: 2 }}>
+          <Typography variant="h6" fontWeight="bold">
+            Add New Building
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Fill in the building details below
+          </Typography>
+        </DialogTitle>
+
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
           <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
           >
+            {/* Society Select */}
             <Controller
               name="society_id"
               control={control}
               render={({ field }) => (
                 <FormControl fullWidth error={!!errors.society_id}>
                   <InputLabel>Society</InputLabel>
-                  <Select {...field} label="Society">
+                  <Select
+                    {...field}
+                    label="Society"
+                    sx={{
+                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                    }}
+                  >
                     {loadingSocieties ? (
                       <MenuItem disabled>Loading...</MenuItem>
                     ) : (
@@ -181,6 +199,8 @@ export default function BuildingsPage() {
                 </FormControl>
               )}
             />
+
+            {/* Name */}
             <Controller
               name="name"
               control={control}
@@ -188,12 +208,18 @@ export default function BuildingsPage() {
                 <TextField
                   {...field}
                   label="Building Name"
+                  placeholder="e.g., A Wing"
                   error={!!errors.name}
                   helperText={errors.name?.message}
                   fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
                 />
               )}
             />
+
+            {/* Total Floors */}
             <Controller
               name="total_floors"
               control={control}
@@ -201,20 +227,38 @@ export default function BuildingsPage() {
                 <TextField
                   {...field}
                   label="Total Floors"
+                  placeholder="e.g., 10"
                   type="number"
                   error={!!errors.total_floors}
                   helperText={errors.total_floors?.message}
                   fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
                 />
               )}
             />
           </DialogContent>
-          <DialogActions sx={{ pr: 3, pb: 2 }}>
-            <Button onClick={() => setOpen(false)} disabled={isSubmitting}>
+
+          <DialogActions sx={{ p: 3, pt: 1 }}>
+            <Button
+              onClick={() => setOpen(false)}
+              disabled={isSubmitting}
+              sx={{ textTransform: "none" }}
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="contained" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save"}
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting}
+              sx={{
+                textTransform: "none",
+                bgcolor: "#1e1ee4",
+                px: 3,
+              }}
+            >
+              {isSubmitting ? "Saving..." : "Save Building"}
             </Button>
           </DialogActions>
         </Box>

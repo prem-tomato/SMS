@@ -84,12 +84,29 @@ export default function AssignMemberModal({
       : user?.name || user?.email || `User ${user.id}`;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Assign Members</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 },
+      }}
+    >
+      <DialogTitle sx={{ pb: 2 }}>
+        <Typography variant="h6" fontWeight="bold">
+          Assign Members
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Select members and their move-in date
+        </Typography>
+      </DialogTitle>
+
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
         >
+          {/* Members Multi-Select */}
           <Controller
             name="user_id"
             control={control}
@@ -99,7 +116,9 @@ export default function AssignMemberModal({
                 <Select
                   {...field}
                   multiple
-                  input={<OutlinedInput label="Members" />}
+                  input={
+                    <OutlinedInput label="Members" sx={{ borderRadius: 2 }} />
+                  }
                   renderValue={(selected) => (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                       {selected.map((value) => {
@@ -114,6 +133,9 @@ export default function AssignMemberModal({
                       })}
                     </Box>
                   )}
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
                 >
                   {users.length > 0 ? (
                     users.map((user) => (
@@ -133,6 +155,8 @@ export default function AssignMemberModal({
               </FormControl>
             )}
           />
+
+          {/* Move-in Date */}
           <Controller
             name="move_in_date"
             control={control}
@@ -142,19 +166,37 @@ export default function AssignMemberModal({
                 label="Move-in Date"
                 type="date"
                 InputLabelProps={{ shrink: true }}
+                placeholder="Select date"
                 error={!!errors.move_in_date}
                 helperText={errors.move_in_date?.message}
                 fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
               />
             )}
           />
         </DialogContent>
-        <DialogActions sx={{ pr: 3, pb: 2 }}>
-          <Button onClick={onClose} disabled={isSubmitting}>
+
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            onClick={onClose}
+            disabled={isSubmitting}
+            sx={{ textTransform: "none" }}
+          >
             Cancel
           </Button>
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? "Assigning..." : "Assign"}
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isSubmitting}
+            sx={{
+              textTransform: "none",
+              bgcolor: "#1e1ee4",
+              px: 3,
+            }}
+          >
+            {isSubmitting ? "Assigning..." : "Assign Members"}
           </Button>
         </DialogActions>
       </Box>

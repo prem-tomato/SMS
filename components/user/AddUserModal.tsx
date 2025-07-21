@@ -70,10 +70,11 @@ export default function AddUserModal({
   });
 
   const mutation = useMutation({
-    mutationFn: (data: OutputValues) => createUser(societyId, {
-      ...data,
-      login_key: data.login_key as any // Type assertion to bypass the type check
-    }),
+    mutationFn: (data: OutputValues) =>
+      createUser(societyId, {
+        ...data,
+        login_key: data.login_key as any, // Type assertion to bypass the type check
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users", societyId] });
       reset();
@@ -90,19 +91,40 @@ export default function AddUserModal({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add Member</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: { borderRadius: 2 },
+      }}
+    >
+      <DialogTitle sx={{ pb: 2 }}>
+        <Typography variant="h6" fontWeight="bold">
+          Add New Member
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Enter member details below
+        </Typography>
+      </DialogTitle>
+
       <Box component="form" onSubmit={handleSubmit(onSubmit)}>
         <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
         >
+          {/* Role Select */}
           <Controller
             name="role"
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.role}>
                 <InputLabel>Role</InputLabel>
-                <Select {...field} label="Role">
+                <Select
+                  {...field}
+                  label="Role"
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+                >
                   <MenuItem value="member">Member</MenuItem>
                   <MenuItem value="admin">Admin</MenuItem>
                 </Select>
@@ -114,6 +136,8 @@ export default function AddUserModal({
               </FormControl>
             )}
           />
+
+          {/* First Name */}
           <Controller
             name="first_name"
             control={control}
@@ -121,12 +145,16 @@ export default function AddUserModal({
               <TextField
                 {...field}
                 label="First Name"
+                placeholder="e.g., John"
                 error={!!errors.first_name}
                 helperText={errors.first_name?.message}
                 fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             )}
           />
+
+          {/* Last Name */}
           <Controller
             name="last_name"
             control={control}
@@ -134,12 +162,16 @@ export default function AddUserModal({
               <TextField
                 {...field}
                 label="Last Name"
+                placeholder="e.g., Doe"
                 error={!!errors.last_name}
                 helperText={errors.last_name?.message}
                 fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             )}
           />
+
+          {/* Login Key */}
           <Controller
             name="login_key"
             control={control}
@@ -147,13 +179,17 @@ export default function AddUserModal({
               <TextField
                 {...field}
                 label="Login Key"
+                placeholder="e.g., 123456"
                 type="number"
                 error={!!errors.login_key}
                 helperText={errors.login_key?.message}
                 fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             )}
           />
+
+          {/* Phone */}
           <Controller
             name="phone"
             control={control}
@@ -161,19 +197,35 @@ export default function AddUserModal({
               <TextField
                 {...field}
                 label="Phone"
+                placeholder="e.g., 9876543210"
                 error={!!errors.phone}
                 helperText={errors.phone?.message}
                 fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             )}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} disabled={isSubmitting}>
+
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            onClick={onClose}
+            disabled={isSubmitting}
+            sx={{ textTransform: "none" }}
+          >
             Cancel
           </Button>
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save"}
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isSubmitting}
+            sx={{
+              textTransform: "none",
+              bgcolor: "#1e1ee4",
+              px: 3,
+            }}
+          >
+            {isSubmitting ? "Saving..." : "Save Member"}
           </Button>
         </DialogActions>
       </Box>
