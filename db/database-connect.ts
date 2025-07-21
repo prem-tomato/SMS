@@ -9,11 +9,7 @@ const pool = new Pool({
   // user: process.env.POSTGRES_USER,
   // database: process.env.POSTGRES_DB,
   // password: process.env.POSTGRES_PASSWORD,
-  host: process.env.PGHOST,
-  port: Number(process.env.PGPORT),
-  user: process.env.PGUSER,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false,
   },
