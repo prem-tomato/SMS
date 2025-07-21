@@ -15,10 +15,15 @@ import {
   DialogTitle,
   TextField,
   Typography,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  FormHelperText,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 
 const schema = z.object({
@@ -30,6 +35,19 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
+
+const COUNTRIES = [
+  { value: "India", label: "India" },
+  { value: "United States", label: "United States" },
+  { value: "United Kingdom", label: "United Kingdom" },
+  { value: "Canada", label: "Canada" },
+  { value: "Australia", label: "Australia" },
+  { value: "Germany", label: "Germany" },
+  { value: "France", label: "France" },
+  { value: "Japan", label: "Japan" },
+  { value: "Singapore", label: "Singapore" },
+  { value: "UAE", label: "United Arab Emirates" },
+];
 
 export default function SocietiesPage() {
   const [search, setSearch] = useState("");
@@ -45,9 +63,13 @@ export default function SocietiesPage() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      country: "",
+    },
   });
 
   const { mutateAsync: createMutation } = useMutation({
@@ -170,6 +192,7 @@ export default function SocietiesPage() {
           <DialogContent
             sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
           >
+            {/* Text Fields */}
             {[
               {
                 field: "name",
@@ -186,11 +209,6 @@ export default function SocietiesPage() {
                 field: "state",
                 label: "State",
                 placeholder: "e.g., Maharashtra",
-              },
-              {
-                field: "country",
-                label: "Country",
-                placeholder: "e.g., India",
               },
             ].map(({ field, label, placeholder }) => (
               <TextField
@@ -210,6 +228,46 @@ export default function SocietiesPage() {
                 }}
               />
             ))}
+
+            {/* Country Dropdown */}
+            <FormControl
+              fullWidth
+              error={!!errors.country}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            >
+              <InputLabel id="country-label">Country</InputLabel>
+              <Controller
+                name="country"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    labelId="country-label"
+                    label="Country"
+                    {...field}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                        },
+                      },
+                    }}
+                  >
+                    {COUNTRIES.map((country) => (
+                      <MenuItem key={country.value} value={country.value}>
+                        {country.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors.country && (
+                <FormHelperText>{errors.country.message}</FormHelperText>
+              )}
+            </FormControl>
           </DialogContent>
 
           <DialogActions sx={{ p: 3, pt: 1 }}>

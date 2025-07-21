@@ -75,9 +75,7 @@ export const addFlatValidation = object({
     flat_number: string()
       .min(1, "Flat number is required")
       .max(10, "Flat number must be less than 10 characters"),
-    floor_number: number()
-      .int("Floor number must be an integer")
-      .min(1, "Floor number must be at least 1"),
+    floor_number: number(),
   }),
 });
 

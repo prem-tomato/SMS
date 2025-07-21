@@ -25,7 +25,11 @@ const inputSchema = z.object({
   role: z.enum(["admin", "member"]),
   first_name: z.string().min(1, "First name required"),
   last_name: z.string().min(1, "Last name required"),
-  login_key: z.string().min(1, "Login key required"),
+  login_key: z
+    .string()
+    .min(1, "Login key required")
+    .regex(/^\d+$/, "Login key must contain only digits")
+    .refine((val) => val.length <= 6, "Login key must be at most 6 digits"),
   phone: z.string().min(1, "Phone required"),
 });
 
@@ -36,8 +40,10 @@ const outputSchema = z.object({
   last_name: z.string().min(1, "Last name required"),
   login_key: z
     .string()
-    .transform((val) => Number(val))
-    .refine((val) => val > 0, "Login key must be a positive number"),
+    .regex(/^\d+$/, "Login key must contain only digits")
+    .refine((val) => val.length <= 6, "Login key must be at most 6 digits")
+    .refine((val) => Number(val) > 0, "Login key must be a positive number")
+    .transform((val) => Number(val)), // Convert to number for API
   phone: z.string().min(1, "Phone required"),
 });
 
@@ -58,6 +64,7 @@ export default function AddUserModal({
     control,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(inputSchema),
@@ -72,14 +79,36 @@ export default function AddUserModal({
 
   const mutation = useMutation({
     mutationFn: (data: OutputValues) =>
-      createUser(societyId, {
-        ...data,
-        login_key: data.login_key as any, // Type assertion to bypass the type check
-      }),
+      createUser(societyId, data as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users", societyId] });
       reset();
       onClose();
+    },
+    onError: (error: any) => {
+      console.log("API Error:", error);
+      
+      // Handle specific API errors
+      const errorData = error?.response?.data;
+      const errorMessage = errorData?.message || error?.message;
+      const validationError = errorData?.error?.login_key;
+      
+      if (errorMessage === "login key already exists") {
+        setError("login_key", {
+          type: "manual",
+          message: "This login key already exists. Please use a different one.",
+        });
+      } else if (validationError) {
+        setError("login_key", {
+          type: "manual",
+          message: validationError,
+        });
+      } else if (errorMessage) {
+        setError("login_key", {
+          type: "manual",
+          message: errorMessage,
+        });
+      }
     },
   });
 
@@ -88,6 +117,16 @@ export default function AddUserModal({
     const result = outputSchema.safeParse(data);
     if (result.success) {
       mutation.mutate(result.data);
+    } else {
+      // Handle validation errors
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0] === "login_key") {
+          setError("login_key", {
+            type: "manual",
+            message: issue.message,
+          });
+        }
+      });
     }
   };
 
@@ -180,10 +219,14 @@ export default function AddUserModal({
               <TextField
                 {...field}
                 label="Login Key"
-                placeholder="e.g., 123456"
-                type="number"
+                placeholder="e.g., 123456 (max 6 digits)"
+                type="text"
+                inputProps={{ 
+                  maxLength: 6,
+                  pattern: "[0-9]*"
+                }}
                 error={!!errors.login_key}
-                helperText={errors.login_key?.message}
+                helperText={errors.login_key?.message || "Enter a unique 6-digit number"}
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />

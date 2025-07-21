@@ -264,6 +264,13 @@ export const addFlatController = async (
       );
     }
 
+    if (reqBody.floor_number > building.total_floors) {
+      return generateResponseJSON(
+        StatusCodes.BAD_REQUEST,
+        `Floor number ${reqBody.floor_number} is greater than total floors ${building.total_floors}`
+      );
+    }
+
     const flat = await addFlat(reqBody, params.buildingId, params.id, userId);
 
     const responseData = {
