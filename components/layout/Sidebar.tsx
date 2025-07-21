@@ -100,7 +100,6 @@ export default function Sidebar() {
                 primary={item.label}
                 primaryTypographyProps={{
                   fontSize: "14px",
-                  fontWeight: pathname === item.path ? 600 : 400,
                 }}
               />
             </ListItem>

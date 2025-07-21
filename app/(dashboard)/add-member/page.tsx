@@ -79,10 +79,11 @@ export default function UsersPage() {
               startIcon={<AddIcon />}
               sx={{
                 textTransform: "none",
-                fontWeight: "bold",
                 px: 2,
                 py: 0.8,
                 borderRadius: 2,
+                border: "1px solid #1e1ee4", // mimic outlined style
+                color: "#1e1ee4",
               }}
               onClick={() => setModalOpen(true)}
             >

@@ -97,7 +97,7 @@ export default function NoticesPage() {
           });
         },
       },
-      
+
       {
         field: "actions",
         headerName: "Actions",
@@ -138,10 +138,11 @@ export default function NoticesPage() {
               onClick={() => setAddModal(true)}
               sx={{
                 textTransform: "none",
-                fontWeight: "bold",
                 px: 2,
                 py: 0.8,
                 borderRadius: 2,
+                border: "1px solid #1e1ee4", // mimic outlined style
+                color: "#1e1ee4",
               }}
             >
               New Notice

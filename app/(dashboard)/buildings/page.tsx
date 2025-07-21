@@ -133,7 +133,6 @@ export default function BuildingsPage() {
           onClick={() => setOpen(true)}
           sx={{
             textTransform: "none",
-            fontWeight: "bold",
             px: 2,
             py: 0.8,
             borderRadius: 2,

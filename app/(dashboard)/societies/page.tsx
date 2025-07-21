@@ -152,7 +152,6 @@ export default function SocietiesPage() {
           onClick={() => setOpen(true)}
           sx={{
             textTransform: "none",
-            fontWeight: "bold",
             px: 2,
             py: 0.8,
             borderRadius: 2,
