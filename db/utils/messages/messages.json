@@ -25,5 +25,6 @@
     "NOTICE_STATUS_TOGGLED_SUCCESSFULLY": "notice status toggled successfully",
     "ADMIN_DASHBOARD_LISTED_SUCCESSFULLY": "admin dashboard listed successfully",
     "END_DATE_UPDATED_SUCCESSFULLY": "end date updated successfully",
-    "NOT_ALLOWED_TO_UPDATE_END_DATE": "not allowed to update end date"
+    "NOT_ALLOWED_TO_UPDATE_END_DATE": "not allowed to update end date",
+    "SOCIETY_SUBSCRIPTION_ENDED": "society subscription ended"
 }

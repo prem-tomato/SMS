@@ -5,7 +5,7 @@ import { loginValidation } from "./auth.validation";
 export type User = {
   id: string;
   role: (typeof userRoleType)[keyof typeof userRoleType];
-  socitey_id: string;
+  society_id: string;
   first_name: string;
   last_name: string;
   login_key: number;
@@ -22,6 +22,6 @@ export type LoginResponse = {
   role: string;
   user: Pick<
     User,
-    "id" | "socitey_id" | "first_name" | "last_name" | "phone"
+    "id" | "society_id" | "first_name" | "last_name" | "phone"
   >;
 };

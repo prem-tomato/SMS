@@ -8,7 +8,10 @@ import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import authorizeServices from "@/services/auth.services";
 import config from "@/services/config";
+import dayjs from "dayjs";
 import { StatusCodes } from "http-status-codes";
+import { findSocietyById } from "../socities/socities.model";
+import { Societies } from "../socities/socities.types";
 import authLogger from "./auth.logger";
 import { addToken, findUserById, findUserByLoginKey } from "./auth.model";
 import { LoginBody, LoginResponse, User } from "./auth.types";
@@ -29,6 +32,20 @@ export const loginController = async (
       return generateResponseJSON(
         StatusCodes.UNAUTHORIZED,
         getMessage("LOGIN_KEY_NOT_FOUND")
+      );
+    }
+
+    const society: Societies | undefined = await findSocietyById(
+      user.society_id
+    );
+    if (
+      society?.end_date &&
+      dayjs(society.end_date).endOf("day").isBefore(dayjs())
+    ) {
+      await rollbackTransaction(transaction);
+      return generateResponseJSON(
+        StatusCodes.UNAUTHORIZED,
+        getMessage("SOCIETY_SUBSCRIPTION_ENDED")
       );
     }
 
@@ -61,7 +78,7 @@ export const loginController = async (
       role: user.role,
       user: {
         id: user.id,
-        socitey_id: user.socitey_id,
+        society_id: user.society_id,
         first_name: user.first_name,
         last_name: user.last_name,
         phone: user.phone,
