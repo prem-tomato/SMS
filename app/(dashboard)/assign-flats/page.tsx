@@ -153,9 +153,9 @@ export default function AssignFlatsPage() {
       >
         <IconButton
           sx={{
-            p: 1, // padding for better click area
-            borderRadius: 2,
-            border: "1px solid #1e1ee4", // mimic outlined style
+            p: 1,
+            borderRadius: 1,
+            border: "1px solid #1e1ee4",
             color: "#1e1ee4",
           }}
           onClick={() => setFilterOpen(true)}
@@ -268,7 +268,6 @@ export default function AssignFlatsPage() {
           {societyId && buildingId && flatId && (
             <Button
               variant="outlined"
-              color="success"
               fullWidth
               disabled={!flatId}
               onClick={() => {
@@ -276,6 +275,11 @@ export default function AssignFlatsPage() {
                 setFilterOpen(false);
               }}
               startIcon={<AddIcon />}
+              sx={{
+                borderRadius: 1,
+                border: "1px solid #1e1ee4",
+                color: "#1e1ee4",
+              }}
             >
               Assign Members
             </Button>

@@ -20,7 +20,6 @@ const JWT_REFRESH_TOKEN_LIFE_TIME: string = config.JWT_REFRESH_TOKEN_LIFE_TIME!;
 export const loginController = async (
   reqBody: LoginBody
 ): Promise<Response<LoginResponse>> => {
-  console.log("Login controller called with body:", reqBody);
   const transaction: Transaction = await startTransaction();
   const { client } = transaction;
   try {

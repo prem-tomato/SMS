@@ -18,6 +18,8 @@ export const addSocietyValidation = object({
     country: string()
       .min(1, "Country is required")
       .max(100, "Country must be less than 100 characters"),
+    start_date: string().date(),
+    end_date: string().date(),
   }),
 });
 
@@ -122,5 +124,14 @@ export const toggleNoticeStatusValidation = object({
   params: object({
     id: idValidation,
     noticeId: idValidation,
+  }),
+});
+
+export const addEndDateValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+  body: object({
+    end_date: string().date(),
   }),
 });

@@ -85,11 +85,8 @@ export default function FlatsPage() {
               startIcon={<AddIcon />}
               onClick={() => setAddModal(true)}
               sx={{
-                textTransform: "none",
-                px: 2,
-                py: 0.8,
-                borderRadius: 2,
-                border: "1px solid #1e1ee4", // mimic outlined style
+                borderRadius: 1,
+                border: "1px solid #1e1ee4",
                 color: "#1e1ee4",
               }}
             >
@@ -97,12 +94,12 @@ export default function FlatsPage() {
             </Button>
           )}
           <IconButton
-            sx={{
-              p: 1, // padding for better click area
-              borderRadius: 2,
-              border: "1px solid #1e1ee4", // mimic outlined style
-              color: "#1e1ee4",
-            }}
+          sx={{
+            p: 1,
+            borderRadius: 1,
+            border: "1px solid #1e1ee4",
+            color: "#1e1ee4",
+          }}
             onClick={() => setFilterOpen(true)}
           >
             <FilterListIcon />

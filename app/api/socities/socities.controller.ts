@@ -26,10 +26,12 @@ import {
   listVacantFlats,
   toggleForIsOccupied,
   toggleNoticeStatus,
+  updateEndDate,
 } from "./socities.model";
 import {
   AddAdminReqBody,
   AddBuildingReqBody,
+  AddEndDateReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
@@ -617,6 +619,46 @@ export const toggleNoticeStatusController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in toggleNoticeStatusController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const updateEndDateController = async (
+  request: Request,
+  reqBody: AddEndDateReqBody,
+  societyId: string
+): Promise<Response<void>> => {
+  try {
+    const userRole: string = request.headers.get("role")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    if (userRole !== "super_admin") {
+      return generateResponseJSON(
+        StatusCodes.FORBIDDEN,
+        getMessage("NOT_ALLOWED_TO_UPDATE_END_DATE")
+      );
+    }
+
+    await updateEndDate(reqBody, societyId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("END_DATE_UPDATED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in updateEndDateController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

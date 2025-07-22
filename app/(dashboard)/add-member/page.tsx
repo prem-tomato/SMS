@@ -77,24 +77,21 @@ export default function UsersPage() {
             <Button
               variant="outlined"
               startIcon={<AddIcon />}
+              onClick={() => setModalOpen(true)}
               sx={{
-                textTransform: "none",
-                px: 2,
-                py: 0.8,
-                borderRadius: 2,
-                border: "1px solid #1e1ee4", // mimic outlined style
+                borderRadius: 1,
+                border: "1px solid #1e1ee4",
                 color: "#1e1ee4",
               }}
-              onClick={() => setModalOpen(true)}
             >
               Add Member
             </Button>
           )}
           <IconButton
             sx={{
-              p: 1, // padding for better click area
-              borderRadius: 2,
-              border: "1px solid #1e1ee4", // mimic outlined style
+              p: 1,
+              borderRadius: 1,
+              border: "1px solid #1e1ee4",
               color: "#1e1ee4",
             }}
             onClick={() => setFilterOpen(true)}

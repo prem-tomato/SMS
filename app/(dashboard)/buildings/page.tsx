@@ -132,14 +132,14 @@ export default function BuildingsPage() {
           startIcon={<AddIcon />}
           onClick={() => setOpen(true)}
           sx={{
-            textTransform: "none",
-            px: 2,
-            py: 0.8,
-            borderRadius: 2,
+            borderRadius: 1,
+            border: "1px solid #1e1ee4",
+            color: "#1e1ee4",
           }}
         >
           Add Building
         </Button>
+
       </Box>
 
       {/* DataGrid */}

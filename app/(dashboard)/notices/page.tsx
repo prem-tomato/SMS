@@ -137,11 +137,8 @@ export default function NoticesPage() {
               startIcon={<AddIcon />}
               onClick={() => setAddModal(true)}
               sx={{
-                textTransform: "none",
-                px: 2,
-                py: 0.8,
-                borderRadius: 2,
-                border: "1px solid #1e1ee4", // mimic outlined style
+                borderRadius: 1,
+                border: "1px solid #1e1ee4",
                 color: "#1e1ee4",
               }}
             >
@@ -151,7 +148,7 @@ export default function NoticesPage() {
           <IconButton
             sx={{
               p: 1,
-              borderRadius: 2,
+              borderRadius: 1,
               border: "1px solid #1e1ee4",
               color: "#1e1ee4",
             }}

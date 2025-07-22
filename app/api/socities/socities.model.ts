@@ -4,6 +4,7 @@ import { User } from "../auth/auth.types";
 import {
   AddAdminReqBody,
   AddBuildingReqBody,
+  AddEndDateReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
@@ -43,8 +44,8 @@ export const addSocieties = async (
 ): Promise<Societies> => {
   try {
     const queryText: string = `
-        INSERT INTO societies (name, address, city, state, country, created_by, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        INSERT INTO societies (name, address, city, state, country, created_by, created_at, start_date, end_date)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8)
         RETURNING *
     `;
 
@@ -55,6 +56,8 @@ export const addSocieties = async (
       society.state,
       society.country,
       society.created_by,
+      society.start_date,
+      society.end_date,
     ]);
 
     return res.rows[0];
@@ -546,5 +549,23 @@ export const toggleNoticeStatus = async (
     await query(queryText, [societyId, noticeId]);
   } catch (error) {
     throw new Error(`Error toggling notice status: ${error}`);
+  }
+};
+
+export const updateEndDate = async (
+  reqBody: AddEndDateReqBody,
+  societyId: string,
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      UPDATE societies
+      SET end_date = $1
+      WHERE id = $2
+      AND end_date IS NULL OR end_date < NOW()
+    `;
+
+    await query(queryText, [reqBody.end_date, societyId]);
+  } catch (error) {
+    throw new Error(`Error updating end date: ${error}`);
   }
 };

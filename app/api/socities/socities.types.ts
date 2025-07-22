@@ -3,6 +3,7 @@ import { User } from "../auth/auth.types";
 import {
   addAdminValidation,
   addBuildingValidation,
+  addEndDateValidation,
   addFlatValidation,
   addMemberValidation,
   addSocietyValidation,
@@ -17,6 +18,7 @@ export type Societies = {
   city: string;
   state: string;
   country: string;
+  end_date: Date;
   created_by: string;
   created_at: string;
 };
@@ -146,3 +148,5 @@ export type NoticeResponse = {
     status: string;
   };
 };
+
+export type AddEndDateReqBody = z.infer<typeof addEndDateValidation.shape.body>;
