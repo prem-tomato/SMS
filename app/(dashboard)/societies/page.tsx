@@ -31,7 +31,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import flags from "emoji-flags";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -63,10 +63,13 @@ export default function SocietiesPage() {
   );
   const [endDateDialogOpen, setEndDateDialogOpen] = useState(false);
   const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [role, setRole] = useState<string | null>(null);
 
-  const role =
-    typeof window !== "undefined" ? localStorage.getItem("role") : null;
-
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    setRole(storedRole);
+  }, []);
+  
   const { data: societies = [], isLoading } = useQuery({
     queryKey: ["societies"],
     queryFn: fetchSocieties,

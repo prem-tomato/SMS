@@ -3,9 +3,9 @@
 import { Societies } from "@/app/api/socities/socities.types";
 import { getAccessToken } from "@/lib/auth";
 
-const token = getAccessToken();
-
 export const fetchSocieties = async (): Promise<Societies[]> => {
+  const token = getAccessToken();
+
   const res = await fetch("/api/socities", {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -23,6 +23,8 @@ export const createSociety = async (payload: {
   state: string;
   country: string;
 }): Promise<Societies> => {
+  const token = getAccessToken();
+
   const res = await fetch("/api/socities", {
     method: "POST",
     headers: {
@@ -38,6 +40,8 @@ export const createSociety = async (payload: {
 };
 
 export async function fetchSocietyOptions() {
+  const token = getAccessToken();
+
   const res = await fetch("/api/socities/options", {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -56,6 +60,8 @@ export const setEndDateFunc = async ({
   id: string;
   end_date: string;
 }) => {
+  const token = getAccessToken();
+
   const res = await fetch(`/api/socities/${id}/end-date`, {
     method: "PATCH",
     headers: {
