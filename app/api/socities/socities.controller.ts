@@ -11,6 +11,7 @@ import {
   assignMembersToFlat,
   checkLoginKeyUnique,
   createNotice,
+  deleteSocietyModel,
   findBuildingById,
   findFlatById,
   findSocietyById,
@@ -72,11 +73,12 @@ export const addSocietyController = async (
       created_by: userId,
     };
 
-    await addSocieties(addSocietiesPayload);
+    const society = await addSocieties(addSocietiesPayload);
 
     return generateResponseJSON(
       StatusCodes.CREATED,
-      getMessage("SOCIETY_CREATED_SUCCESSFULLY")
+      getMessage("SOCIETY_CREATED_SUCCESSFULLY"),
+      society
     );
   } catch (error: any) {
     socitiesLogger.error("Error in addSocietyController:", error);
@@ -107,7 +109,8 @@ export const addAdminController = async (
     }
 
     const loginKeyUnique: string | undefined = await checkLoginKeyUnique(
-      reqBody.login_key
+      reqBody.login_key,
+      society.id
     );
     if (loginKeyUnique) {
       return generateResponseJSON(
@@ -160,7 +163,8 @@ export const addMemberController = async (
     }
 
     const loginKeyUnique: string | undefined = await checkLoginKeyUnique(
-      reqBody.login_key
+      reqBody.login_key,
+      society.id
     );
     if (loginKeyUnique) {
       return generateResponseJSON(
@@ -659,6 +663,45 @@ export const updateEndDateController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in updateEndDateController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const deleteSocietyController = async (
+  // request: Request,
+  id: string
+): Promise<Response<void>> => {
+  try {
+    // const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(id);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    // if (userId !== society.created_by) {
+    //   return generateResponseJSON(
+    //     StatusCodes.FORBIDDEN,
+    //     getMessage("NOT_ALLOWED_TO_DELETE_SOCIETY")
+    //   );
+    // }
+
+    await deleteSocietyModel(id);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("SOCIETY_DELETED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in deleteSocietyController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

@@ -22,6 +22,8 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { z } from "zod";
 
 // Schema
@@ -84,9 +86,13 @@ export default function AddUserModal({
       onClose();
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data;
-      if (errorData?.message?.includes("login key")) {
-        setError("login_key", { type: "manual", message: errorData.message });
+      const message =
+        error?.message || "Something went wrong, please try again!";
+
+      toast.error(message);
+
+      if (message.includes("login key")) {
+        setError("login_key", { type: "manual", message });
       }
     },
   });
@@ -97,126 +103,138 @@ export default function AddUserModal({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      PaperProps={{ sx: { borderRadius: 2 } }}
-    >
-      <DialogTitle>
-        <Typography variant="h6" fontWeight="bold">
-          Add New Member
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Enter member details below
-        </Typography>
-      </DialogTitle>
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle>
+          <Typography variant="h6" fontWeight="bold">
+            Add New Member
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Enter member details below
+          </Typography>
+        </DialogTitle>
 
-      <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: 3 }}
-        >
-          {/* Role */}
-          <Controller
-            name="role"
-            control={control}
-            render={({ field }) => (
-              <FormControl fullWidth>
-                <InputLabel>Role</InputLabel>
-                <Select {...field} label="Role">
-                  <MenuItem value="member">Member</MenuItem>
-                  <MenuItem value="admin">Admin</MenuItem>
-                </Select>
-              </FormControl>
-            )}
-          />
-
-          {/* First Name */}
-          <Controller
-            name="first_name"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="First Name"
-                error={!!errors.first_name}
-                helperText={errors.first_name?.message}
-                fullWidth
-              />
-            )}
-          />
-
-          {/* Last Name */}
-          <Controller
-            name="last_name"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Last Name"
-                error={!!errors.last_name}
-                helperText={errors.last_name?.message}
-                fullWidth
-              />
-            )}
-          />
-
-          {/* Login Key */}
-          <Controller
-            name="login_key"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Login Key (max 6 digits)"
-                inputProps={{ maxLength: 6 }}
-                error={!!errors.login_key}
-                helperText={errors.login_key?.message}
-                fullWidth
-              />
-            )}
-          />
-
-          {/* Phone Input with Country Code */}
-          <Controller
-            name="phone"
-            control={control}
-            render={({ field }) => (
-              <Box>
-                <PhoneInput
-                  {...field}
-                  defaultCountry={country}
-                  onChange={(val) => field.onChange(val)}
-                  onCountryChange={(country) =>
-                    setCountry(country as CountryCode)
-                  }
-                  international
-                  countryCallingCodeEditable={false}
-                  className="phone-input"
-                />
-                {errors.phone && (
-                  <Typography variant="caption" color="error">
-                    {errors.phone.message}
-                  </Typography>
-                )}
-              </Box>
-            )}
-          />
-        </DialogContent>
-
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={onClose}>Cancel</Button>
-          <CommonButton
-            type="submit"
-            variant="contained"
-            loading={mutation.isPending}
-            sx={{ bgcolor: "#1e1ee4" }}
+        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
           >
-            Save Member
-          </CommonButton>
-        </DialogActions>
-      </Box>
-    </Dialog>
+            {/* Role */}
+            <Controller
+              name="role"
+              control={control}
+              render={({ field }) => (
+                <FormControl fullWidth>
+                  <InputLabel>Role</InputLabel>
+                  <Select {...field} label="Role">
+                    <MenuItem value="member">Member</MenuItem>
+                    <MenuItem value="admin">Admin</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+            />
+
+            {/* First Name */}
+            <Controller
+              name="first_name"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="First Name"
+                  error={!!errors.first_name}
+                  helperText={errors.first_name?.message}
+                  fullWidth
+                />
+              )}
+            />
+
+            {/* Last Name */}
+            <Controller
+              name="last_name"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Last Name"
+                  error={!!errors.last_name}
+                  helperText={errors.last_name?.message}
+                  fullWidth
+                />
+              )}
+            />
+
+            {/* Login Key */}
+            <Controller
+              name="login_key"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Login Key (max 6 digits)"
+                  inputProps={{ maxLength: 6 }}
+                  error={!!errors.login_key}
+                  helperText={errors.login_key?.message}
+                  fullWidth
+                />
+              )}
+            />
+
+            {/* Phone Input with Country Code */}
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <Box>
+                  <PhoneInput
+                    {...field}
+                    defaultCountry={country}
+                    onChange={(val) => field.onChange(val)}
+                    onCountryChange={(country) =>
+                      setCountry(country as CountryCode)
+                    }
+                    international
+                    countryCallingCodeEditable={false}
+                    className="phone-input"
+                  />
+                  {errors.phone && (
+                    <Typography variant="caption" color="error">
+                      {errors.phone.message}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            />
+          </DialogContent>
+
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={onClose}>Cancel</Button>
+            <CommonButton
+              type="submit"
+              variant="contained"
+              loading={mutation.isPending}
+              sx={{ bgcolor: "#1e1ee4" }}
+            >
+              Save Member
+            </CommonButton>
+          </DialogActions>
+        </Box>
+      </Dialog>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
+    </>
   );
 }

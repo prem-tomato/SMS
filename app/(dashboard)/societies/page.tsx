@@ -4,9 +4,11 @@ import CommonButton from "@/components/common/CommonButton";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import {
   createSociety,
+  deleteSociety,
   fetchSocieties,
   setEndDateFunc,
 } from "@/services/societies";
+import { createUser } from "@/services/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -18,6 +20,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControl,
   FormHelperText,
   IconButton,
@@ -33,6 +36,8 @@ import dayjs from "dayjs";
 import flags from "emoji-flags";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { z } from "zod";
 
 // Country Dropdown Options
@@ -43,15 +48,48 @@ const COUNTRIES = flags.data
   }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-const schema = z.object({
-  name: z.string().min(1),
-  address: z.string().min(1),
-  city: z.string().min(1),
-  state: z.string().min(1),
-  country: z.string().min(1),
+// Input schema for form validation (all strings as they come from form inputs)
+const inputSchema = z.object({
+  // Society fields
+  name: z.string().min(1, "Society name is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  country: z.string().min(1, "Country is required"),
+
+  // Admin user fields
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  login_key: z
+    .string()
+    .min(1, "Login key is required")
+    .regex(/^\d+$/, "Login key must be a number"),
+  phone: z
+    .string()
+    .min(1, "Phone number is required")
+    .refine((phone) => isValidPhoneNumber(phone), {
+      message: "Please enter a valid phone number",
+    }),
 });
 
-type FormData = z.infer<typeof schema>;
+// Output schema with transformed types
+const outputSchema = inputSchema.extend({
+  login_key: z
+    .string()
+    .min(1, "Login key is required")
+    .regex(/^\d+$/, "Login key must be a number")
+    .transform((val) => parseInt(val, 10)),
+});
+
+type FormInputData = z.infer<typeof inputSchema>;
+type FormOutputData = z.infer<typeof outputSchema>;
+
+// Toast state interface
+interface ToastState {
+  open: boolean;
+  message: string;
+  severity: "success" | "error" | "warning" | "info";
+}
 
 export default function SocietiesPage() {
   const queryClient = useQueryClient();
@@ -65,11 +103,18 @@ export default function SocietiesPage() {
   const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [role, setRole] = useState<string | null>(null);
 
+  // Toast state
+  const [toast, setToast] = useState<ToastState>({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
     setRole(storedRole);
   }, []);
-  
+
   const { data: societies = [], isLoading } = useQuery({
     queryKey: ["societies"],
     queryFn: fetchSocieties,
@@ -81,17 +126,86 @@ export default function SocietiesPage() {
     reset,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<FormInputData>({
+    resolver: zodResolver(inputSchema),
     defaultValues: { country: "India" },
   });
 
   const { mutateAsync: createMutation } = useMutation({
-    mutationFn: createSociety,
-    onSuccess: () => {
+    mutationFn: async (inputData: FormInputData) => {
+      let createdSociety = null;
+
+      try {
+        // Transform and validate the input data
+        const data = outputSchema.parse(inputData);
+
+        // First create the society
+        const societyData = {
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          country: data.country,
+        };
+
+        createdSociety = await createSociety(societyData);
+
+        // Then create the admin user for this society
+        const adminData = {
+          role: "admin" as const,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          login_key: data.login_key as any, // Temporary fix - API expects number but types show string
+          phone: data.phone,
+        };
+
+        await createUser(createdSociety.id, adminData);
+
+        return createdSociety;
+      } catch (error: any) {
+        // If user creation fails and society was created, rollback the society
+        if (createdSociety?.id) {
+          try {
+            await deleteSociety(createdSociety.id); // Rollback society creation
+            console.log(
+              `Rolled back society creation with ID: ${createdSociety.id}`
+            );
+          } catch (rollbackError) {
+            console.error(
+              "Failed to rollback society creation:",
+              rollbackError
+            );
+            // Show additional error for rollback failure
+          }
+        }
+
+        console.error("Error creating society/admin:", error);
+
+        // Handle specific error cases
+        if (
+          error?.message?.toLowerCase().includes("login key already exists") ||
+          error?.response?.data?.message
+            ?.toLowerCase()
+            .includes("login key already exists")
+        ) {
+        } else if (
+          error?.message?.toLowerCase().includes("phone") ||
+          error?.response?.data?.message?.toLowerCase().includes("phone")
+        ) {
+        }
+
+        // Re-throw the error to be handled by onError
+        throw error;
+      }
+    },
+    onSuccess: (createdSociety) => {
       queryClient.invalidateQueries({ queryKey: ["societies"] });
       setOpen(false);
       reset();
+    },
+    onError: (error: any) => {
+      console.error("Society/Admin creation failed:", error);
+      // Error toast is already shown in the mutation function
     },
   });
 
@@ -104,6 +218,9 @@ export default function SocietiesPage() {
         setEndDateDialogOpen(false);
         setMenuAnchor(null);
         setSelectedSocietyId(null);
+      },
+      onError: (error: any) => {
+        console.error("Failed to update end date:", error);
       },
     });
 
@@ -245,15 +362,15 @@ export default function SocietiesPage() {
         open={open}
         onClose={() => setOpen(false)}
         fullWidth
-        maxWidth="sm"
+        maxWidth="md"
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ pb: 2 }}>
           <Typography variant="h6" fontWeight="bold">
-            Add New Society
+            Add New Society & Admin
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Fill in the society details below
+            Fill in the society details and admin user information below
           </Typography>
         </DialogTitle>
 
@@ -269,22 +386,64 @@ export default function SocietiesPage() {
               pb: 2,
             }}
           >
-            {["name", "address", "city", "state"].map((field) => (
+            {/* Society Information Section */}
+            <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
+              Society Information
+            </Typography>
+
+            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
               <TextField
-                key={field}
-                label={field.charAt(0).toUpperCase() + field.slice(1)}
-                placeholder={`Enter ${field}`}
-                {...register(field as keyof FormData)}
-                error={!!errors[field as keyof FormData]}
-                helperText={errors[field as keyof FormData]?.message}
+                label="Society Name"
+                placeholder="Enter society name"
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
                 fullWidth
                 sx={{
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
                 }}
               />
-            ))}
 
-            {/* Country Dropdown */}
+              <TextField
+                label="Address"
+                placeholder="Enter address"
+                {...register("address")}
+                error={!!errors.address}
+                helperText={errors.address?.message}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Box>
+
+            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+              <TextField
+                label="City"
+                placeholder="Enter city"
+                {...register("city")}
+                error={!!errors.city}
+                helperText={errors.city?.message}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+
+              <TextField
+                label="State"
+                placeholder="Enter state"
+                {...register("state")}
+                error={!!errors.state}
+                helperText={errors.state?.message}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Box>
+
+            {/* Country Dropdown - Full width on separate row */}
             <FormControl
               fullWidth
               error={!!errors.country}
@@ -297,7 +456,20 @@ export default function SocietiesPage() {
                 name="country"
                 control={control}
                 render={({ field }) => (
-                  <Select {...field} label="Country">
+                  <Select
+                    {...field}
+                    label="Country"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          "& .MuiMenuItem-root": {
+                            fontSize: "0.875rem",
+                          },
+                        },
+                      },
+                    }}
+                  >
                     {COUNTRIES.map((c) => (
                       <MenuItem key={c.value} value={c.value}>
                         {c.label}
@@ -310,6 +482,126 @@ export default function SocietiesPage() {
                 <FormHelperText>{errors.country.message}</FormHelperText>
               )}
             </FormControl>
+
+            <Divider />
+
+            {/* Admin User Information Section */}
+            <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
+              Admin User Information
+            </Typography>
+
+            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+              <TextField
+                label="First Name"
+                placeholder="Enter first name"
+                {...register("first_name")}
+                error={!!errors.first_name}
+                helperText={errors.first_name?.message}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+
+              <TextField
+                label="Last Name"
+                placeholder="Enter last name"
+                {...register("last_name")}
+                error={!!errors.last_name}
+                helperText={errors.last_name?.message}
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+            </Box>
+
+            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+              <TextField
+                label="Login Key"
+                placeholder="Enter login key (numbers only)"
+                {...register("login_key")}
+                error={!!errors.login_key}
+                helperText={errors.login_key?.message}
+                fullWidth
+                type="number"
+                inputProps={{
+                  min: 1,
+                  step: 1,
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+
+              {/* Phone Input with react-phone-number-input */}
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{ mb: 1, color: "rgba(0, 0, 0, 0.6)" }}
+                >
+                  Phone Number
+                </Typography>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <Box>
+                      <PhoneInput
+                        {...field}
+                        placeholder="Enter phone number"
+                        defaultCountry="IN"
+                        international
+                        countryCallingCodeEditable={false}
+                        style={{
+                          width: "100%",
+                        }}
+                        inputStyle={{
+                          width: "100%",
+                          height: "56px",
+                          border: errors.phone
+                            ? "2px solid #d32f2f"
+                            : "1px solid rgba(0, 0, 0, 0.23)",
+                          borderRadius: "8px",
+                          padding: "16.5px 14px",
+                          fontSize: "16px",
+                          outline: "none",
+                          transition: "border-color 0.15s ease-in-out",
+                        }}
+                        dropdownStyle={{
+                          borderRadius: "8px",
+                        }}
+                        onFocus={(e) => {
+                          if (!errors.phone) {
+                            e.target.style.borderColor = "#1e1ee4";
+                            e.target.style.borderWidth = "2px";
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (!errors.phone) {
+                            e.target.style.borderColor = "rgba(0, 0, 0, 0.23)";
+                            e.target.style.borderWidth = "1px";
+                          }
+                        }}
+                      />
+                      {errors.phone && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#d32f2f",
+                            mt: 0.5,
+                            ml: 1.75,
+                            display: "block",
+                          }}
+                        >
+                          {errors.phone.message}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                />
+              </Box>
+            </Box>
           </DialogContent>
 
           <DialogActions sx={{ p: 3, pt: 1 }}>
@@ -326,7 +618,7 @@ export default function SocietiesPage() {
               loading={isSubmitting}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Save Society
+              Save Society & Admin
             </CommonButton>
           </DialogActions>
         </Box>

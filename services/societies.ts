@@ -73,3 +73,17 @@ export const setEndDateFunc = async ({
   if (!res.ok) throw new Error("Failed to update end date");
   return res.json();
 };
+
+export const deleteSociety = async (id: string): Promise<void> => {
+  const token = getAccessToken();
+
+  const res = await fetch(`/api/socities/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to delete society");
+  return res.json();
+};

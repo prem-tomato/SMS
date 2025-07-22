@@ -44,8 +44,8 @@ export const addSocieties = async (
 ): Promise<Societies> => {
   try {
     const queryText: string = `
-        INSERT INTO societies (name, address, city, state, country, created_by, created_at, start_date, end_date)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8)
+        INSERT INTO societies (name, address, city, state, country, created_by, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
         RETURNING *
     `;
 
@@ -56,8 +56,6 @@ export const addSocieties = async (
       society.state,
       society.country,
       society.created_by,
-      society.start_date,
-      society.end_date,
     ]);
 
     return res.rows[0];
@@ -112,15 +110,16 @@ export const addAdmin = async (
 };
 
 export const checkLoginKeyUnique = async (
-  loginKey: number
+  loginKey: number,
+  societyId: string
 ): Promise<string | undefined> => {
   try {
     const queryText = `
       SELECT id FROM users
-      WHERE login_key = $1
+      WHERE login_key = $1 AND society_id = $2
     `;
 
-    const res: QueryResult<{ id: string }> = await query(queryText, [loginKey]);
+    const res: QueryResult<{ id: string }> = await query(queryText, [loginKey, societyId]);
 
     // Return user id if exists, otherwise undefined
     return res.rows.length > 0 ? res.rows[0].id : undefined;
@@ -567,5 +566,18 @@ export const updateEndDate = async (
     await query(queryText, [reqBody.end_date, societyId]);
   } catch (error) {
     throw new Error(`Error updating end date: ${error}`);
+  }
+};
+
+export const deleteSocietyModel = async (id: string): Promise<void> => {
+  try {
+    const queryText: string = `
+      DELETE FROM societies
+      WHERE id = $1
+    `;
+
+    await query(queryText, [id]);
+  } catch (error) {
+    throw new Error(`Error deleting society: ${error}`);
   }
 };
