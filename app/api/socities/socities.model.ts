@@ -45,8 +45,8 @@ export const addSocieties = async (
 ): Promise<Societies> => {
   try {
     const queryText: string = `
-        INSERT INTO societies (name, address, city, state, country, created_by, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        INSERT INTO societies (name, address, city, state, country, created_by, created_at, opening_balance)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7)
         RETURNING *
     `;
 
@@ -57,6 +57,7 @@ export const addSocieties = async (
       society.state,
       society.country,
       society.created_by,
+      society.opening_balance,
     ]);
 
     return res.rows[0];

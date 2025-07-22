@@ -18,6 +18,9 @@ export const addSocietyValidation = object({
     country: string()
       .min(1, "Country is required")
       .max(100, "Country must be less than 100 characters"),
+    opening_balance: number()
+      .min(0, "Opening balance must be greater than or equal to 0")
+      .max(1000000, "Opening balance must be less than or equal to 1000000"),
   }),
 });
 

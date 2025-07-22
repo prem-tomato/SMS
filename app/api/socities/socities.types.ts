@@ -19,6 +19,7 @@ export type Societies = {
   state: string;
   country: string;
   end_date: Date;
+  opening_balance: number;
   created_by: string;
   created_at: string;
 };

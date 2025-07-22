@@ -56,6 +56,10 @@ const inputSchema = z.object({
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
   country: z.string().min(1, "Country is required"),
+  opening_balance: z
+    .string()
+    .min(1, "Opening balance is required")
+    .regex(/^\d*\.?\d*$/, "Opening balance must be a valid number"),
 
   // Admin user fields
   first_name: z.string().min(1, "First name is required"),
@@ -79,6 +83,17 @@ const outputSchema = inputSchema.extend({
     .min(1, "Login key is required")
     .regex(/^\d+$/, "Login key must be a number")
     .transform((val) => parseInt(val, 10)),
+  opening_balance: z
+    .string()
+    .transform((val) => {
+      const num = parseFloat(val);
+      if (isNaN(num) || num < 0 || num > 1000000) {
+        throw new Error(
+          "Opening balance must be a valid number between 0 and 1,000,000"
+        );
+      }
+      return num;
+    }),
 });
 
 type FormInputData = z.infer<typeof inputSchema>;
@@ -128,7 +143,10 @@ export default function SocietiesPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormInputData>({
     resolver: zodResolver(inputSchema),
-    defaultValues: { country: "India" },
+    defaultValues: { 
+      country: "India",
+      opening_balance: "0"
+    },
   });
 
   const { mutateAsync: createMutation } = useMutation({
@@ -139,13 +157,14 @@ export default function SocietiesPage() {
         // Transform and validate the input data
         const data = outputSchema.parse(inputData);
 
-        // First create the society
+        // First create the society (including opening_balance)
         const societyData = {
           name: data.name,
           address: data.address,
           city: data.city,
           state: data.state,
           country: data.country,
+          opening_balance: data.opening_balance, // Fixed: Include opening_balance
         };
 
         createdSociety = await createSociety(societyData);
@@ -175,7 +194,6 @@ export default function SocietiesPage() {
               "Failed to rollback society creation:",
               rollbackError
             );
-            // Show additional error for rollback failure
           }
         }
 
@@ -205,7 +223,6 @@ export default function SocietiesPage() {
     },
     onError: (error: any) => {
       console.error("Society/Admin creation failed:", error);
-      // Error toast is already shown in the mutation function
     },
   });
 
@@ -445,45 +462,64 @@ export default function SocietiesPage() {
               />
             </Box>
 
-            {/* Country Dropdown - Full width on separate row */}
-            <FormControl
-              fullWidth
-              error={!!errors.country}
-              sx={{
-                "& .MuiOutlinedInput-root": { borderRadius: 2 },
-              }}
-            >
-              <InputLabel>Country</InputLabel>
-              <Controller
-                name="country"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    label="Country"
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          maxHeight: 300,
-                          "& .MuiMenuItem-root": {
-                            fontSize: "0.875rem",
+            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+              <TextField
+                label="Opening Balance"
+                placeholder="Enter opening balance"
+                type="number"
+                {...register("opening_balance")}
+                error={!!errors.opening_balance}
+                helperText={errors.opening_balance?.message}
+                fullWidth
+                inputProps={{
+                  min: 0,
+                  max: 1000000,
+                  step: 0.01,
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              />
+
+              <FormControl
+                fullWidth
+                error={!!errors.country}
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
+              >
+                <InputLabel>Country</InputLabel>
+                <Controller
+                  name="country"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      label="Country"
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            "& .MuiMenuItem-root": {
+                              fontSize: "0.875rem",
+                            },
                           },
                         },
-                      },
-                    }}
-                  >
-                    {COUNTRIES.map((c) => (
-                      <MenuItem key={c.value} value={c.value}>
-                        {c.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                      }}
+                    >
+                      {COUNTRIES.map((c) => (
+                        <MenuItem key={c.value} value={c.value}>
+                          {c.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors.country && (
+                  <FormHelperText>{errors.country.message}</FormHelperText>
                 )}
-              />
-              {errors.country && (
-                <FormHelperText>{errors.country.message}</FormHelperText>
-              )}
-            </FormControl>
+              </FormControl>
+            </Box>
 
             <Divider />
 
