@@ -18,6 +18,7 @@ import {
   findSocityByName,
   getAssignedFlatsUser,
   getBuildings,
+  getBuildingsBySociety,
   getFlats,
   getNotices,
   getSocieties,
@@ -42,6 +43,7 @@ import {
   AssignMemberReqBody,
   Building,
   BuildingResponse,
+  BuildingResponseForSociety,
   Flat,
   FlatOptions,
   FlatResponse,
@@ -702,6 +704,29 @@ export const deleteSocietyController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in deleteSocietyController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getBuildingControllerBySociety = async (
+  societyId: string
+): Promise<Response<BuildingResponseForSociety[]>> => {
+  try {
+    const buildings = await getBuildingsBySociety(societyId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      buildings
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getBuildingsBySociety:", error);
+    socitiesLogger.error("Error in getBuildingControllerBySociety:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

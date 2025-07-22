@@ -12,7 +12,7 @@ export const listBuildings = async (): Promise<ListBuildingResponse[]> => {
             CONCAT(users.first_name, ' ', users.last_name) AS action_by
         FROM buildings b
         LEFT JOIN societies ON societies.id = b.society_id
-        LEFT JOIN users ON users.id = societies.created_by
+        LEFT JOIN users ON users.id = b.created_by
     `;
 
     const res: QueryResult<ListBuildingResponse> =

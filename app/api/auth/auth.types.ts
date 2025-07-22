@@ -20,8 +20,9 @@ export type LoginBody = z.infer<typeof loginValidation.shape.body>;
 export type LoginResponse = {
   access_token: string;
   role: string;
+  societyId: string;
   user: Pick<
     User,
-    "id" | "society_id" | "first_name" | "last_name" | "phone"
+    "id"  | "first_name" | "last_name" | "phone"
   >;
 };

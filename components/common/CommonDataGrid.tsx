@@ -19,7 +19,7 @@ export default function CommonDataGrid({
   columns,
   loading = false,
   emptyText = "No records found.",
-  pageSize = 15,
+  pageSize = 10,
   pageSizeOptions = [5, 10, 20, 50],
   height = 600,
 }: CommonDataGridProps) {

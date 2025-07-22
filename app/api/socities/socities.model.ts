@@ -13,6 +13,7 @@ import {
   AssignFlatMembers,
   AssignMemberReqBody,
   Building,
+  BuildingResponseForSociety,
   Flat,
   FlatOptions,
   NoticeResponse,
@@ -119,7 +120,10 @@ export const checkLoginKeyUnique = async (
       WHERE login_key = $1 AND society_id = $2
     `;
 
-    const res: QueryResult<{ id: string }> = await query(queryText, [loginKey, societyId]);
+    const res: QueryResult<{ id: string }> = await query(queryText, [
+      loginKey,
+      societyId,
+    ]);
 
     // Return user id if exists, otherwise undefined
     return res.rows.length > 0 ? res.rows[0].id : undefined;
@@ -553,14 +557,13 @@ export const toggleNoticeStatus = async (
 
 export const updateEndDate = async (
   reqBody: AddEndDateReqBody,
-  societyId: string,
+  societyId: string
 ): Promise<void> => {
   try {
     const queryText: string = `
       UPDATE societies
       SET end_date = $1
       WHERE id = $2
-      AND end_date IS NULL OR end_date < NOW()
     `;
 
     await query(queryText, [reqBody.end_date, societyId]);
@@ -579,5 +582,31 @@ export const deleteSocietyModel = async (id: string): Promise<void> => {
     await query(queryText, [id]);
   } catch (error) {
     throw new Error(`Error deleting society: ${error}`);
+  }
+};
+
+export const getBuildingsBySociety = async (
+  societyId: string
+): Promise<BuildingResponseForSociety[]> => {
+  try {
+    const queryText: string = `
+      SELECT 
+        b.id,
+        b.name,
+        b.total_floors,
+        s.name AS society_name,
+        concat(u.first_name, ' ', u.last_name) AS action_by
+      FROM buildings b
+      LEFT JOIN societies s ON s.id = b.society_id
+      LEFT JOIN users u ON u.id = b.created_by
+      WHERE b.society_id = $1
+    `;
+
+    const res: QueryResult<BuildingResponseForSociety> =
+      await query<BuildingResponseForSociety>(queryText, [societyId]);
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting buildings by society: ${error}`);
   }
 };

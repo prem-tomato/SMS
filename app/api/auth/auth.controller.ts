@@ -53,6 +53,7 @@ export const loginController = async (
       login_key: reqBody.login_key,
       userId: user.id,
       role: user.role,
+      societyId: user?.society_id,
     };
 
     // Generate JWT token
@@ -76,9 +77,9 @@ export const loginController = async (
     return generateResponseJSON(StatusCodes.OK, getMessage("LOGIN_SUCCESS"), {
       access_token: accessToken,
       role: user.role,
+      societyId: user.society_id,
       user: {
         id: user.id,
-        society_id: user.society_id,
         first_name: user.first_name,
         last_name: user.last_name,
         phone: user.phone,

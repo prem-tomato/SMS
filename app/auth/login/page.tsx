@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { saveAccessToken, saveSocietyId, saveUserRole } from "@/lib/auth";
 import { loginUser } from "@/services/auth";
-import { saveAccessToken, saveUserRole } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,8 +17,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { access_token, role  } = await loginUser({ login_key: Number(login_key) });
+      const { access_token, role, societyId } = await loginUser({
+        login_key: Number(login_key),
+      });
       saveUserRole(role);
+      saveSocietyId(societyId);
       saveAccessToken(access_token);
       router.push("/dashboard");
     } catch (err: any) {
@@ -38,7 +41,7 @@ export default function LoginPage() {
           className="w-[500px] h-[500px] text-gray-400"
           fill="currentColor"
         >
-          <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.5L18 11h-1v6h-2v-6H9v6H7v-6H6l6-5.5z"/>
+          <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.5L18 11h-1v6h-2v-6H9v6H7v-6H6l6-5.5z" />
         </svg>
       </div>
 
@@ -53,7 +56,7 @@ export default function LoginPage() {
               className="w-6 h-6 text-white"
               fill="currentColor"
             >
-              <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.5L18 11h-1v6h-2v-6H9v6H7v-6H6l6-5.5z"/>
+              <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.5L18 11h-1v6h-2v-6H9v6H7v-6H6l6-5.5z" />
             </svg>
           </div>
           <h1 className="text-xl font-bold text-gray-800">SocietyManager</h1>
@@ -61,7 +64,10 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="login_key" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="login_key"
+              className="block text-sm font-medium text-gray-700"
+            >
               Society Key / Flat Number
             </label>
             <div className="relative">
@@ -73,7 +79,12 @@ export default function LoginPage() {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7 5.955c-.36-.227-.696-.473-1.021-.735A2 2 0 0112 12a2 2 0 01-1.979 1.22c-.325.262-.66.508-1.021.735A6 6 0 012 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m0 0V7a2 2 0 012-2h2a2 2 0 012 2v2"/>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7 5.955c-.36-.227-.696-.473-1.021-.735A2 2 0 0112 12a2 2 0 01-1.979 1.22c-.325.262-.66.508-1.021.735A6 6 0 012 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m0 0V7a2 2 0 012-2h2a2 2 0 012 2v2"
+                  />
                 </svg>
               </div>
               <input
@@ -92,10 +103,20 @@ export default function LoginPage() {
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                <svg
+                  className="w-5 h-5 text-red-500 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
-                <span className="text-red-700 text-sm font-medium">{error}</span>
+                <span className="text-red-700 text-sm font-medium">
+                  {error}
+                </span>
               </div>
             </div>
           )}
@@ -107,9 +128,25 @@ export default function LoginPage() {
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Signing in...
               </div>
@@ -122,7 +159,7 @@ export default function LoginPage() {
         <div className="mt-8 pt-6 border-t border-gray-200">
           <p className="text-center text-xs text-gray-500">
             Need help accessing your account?{" "}
-            <button 
+            <button
               type="button"
               className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
               onClick={() => {

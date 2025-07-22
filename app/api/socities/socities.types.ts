@@ -77,9 +77,17 @@ export type AddBuildingReqBody = z.infer<
 >;
 
 export type BuildingResponse = {
-  data: Pick<Building, "total_floors"> & {
+  data: Pick<Building,  "total_floors"> & {
     building_name: string;
     society_name: string;
+  };
+};
+
+export type BuildingResponseForSociety = {
+  data: Pick<Building, "id" | "total_floors"> & {
+    building_name: string;
+    society_name: string;
+    action_by: string;
   };
 };
 

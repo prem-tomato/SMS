@@ -54,3 +54,15 @@ export async function fetchBuildingById(societyId: string, buildingId: string) {
   if (!res.ok) throw new Error(json.message || 'Failed to fetch building');
   return json.data;
 }
+
+export async function fetchBuildingBySocietyForAdmin(societyId: string) {
+  const token = getAccessToken();
+  const res = await fetch(`/api/socities/${societyId}/building`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Failed to fetch building');
+  return json.data;
+}

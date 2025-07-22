@@ -2,9 +2,16 @@ import type { Response } from "@/db/utils/response-generator";
 import { authMiddleware } from "@/middlewares/auth-middleware";
 import validationMiddleware from "@/middlewares/validation-middleware";
 import { NextRequest, NextResponse } from "next/server";
-import { addBuildingController } from "../../socities.controller";
+import {
+  addBuildingController,
+  getBuildingControllerBySociety,
+} from "../../socities.controller";
 import socitiesLogger from "../../socities.logger";
-import { AddBuildingReqBody, BuildingResponse } from "../../socities.types";
+import {
+  AddBuildingReqBody,
+  BuildingResponse,
+  BuildingResponseForSociety,
+} from "../../socities.types";
 import { addBuildingValidation } from "../../socities.validation";
 
 export const POST = async (
@@ -31,6 +38,27 @@ export const POST = async (
   // Step 2: If validation and authentication succeed, process the request
   const { status, ...responseData }: Response<BuildingResponse> =
     await addBuildingController(request, reqBody, params.id);
+
+  // Return the response with the appropriate status code
+  return NextResponse.json(responseData, { status });
+};
+
+export const GET = async (
+  request: NextRequest,
+  { params }: { params: { id: string } }
+): Promise<NextResponse> => {
+  socitiesLogger.info("GET api/socities/[id]/building");
+  socitiesLogger.debug(`getting buildings for society ${params.id}`);
+
+  // Step 1: Verify the JWT token for authentication
+  const authResult = await authMiddleware(request);
+
+  // If authentication fails, return the error response
+  if (authResult instanceof Response) return authResult;
+
+  // Step 2: If validation and authentication succeed, process the request
+  const { status, ...responseData }: Response<BuildingResponseForSociety[]> =
+    await getBuildingControllerBySociety(params.id);
 
   // Return the response with the appropriate status code
   return NextResponse.json(responseData, { status });

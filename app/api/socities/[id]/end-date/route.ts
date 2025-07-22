@@ -11,7 +11,7 @@ export const PATCH = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
-  socitiesLogger.info("POST /api/socities/[id]/end-date");
+  socitiesLogger.info("PATCH /api/socities/[id]/end-date");
   socitiesLogger.debug("Updating end date...");
 
   // Step 1: Validate the request data
@@ -20,8 +20,6 @@ export const PATCH = async (
     addEndDateValidation,
     params
   );
-
-  console.log(reqBody);
 
   // If validation fails, return the error response
   if (response) return response;

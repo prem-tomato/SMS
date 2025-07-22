@@ -61,6 +61,8 @@ export default function Topbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('society_id');
     router.push('/auth/login');
     handleMenuClose();
   };

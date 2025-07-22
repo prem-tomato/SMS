@@ -2,7 +2,11 @@
 
 import CommonButton from "@/components/common/CommonButton";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
-import { createBuilding, fetchBuildings } from "@/services/building";
+import {
+  createBuilding,
+  fetchBuildingBySocietyForAdmin,
+  fetchBuildings,
+} from "@/services/building";
 import { fetchSocietyOptions } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
@@ -23,7 +27,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -49,9 +53,25 @@ type OutputValues = z.infer<typeof outputSchema>;
 export default function BuildingsPage() {
   const queryClient = useQueryClient();
 
+  const [role, setRole] = useState<string | null>(null);
+  const [adminSocietyId, setAdminSocietyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userRole = localStorage.getItem("role");
+    const society = localStorage.getItem("society_id");
+    setRole(userRole);
+    setAdminSocietyId(society);
+  }, []);
+
   const { data: buildings = [], isLoading: loadingBuildings } = useQuery({
-    queryKey: ["buildings"],
-    queryFn: fetchBuildings,
+    queryKey: ["buildings", role, adminSocietyId],
+    queryFn: async () => {
+      if (role === "admin" && adminSocietyId) {
+        return fetchBuildingBySocietyForAdmin(adminSocietyId);
+      }
+      return fetchBuildings();
+    },
+    enabled: !!role,
   });
 
   const { data: societies = [], isLoading: loadingSocieties } = useQuery({
@@ -68,7 +88,11 @@ export default function BuildingsPage() {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(inputSchema),
-    defaultValues: { society_id: "", name: "", total_floors: "" },
+    defaultValues: {
+      society_id: "",
+      name: "",
+      total_floors: "",
+    },
   });
 
   const mutation = useMutation({
@@ -113,6 +137,15 @@ export default function BuildingsPage() {
     []
   );
 
+  const handleOpen = () => {
+    if (role === "admin" && adminSocietyId) {
+      reset({ society_id: adminSocietyId, name: "", total_floors: "" });
+    } else {
+      reset({ society_id: "", name: "", total_floors: "" });
+    }
+    setOpen(true);
+  };
+
   const handleClose = () => {
     setOpen(false);
     reset();
@@ -130,7 +163,7 @@ export default function BuildingsPage() {
         <Button
           variant="outlined"
           startIcon={<AddIcon />}
-          onClick={() => setOpen(true)}
+          onClick={handleOpen}
           sx={{
             borderRadius: 1,
             border: "1px solid #1e1ee4",
@@ -139,7 +172,6 @@ export default function BuildingsPage() {
         >
           Add Building
         </Button>
-
       </Box>
 
       {/* DataGrid */}
@@ -175,38 +207,59 @@ export default function BuildingsPage() {
               pb: 2,
             }}
           >
-            {/* Society Select */}
-            <Controller
-              name="society_id"
-              control={control}
-              render={({ field }) => (
-                <FormControl fullWidth error={!!errors.society_id}>
-                  <InputLabel>Society</InputLabel>
-                  <Select
-                    {...field}
-                    label="Society"
-                    sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                    }}
-                  >
-                    {loadingSocieties ? (
-                      <MenuItem disabled>Loading...</MenuItem>
-                    ) : (
-                      societies.map((s: any) => (
-                        <MenuItem key={s.id} value={s.id}>
-                          {s.name}
-                        </MenuItem>
-                      ))
+            {/* Society Field */}
+            {role === "admin" ? (
+              <Box>
+                <Typography variant="subtitle2">Society</Typography>
+                <Chip
+                  label={
+                    societies.find((s: any) => s.id === adminSocietyId)?.name ||
+                    "Selected Society"
+                  }
+                  color="primary"
+                  sx={{ mt: 1 }}
+                />
+              </Box>
+            ) : (
+              <Controller
+                name="society_id"
+                control={control}
+                render={({ field }) => (
+                  <FormControl fullWidth error={!!errors.society_id}>
+                    <InputLabel>Society</InputLabel>
+                    <Select
+                      {...field}
+                      label="Society"
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            "& .MuiMenuItem-root": {
+                              fontSize: "0.875rem",
+                            },
+                          },
+                        },
+                      }}
+                    >
+                      {loadingSocieties ? (
+                        <MenuItem disabled>Loading...</MenuItem>
+                      ) : (
+                        societies.map((s: any) => (
+                          <MenuItem key={s.id} value={s.id}>
+                            {s.name}
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                    {errors.society_id && (
+                      <Typography color="error" variant="caption">
+                        {errors.society_id.message}
+                      </Typography>
                     )}
-                  </Select>
-                  {errors.society_id && (
-                    <Typography color="error" variant="caption">
-                      {errors.society_id.message}
-                    </Typography>
-                  )}
-                </FormControl>
-              )}
-            />
+                  </FormControl>
+                )}
+              />
+            )}
 
             {/* Building Name */}
             <Controller

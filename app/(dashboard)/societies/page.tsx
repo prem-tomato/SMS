@@ -307,7 +307,9 @@ export default function SocietiesPage() {
             setMenuAnchor(null);
           }}
         >
-          Set End Date
+          {societies.find((s) => s.id === selectedSocietyId)?.end_date
+            ? "Update End Date"
+            : "Set End Date"}
         </MenuItem>
       </Menu>
 

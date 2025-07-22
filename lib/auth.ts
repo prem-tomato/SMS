@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 export const saveAccessToken = (token: string) => {
   localStorage.setItem("access_token", token);
@@ -14,4 +14,8 @@ export const removeAccessToken = () => {
 
 export const saveUserRole = (role: string) => {
   localStorage.setItem("role", role);
+};
+
+export const saveSocietyId = (societyId: string) => {
+  localStorage.setItem("society_id", societyId);
 };
