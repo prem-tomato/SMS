@@ -48,7 +48,7 @@ export default function CommonDataGrid({
   }));
 
   return (
-    <Box sx={{ height: 550, width: "100%" }}>
+    <Box sx={{ height: 650, width: "100%" }}>
       <DataGrid
         rows={rowsWithId}
         columns={columns}

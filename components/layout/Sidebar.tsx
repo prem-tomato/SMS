@@ -1,4 +1,6 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import {
   Apartment,
   Campaign,
@@ -18,24 +20,31 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-const navItems = [
-  { label: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-  { label: "Societies", icon: <AccountBalanceIcon />, path: "/societies" },
-  { label: "Buildings", icon: <Apartment />, path: "/buildings" },
-  { label: "Flats", icon: <People />, path: "/flats" },
-  { label: "Add Member", icon: <Face />, path: "/add-member" },
-  { label: "Assign Flat", icon: <House />, path: "/assign-flats" },
-
-  // { label: 'Bills', icon: <Receipt />, path: '/bills' },
-  // { label: 'Payments', icon: <Payment />, path: '/payments' },
-  // { label: 'Complaints', icon: <Chat />, path: '/complaints' },
-  { label: "Notices", icon: <Campaign />, path: "/notices" },
-  // { label: 'Events', icon: <Event />, path: '/events' },
-  // { label: 'Settings', icon: <Settings />, path: '/settings' },
-];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userRole = localStorage.getItem("role");
+    setRole(userRole);
+  }, []);
+
+  if (role === null) return null;
+
+  const navItems = [
+    { label: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+    ...(role === "super_admin" || role === "admin"
+      ? [
+          { label: "Societies", icon: <AccountBalanceIcon />, path: "/societies" },
+          { label: "Buildings", icon: <Apartment />, path: "/buildings" },
+          { label: "Flats", icon: <People />, path: "/flats" },
+          { label: "Add Member", icon: <Face />, path: "/add-member" },
+          { label: "Assign Flat", icon: <House />, path: "/assign-flats" },
+          { label: "Notices", icon: <Campaign />, path: "/notices" },
+        ]
+      : []),
+  ];
 
   return (
     <Box
@@ -47,7 +56,6 @@ export default function Sidebar() {
       flexDirection="column"
       height="100vh"
     >
-      {/* Logo Section */}
       <Box display="flex" alignItems="center" gap={1} mb={4}>
         <Box
           sx={{
@@ -66,13 +74,11 @@ export default function Sidebar() {
         </Typography>
       </Box>
 
-      {/* Navigation Items */}
       <List sx={{ flex: 1 }}>
         {navItems.map((item) => (
           <Link
             key={item.path}
             href={item.path}
-            passHref
             style={{ textDecoration: "none" }}
           >
             <ListItem
@@ -98,9 +104,7 @@ export default function Sidebar() {
               </ListItemIcon>
               <ListItemText
                 primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: "14px",
-                }}
+                primaryTypographyProps={{ fontSize: "14px" }}
               />
             </ListItem>
           </Link>

@@ -13,7 +13,7 @@ export const GET = async (request: NextRequest): Promise<NextResponse> => {
   if (authResult instanceof NextResponse) return authResult;
 
   const { status, ...responseData }: Response<any> =
-    await getAdminDashboardController();
+    await getAdminDashboardController(request);
 
   return NextResponse.json(responseData, { status });
 };

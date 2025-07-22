@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/services/auth";
-import { saveAccessToken } from "@/lib/auth";
+import { saveAccessToken, saveUserRole } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,7 +17,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { access_token } = await loginUser({ login_key: Number(login_key) });
+      const { access_token, role  } = await loginUser({ login_key: Number(login_key) });
+      saveUserRole(role);
       saveAccessToken(access_token);
       router.push("/dashboard");
     } catch (err: any) {

@@ -11,3 +11,7 @@ export const getAccessToken = () => {
 export const removeAccessToken = () => {
   localStorage.removeItem("access_token");
 };
+
+export const saveUserRole = (role: string) => {
+  localStorage.setItem("role", role);
+};

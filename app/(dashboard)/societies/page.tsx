@@ -25,6 +25,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
+import flags from "emoji-flags";
+
+// ✅ All countries with flags
+const COUNTRIES = flags.data
+  .map((country) => ({
+    value: country.name,
+    label: `${country.emoji} ${country.name}`,
+  }))
+  .sort((a, b) => a.label.localeCompare(b.label));
 
 const schema = z.object({
   name: z.string().min(1, "Society name is required"),
@@ -35,19 +44,6 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
-
-const COUNTRIES = [
-  { value: "India", label: "India" },
-  { value: "United States", label: "United States" },
-  { value: "United Kingdom", label: "United Kingdom" },
-  { value: "Canada", label: "Canada" },
-  { value: "Australia", label: "Australia" },
-  { value: "Germany", label: "Germany" },
-  { value: "France", label: "France" },
-  { value: "Japan", label: "Japan" },
-  { value: "Singapore", label: "Singapore" },
-  { value: "UAE", label: "United Arab Emirates" },
-];
 
 export default function SocietiesPage() {
   const [search, setSearch] = useState("");
@@ -68,7 +64,7 @@ export default function SocietiesPage() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      country: "",
+      country: "India",
     },
   });
 
@@ -95,39 +91,13 @@ export default function SocietiesPage() {
     );
   }, [societies, search]);
 
-  // MUI DataGrid column definitions
   const columns = useMemo(
     () => [
-      {
-        field: "name",
-        headerName: "Society Name",
-        flex: 1,
-        minWidth: 200,
-      },
-      {
-        field: "address",
-        headerName: "Address",
-        flex: 1.5,
-        minWidth: 250,
-      },
-      {
-        field: "city",
-        headerName: "City",
-        flex: 1,
-        minWidth: 150,
-      },
-      {
-        field: "state",
-        headerName: "State",
-        flex: 1,
-        minWidth: 150,
-      },
-      {
-        field: "country",
-        headerName: "Country",
-        flex: 1,
-        minWidth: 150,
-      },
+      { field: "name", headerName: "Society Name", flex: 1, minWidth: 200 },
+      { field: "address", headerName: "Address", flex: 1.5, minWidth: 250 },
+      { field: "city", headerName: "City", flex: 1, minWidth: 150 },
+      { field: "state", headerName: "State", flex: 1, minWidth: 150 },
+      { field: "country", headerName: "Country", flex: 1, minWidth: 150 },
     ],
     []
   );
@@ -139,105 +109,54 @@ export default function SocietiesPage() {
 
   return (
     <Container maxWidth="xl">
-      {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Button
           variant="outlined"
           startIcon={<AddIcon />}
           onClick={() => setOpen(true)}
-          sx={{
-            textTransform: "none",
-            px: 2,
-            py: 0.8,
-            borderRadius: 2,
-          }}
+          sx={{ textTransform: "none", px: 2, py: 0.8, borderRadius: 2 }}
         >
           Add Society
         </Button>
       </Box>
 
-      {/* Enhanced DataGrid with better pagination */}
-      <CommonDataGrid
-        rows={filteredSocieties}
-        columns={columns}
-        loading={isLoading}
-      />
+      <CommonDataGrid rows={filteredSocieties} columns={columns} loading={isLoading} />
 
-      {/* Add Society Modal */}
       <Dialog
         open={open}
         onClose={handleClose}
         fullWidth
         maxWidth="sm"
-        PaperProps={{
-          sx: { borderRadius: 2 },
-        }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ pb: 2 }}>
-          <Typography variant="h6" fontWeight="bold">
-            Add New Society
-          </Typography>
+          <Typography variant="h6" fontWeight="bold">Add New Society</Typography>
           <Typography variant="body2" color="text.secondary">
             Fill in the society details below
           </Typography>
         </DialogTitle>
 
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
-          >
-            {/* Text Fields */}
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}>
             {[
-              {
-                field: "name",
-                label: "Society Name",
-                placeholder: "e.g., ABC Complex",
-              },
-              {
-                field: "address",
-                label: "Address",
-                placeholder: "e.g., 123 Main Street",
-              },
+              { field: "name", label: "Society Name", placeholder: "e.g., ABC Complex" },
+              { field: "address", label: "Address", placeholder: "e.g., 123 Main Street" },
               { field: "city", label: "City", placeholder: "e.g., Mumbai" },
-              {
-                field: "state",
-                label: "State",
-                placeholder: "e.g., Maharashtra",
-              },
+              { field: "state", label: "State", placeholder: "e.g., Maharashtra" },
             ].map(({ field, label, placeholder }) => (
               <TextField
                 key={field}
                 label={label}
                 placeholder={placeholder}
-                {...register(field as keyof FormData, {
-                  required: `${label} is required`,
-                })}
+                {...register(field as keyof FormData)}
                 error={!!errors[field as keyof FormData]}
                 helperText={errors[field as keyof FormData]?.message}
                 fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
-                  },
-                }}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
             ))}
 
-            {/* Country Dropdown */}
-            <FormControl
-              fullWidth
-              error={!!errors.country}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                },
-              }}
-            >
+            <FormControl fullWidth error={!!errors.country} sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}>
               <InputLabel id="country-label">Country</InputLabel>
               <Controller
                 name="country"
@@ -248,11 +167,7 @@ export default function SocietiesPage() {
                     label="Country"
                     {...field}
                     MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                        },
-                      },
+                      PaperProps: { style: { maxHeight: 300 } },
                     }}
                   >
                     {COUNTRIES.map((country) => (
@@ -270,19 +185,10 @@ export default function SocietiesPage() {
           </DialogContent>
 
           <DialogActions sx={{ p: 3, pt: 1 }}>
-            <Button
-              onClick={handleClose}
-              disabled={isSubmitting}
-              sx={{ textTransform: "none" }}
-            >
+            <Button onClick={handleClose} disabled={isSubmitting} sx={{ textTransform: "none" }}>
               Cancel
             </Button>
-            <CommonButton
-              type="submit"
-              variant="contained"
-              loading={isSubmitting}
-              sx={{ bgcolor: "#1e1ee4" }}
-            >
+            <CommonButton type="submit" variant="contained" loading={isSubmitting} sx={{ bgcolor: "#1e1ee4" }}>
               Save Building
             </CommonButton>
           </DialogActions>

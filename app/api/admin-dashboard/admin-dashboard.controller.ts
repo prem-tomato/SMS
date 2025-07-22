@@ -1,18 +1,35 @@
-
-import { StatusCodes } from "http-status-codes";
-import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import getMessage from "@/db/utils/messages";
-import { getAdminDashboard } from "./admin-dashboard.model";
+import { generateResponseJSON, Response } from "@/db/utils/response-generator";
+import { StatusCodes } from "http-status-codes";
+import {
+  getAdminDashboard,
+  getSocietyIdByMemberId,
+} from "./admin-dashboard.model";
 
-
-export const getAdminDashboardController = async (): Promise<Response<any>> => {
+export const getAdminDashboardController = async (
+  request: Request
+): Promise<Response<any>> => {
   try {
-    const adminDashboard = await getAdminDashboard();
+    const userId: string = request.headers.get("userId")!;
+
+    const userRole: string = request.headers.get("role")!;
+
+    let dashboardData;
+
+    if (userRole === "super_admin" || userRole === "admin") {
+      dashboardData = await getAdminDashboard(); // all societies
+    } else if (userRole === "member") {
+      // Example: getSocietyIdByMemberId fetches their assigned society
+      const societyId = await getSocietyIdByMemberId(userId);
+      dashboardData = await getAdminDashboard(societyId);
+    } else {
+      throw new Error("Unauthorized role");
+    }
 
     return generateResponseJSON(
       StatusCodes.OK,
       getMessage("ADMIN_DASHBOARD_LISTED_SUCCESSFULLY"),
-      adminDashboard
+      dashboardData
     );
   } catch (error: any) {
     return generateResponseJSON(
@@ -21,4 +38,4 @@ export const getAdminDashboardController = async (): Promise<Response<any>> => {
       error
     );
   }
-}
+};
