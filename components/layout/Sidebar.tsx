@@ -34,7 +34,7 @@ export default function Sidebar() {
 
   const navItems = [
     { label: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-    ...(role === "super_admin" || role === "admin"
+    ...(role === "super_admin"
       ? [
           { label: "Societies", icon: <AccountBalanceIcon />, path: "/societies" },
           { label: "Buildings", icon: <Apartment />, path: "/buildings" },
@@ -43,8 +43,17 @@ export default function Sidebar() {
           { label: "Assign Flat", icon: <House />, path: "/assign-flats" },
           { label: "Notices", icon: <Campaign />, path: "/notices" },
         ]
+      : role === "admin"
+      ? [
+          { label: "Buildings", icon: <Apartment />, path: "/buildings" },
+          { label: "Flats", icon: <People />, path: "/flats" },
+          { label: "Add Member", icon: <Face />, path: "/add-member" },
+          { label: "Assign Flat", icon: <House />, path: "/assign-flats" },
+          { label: "Notices", icon: <Campaign />, path: "/notices" },
+        ]
       : []),
   ];
+  
 
   return (
     <Box
