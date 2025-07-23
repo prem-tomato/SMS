@@ -264,6 +264,12 @@ export default function SocietiesPage() {
       renderCell: ({ row }: any) =>
         row.end_date ? dayjs(row.end_date).format("YYYY-MMMM-DD") : "Set Date",
     },
+    {
+      field: "opening_balance",
+      headerName: "Opening Balance",
+      flex: 1,
+      renderCell: ({ row }: any) => row.opening_balance || "Set Balance",
+    },
     ...(role === "super_admin"
       ? [
           {
