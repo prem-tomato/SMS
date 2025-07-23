@@ -37,6 +37,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import { toast, ToastContainer } from "react-toastify";
 import { z } from "zod";
 
 // Country Dropdown Options
@@ -122,6 +123,7 @@ export default function SocietiesPage() {
     handleSubmit,
     reset,
     control,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormInputData>({
     resolver: zodResolver(inputSchema),
@@ -164,10 +166,9 @@ export default function SocietiesPage() {
 
         return createdSociety;
       } catch (error: any) {
-        // If user creation fails and society was created, rollback the society
         if (createdSociety?.id) {
           try {
-            await deleteSociety(createdSociety.id); // Rollback society creation
+            await deleteSociety(createdSociety.id);
             console.log(
               `Rolled back society creation with ID: ${createdSociety.id}`
             );
@@ -179,22 +180,28 @@ export default function SocietiesPage() {
           }
         }
 
-        console.error("Error creating society/admin:", error);
+        // Login key already exists error
+        const message =
+          error?.response?.data?.message?.toLowerCase() ||
+          error?.message?.toLowerCase() ||
+          "";
 
-        // Handle specific error cases
-        if (
-          error?.message?.toLowerCase().includes("login key already exists") ||
-          error?.response?.data?.message
-            ?.toLowerCase()
-            .includes("login key already exists")
-        ) {
-        } else if (
-          error?.message?.toLowerCase().includes("phone") ||
-          error?.response?.data?.message?.toLowerCase().includes("phone")
-        ) {
+        if (message.includes("login key")) {
+          setError("login_key", {
+            type: "manual",
+            message:
+              "Login key already exists. Please use a different login key.",
+          });
+        } else if (message.includes("phone")) {
+          setError("phone", {
+            type: "manual",
+            message: "Phone number already exists or is invalid.",
+          });
         }
 
-        // Re-throw the error to be handled by onError
+        // Also show toast (optional)
+        toast.error("Failed to create society. Please check your inputs.");
+
         throw error;
       }
     },
@@ -220,6 +227,7 @@ export default function SocietiesPage() {
       },
       onError: (error: any) => {
         console.error("Failed to update end date:", error);
+        toast.error("Failed to update end date. Please try again.");
       },
     });
 
@@ -278,344 +286,349 @@ export default function SocietiesPage() {
   };
 
   return (
-    <Box height="calc(100vh - 100px)">
-      <Box display="flex" justifyContent="space-between" mb={2}>
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={() => setOpen(true)}
-          sx={{
-            borderRadius: 1,
-            border: "1px solid #1e1ee4",
-            color: "#1e1ee4",
-          }}
-        >
-          Add Society
-        </Button>
-      </Box>
-
-      <CommonDataGrid
-        rows={filteredSocieties}
-        columns={columns}
-        loading={isLoading}
-        height="calc(100vh - 180px)" // Adjust based on header/toolbar height
-        pageSize={20}
-      />
-
-      {/* Three Dot Menu */}
-      <Menu
-        open={Boolean(menuAnchor)}
-        anchorEl={menuAnchor}
-        onClose={() => setMenuAnchor(null)}
-      >
-        <MenuItem
-          onClick={() => {
-            setEndDateDialogOpen(true);
-            setMenuAnchor(null);
-          }}
-        >
-          {societies.find((s) => s.id === selectedSocietyId)?.end_date
-            ? "Update End Date"
-            : "Set End Date"}
-        </MenuItem>
-      </Menu>
-
-      {/* End Date Dialog */}
-      <Dialog
-        open={endDateDialogOpen}
-        onClose={() => setEndDateDialogOpen(false)}
-        fullWidth
-        maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
-        <DialogTitle sx={{ fontWeight: "bold" }}>Set End Date</DialogTitle>
-
-        <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
-        >
-          <TextField
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{
-              min: dayjs().format("YYYY-MM-DD"),
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": { borderRadius: 2 },
-            }}
-          />
-        </DialogContent>
-
-        <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
+    <>
+      <Box height="calc(100vh - 100px)">
+        <Box display="flex" justifyContent="space-between" mb={2}>
           <Button
-            onClick={() => setEndDateDialogOpen(false)}
-            sx={{ textTransform: "none" }}
-          >
-            Cancel
-          </Button>
-          <CommonButton
-            variant="contained"
-            loading={isEndDateUpdating}
-            disabled={dayjs(endDate).isBefore(dayjs(), "day")}
-            onClick={handleEndDateSubmit}
-            sx={{ textTransform: "none", bgcolor: "#1e1ee4" }}
-          >
-            Update
-          </CommonButton>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add Society Dialog */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        fullWidth
-        maxWidth="md"
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
-        <DialogTitle sx={{ pb: 2 }}>
-          <Typography variant="h6" fontWeight="bold">
-            Add New Society & Admin
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Fill in the society details and admin user information below
-          </Typography>
-        </DialogTitle>
-
-        <Box
-          component="form"
-          onSubmit={handleSubmit((data) => createMutation(data))}
-        >
-          <DialogContent
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={() => setOpen(true)}
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 3,
-              pb: 2,
+              borderRadius: 1,
+              border: "1px solid #1e1ee4",
+              color: "#1e1ee4",
             }}
           >
-            {/* Society Information Section */}
-            <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
-              Society Information
-            </Typography>
+            Add Society
+          </Button>
+        </Box>
 
-            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-              <TextField
-                label="Society Name"
-                placeholder="Enter society name"
-                {...register("name")}
-                error={!!errors.name}
-                helperText={errors.name?.message}
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
+        <CommonDataGrid
+          rows={filteredSocieties}
+          columns={columns}
+          loading={isLoading}
+          height="calc(100vh - 180px)" // Adjust based on header/toolbar height
+          pageSize={20}
+        />
 
-              <TextField
-                label="Address"
-                placeholder="Enter address"
-                {...register("address")}
-                error={!!errors.address}
-                helperText={errors.address?.message}
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Box>
+        {/* Three Dot Menu */}
+        <Menu
+          open={Boolean(menuAnchor)}
+          anchorEl={menuAnchor}
+          onClose={() => setMenuAnchor(null)}
+        >
+          <MenuItem
+            onClick={() => {
+              setEndDateDialogOpen(true);
+              setMenuAnchor(null);
+            }}
+          >
+            {societies.find((s) => s.id === selectedSocietyId)?.end_date
+              ? "Update End Date"
+              : "Set End Date"}
+          </MenuItem>
+        </Menu>
 
-            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-              <TextField
-                label="City"
-                placeholder="Enter city"
-                {...register("city")}
-                error={!!errors.city}
-                helperText={errors.city?.message}
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
+        {/* End Date Dialog */}
+        <Dialog
+          open={endDateDialogOpen}
+          onClose={() => setEndDateDialogOpen(false)}
+          fullWidth
+          maxWidth="xs"
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle sx={{ fontWeight: "bold" }}>Set End Date</DialogTitle>
 
-              <TextField
-                label="State"
-                placeholder="Enter state"
-                {...register("state")}
-                error={!!errors.state}
-                helperText={errors.state?.message}
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Box>
-
-            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-              <TextField
-                label="Opening Balance"
-                placeholder="Enter opening balance"
-                type="number"
-                {...register("opening_balance")}
-                error={!!errors.opening_balance}
-                helperText={errors.opening_balance?.message}
-                fullWidth
-                inputProps={{
-                  min: 0,
-                  max: 1000000,
-                  step: 0.01,
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-
-              <FormControl
-                fullWidth
-                error={!!errors.country}
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              >
-                <InputLabel>Country</InputLabel>
-                <Controller
-                  name="country"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      label="Country"
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            "& .MuiMenuItem-root": {
-                              fontSize: "0.875rem",
-                            },
-                          },
-                        },
-                      }}
-                    >
-                      {COUNTRIES.map((c) => (
-                        <MenuItem key={c.value} value={c.value}>
-                          {c.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors.country && (
-                  <FormHelperText>{errors.country.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Box>
-
-            <Divider />
-
-            {/* Admin User Information Section */}
-            <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
-              Admin User Information
-            </Typography>
-
-            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-              <TextField
-                label="First Name"
-                placeholder="Enter first name"
-                {...register("first_name")}
-                error={!!errors.first_name}
-                helperText={errors.first_name?.message}
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-
-              <TextField
-                label="Last Name"
-                placeholder="Enter last name"
-                {...register("last_name")}
-                error={!!errors.last_name}
-                helperText={errors.last_name?.message}
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-            </Box>
-
-            <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
-              <TextField
-                label="Login Key"
-                placeholder="Enter login key (numbers only)"
-                {...register("login_key")}
-                error={!!errors.login_key}
-                helperText={errors.login_key?.message}
-                fullWidth
-                type="number"
-                inputProps={{
-                  min: 1,
-                  step: 1,
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                }}
-              />
-
-              {/* Phone Input with react-phone-number-input */}
-              <Box>
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => (
-                    <Box>
-                      <PhoneInput
-                        {...field}
-                        placeholder="Enter phone number"
-                        defaultCountry="IN"
-                        international
-                        countryCallingCodeEditable={false}
-                        className="phone-input"
-                      />
-                      {errors.phone && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "#d32f2f",
-                            mt: 0.5,
-                            ml: 1.75,
-                            display: "block",
-                          }}
-                        >
-                          {errors.phone.message}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-                />
-              </Box>
-            </Box>
+          <DialogContent
+            sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+          >
+            <TextField
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{
+                min: dayjs().format("YYYY-MM-DD"),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": { borderRadius: 2 },
+              }}
+            />
           </DialogContent>
 
-          <DialogActions sx={{ p: 3, pt: 1 }}>
+          <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
             <Button
-              onClick={() => setOpen(false)}
-              disabled={isSubmitting}
+              onClick={() => setEndDateDialogOpen(false)}
               sx={{ textTransform: "none" }}
             >
               Cancel
             </Button>
             <CommonButton
-              type="submit"
               variant="contained"
-              loading={isSubmitting}
-              sx={{ bgcolor: "#1e1ee4" }}
+              loading={isEndDateUpdating}
+              disabled={dayjs(endDate).isBefore(dayjs(), "day")}
+              onClick={handleEndDateSubmit}
+              sx={{ textTransform: "none", bgcolor: "#1e1ee4" }}
             >
-              Save Society & Admin
+              Update
             </CommonButton>
           </DialogActions>
-        </Box>
-      </Dialog>
-    </Box>
+        </Dialog>
+
+        {/* Add Society Dialog */}
+        <Dialog
+          open={open}
+          onClose={() => setOpen(false)}
+          fullWidth
+          maxWidth="md"
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle sx={{ pb: 2 }}>
+            <Typography variant="h6" fontWeight="bold">
+              Add New Society & Admin
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Fill in the society details and admin user information below
+            </Typography>
+          </DialogTitle>
+
+          <Box
+            component="form"
+            onSubmit={handleSubmit((data) => createMutation(data))}
+          >
+            <DialogContent
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 3,
+                pb: 2,
+              }}
+            >
+              {/* Society Information Section */}
+              <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
+                Society Information
+              </Typography>
+
+              <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+                <TextField
+                  label="Society Name"
+                  placeholder="Enter society name"
+                  {...register("name")}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                  fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+
+                <TextField
+                  label="Address"
+                  placeholder="Enter address"
+                  {...register("address")}
+                  error={!!errors.address}
+                  helperText={errors.address?.message}
+                  fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+              </Box>
+
+              <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+                <TextField
+                  label="City"
+                  placeholder="Enter city"
+                  {...register("city")}
+                  error={!!errors.city}
+                  helperText={errors.city?.message}
+                  fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+
+                <TextField
+                  label="State"
+                  placeholder="Enter state"
+                  {...register("state")}
+                  error={!!errors.state}
+                  helperText={errors.state?.message}
+                  fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+              </Box>
+
+              <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+                <TextField
+                  label="Opening Balance"
+                  placeholder="Enter opening balance"
+                  type="number"
+                  {...register("opening_balance")}
+                  error={!!errors.opening_balance}
+                  helperText={errors.opening_balance?.message}
+                  fullWidth
+                  inputProps={{
+                    min: 0,
+                    max: 1000000,
+                    step: 0.01,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+
+                <FormControl
+                  fullWidth
+                  error={!!errors.country}
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                >
+                  <InputLabel>Country</InputLabel>
+                  <Controller
+                    name="country"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        label="Country"
+                        MenuProps={{
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              "& .MuiMenuItem-root": {
+                                fontSize: "0.875rem",
+                              },
+                            },
+                          },
+                        }}
+                      >
+                        {COUNTRIES.map((c) => (
+                          <MenuItem key={c.value} value={c.value}>
+                            {c.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                  {errors.country && (
+                    <FormHelperText>{errors.country.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Box>
+
+              <Divider />
+
+              {/* Admin User Information Section */}
+              <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
+                Admin User Information
+              </Typography>
+
+              <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+                <TextField
+                  label="First Name"
+                  placeholder="Enter first name"
+                  {...register("first_name")}
+                  error={!!errors.first_name}
+                  helperText={errors.first_name?.message}
+                  fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+
+                <TextField
+                  label="Last Name"
+                  placeholder="Enter last name"
+                  {...register("last_name")}
+                  error={!!errors.last_name}
+                  helperText={errors.last_name?.message}
+                  fullWidth
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+              </Box>
+
+              <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+                <TextField
+                  label="Login Key"
+                  placeholder="Enter login key (numbers only)"
+                  {...register("login_key")}
+                  error={!!errors.login_key}
+                  helperText={errors.login_key?.message}
+                  fullWidth
+                  type="number"
+                  inputProps={{
+                    min: 1,
+                    step: 1,
+                    maxLength: 6,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                  }}
+                />
+
+                {/* Phone Input with react-phone-number-input */}
+                <Box>
+                  <Controller
+                    name="phone"
+                    control={control}
+                    render={({ field }) => (
+                      <Box>
+                        <PhoneInput
+                          {...field}
+                          placeholder="Enter phone number"
+                          defaultCountry="IN"
+                          international
+                          countryCallingCodeEditable={false}
+                          className="phone-input"
+                        />
+                        {errors.phone && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#d32f2f",
+                              mt: 0.5,
+                              ml: 1.75,
+                              display: "block",
+                            }}
+                          >
+                            {errors.phone.message}
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+                  />
+                </Box>
+              </Box>
+            </DialogContent>
+
+            <DialogActions sx={{ p: 3, pt: 1 }}>
+              <Button
+                onClick={() => setOpen(false)}
+                disabled={isSubmitting}
+                sx={{ textTransform: "none" }}
+              >
+                Cancel
+              </Button>
+              <CommonButton
+                type="submit"
+                variant="contained"
+                loading={isSubmitting}
+                sx={{ bgcolor: "#1e1ee4" }}
+              >
+                Save Society & Admin
+              </CommonButton>
+            </DialogActions>
+          </Box>
+        </Dialog>
+      </Box>
+
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
   );
 }

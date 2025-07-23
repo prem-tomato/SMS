@@ -111,8 +111,7 @@ export const addAdminController = async (
     }
 
     const loginKeyUnique: string | undefined = await checkLoginKeyUnique(
-      reqBody.login_key,
-      society.id
+      reqBody.login_key
     );
     if (loginKeyUnique) {
       return generateResponseJSON(
@@ -165,8 +164,7 @@ export const addMemberController = async (
     }
 
     const loginKeyUnique: string | undefined = await checkLoginKeyUnique(
-      reqBody.login_key,
-      society.id
+      reqBody.login_key
     );
     if (loginKeyUnique) {
       return generateResponseJSON(

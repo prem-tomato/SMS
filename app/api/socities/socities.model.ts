@@ -113,17 +113,15 @@ export const addAdmin = async (
 
 export const checkLoginKeyUnique = async (
   loginKey: number,
-  societyId: string
 ): Promise<string | undefined> => {
   try {
     const queryText = `
       SELECT id FROM users
-      WHERE login_key = $1 AND society_id = $2
+      WHERE login_key = $1
     `;
 
     const res: QueryResult<{ id: string }> = await query(queryText, [
       loginKey,
-      societyId,
     ]);
 
     // Return user id if exists, otherwise undefined
