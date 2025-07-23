@@ -66,7 +66,7 @@ const inputSchema = z.object({
   last_name: z.string().min(1, "Last name is required"),
   login_key: z
     .string()
-    .min(1, "Login key is required")
+    .max(6, "Login key must be 6 digits")
     .regex(/^\d+$/, "Login key must be a number"),
   phone: z
     .string()
@@ -80,7 +80,7 @@ const inputSchema = z.object({
 const outputSchema = inputSchema.extend({
   login_key: z
     .string()
-    .min(1, "Login key is required")
+    .max(6, "Login key must be 6 digits")
     .regex(/^\d+$/, "Login key must be a number")
     .transform((val) => parseInt(val, 10)),
   opening_balance: z.string().transform((val) => {
@@ -556,22 +556,21 @@ export default function SocietiesPage() {
               <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
                 <TextField
                   label="Login Key"
-                  placeholder="Enter login key (numbers only)"
+                  placeholder="Enter 6-digit login key"
                   {...register("login_key")}
                   error={!!errors.login_key}
                   helperText={errors.login_key?.message}
                   fullWidth
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   inputProps={{
-                    min: 1,
-                    step: 1,
                     maxLength: 6,
+                    pattern: "[0-9]*",
                   }}
                   sx={{
                     "& .MuiOutlinedInput-root": { borderRadius: 2 },
                   }}
                 />
-
                 {/* Phone Input with react-phone-number-input */}
                 <Box>
                   <Controller
