@@ -93,3 +93,29 @@ export async function fetchAssignedMembers(
     throw new Error(json.message || "Failed to fetch assigned members");
   return json.data;
 }
+
+export async function listAllFlats() {
+  const token = getAccessToken();
+  const res = await fetch(`/api/flats`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to fetch flats");
+  return json.data;
+}
+
+export async function listAllFlatsBySociety(societyId: string) {
+  const token = getAccessToken();
+  const res = await fetch(`/api/flats/${societyId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to fetch flats");
+  return json.data;
+}

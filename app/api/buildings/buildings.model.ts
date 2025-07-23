@@ -29,7 +29,7 @@ export const listBuildingOptionsBySocietyId = async (
 ): Promise<BuildingOptions[]> => {
   try {
     const queryText: string = `
-      SELECT id, name FROM buildings
+      SELECT id, name, total_floors FROM buildings
       WHERE society_id = $1
     `;
 

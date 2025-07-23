@@ -97,14 +97,6 @@ const outputSchema = inputSchema.extend({
 });
 
 type FormInputData = z.infer<typeof inputSchema>;
-type FormOutputData = z.infer<typeof outputSchema>;
-
-// Toast state interface
-interface ToastState {
-  open: boolean;
-  message: string;
-  severity: "success" | "error" | "warning" | "info";
-}
 
 export default function SocietiesPage() {
   const queryClient = useQueryClient();
@@ -117,13 +109,6 @@ export default function SocietiesPage() {
   const [endDateDialogOpen, setEndDateDialogOpen] = useState(false);
   const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [role, setRole] = useState<string | null>(null);
-
-  // Toast state
-  const [toast, setToast] = useState<ToastState>({
-    open: false,
-    message: "",
-    severity: "success",
-  });
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
