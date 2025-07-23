@@ -3,7 +3,6 @@
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddUserModal from "@/components/user/AddUserModal";
 import { getUserRole } from "@/lib/auth";
-import { fetchSocietyOptions } from "@/services/societies";
 import { fetchAllUsers, fetchUsersBySociety } from "@/services/user";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Container } from "@mui/material";
@@ -11,25 +10,19 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 export default function UsersPage() {
-  const role = getUserRole();
+  const [role, setRole] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [selectedSociety, setSelectedSociety] = useState<string>("");
-  const [societyName, setSocietyName] = useState<string>("");
-
-  const { data: societies = [], isLoading: loadingSocieties } = useQuery({
-    queryKey: ["society-options"],
-    queryFn: fetchSocietyOptions,
-    enabled: role === "super_admin",
-  });
 
   useEffect(() => {
+    const role = getUserRole();
+    setRole(role!);
+
     if (role === "admin") {
       const societyId = localStorage.getItem("society_id");
-      const storedSocietyName = localStorage.getItem("society_name");
       if (societyId) setSelectedSociety(societyId);
-      if (storedSocietyName) setSocietyName(storedSocietyName);
     }
-  }, [role]);
+  }, []);
 
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ["users", selectedSociety],
@@ -50,7 +43,7 @@ export default function UsersPage() {
         ? [{ field: "society_name", headerName: "Society Name", flex: 1 }]
         : []),
     ],
-    []
+    [role]
   );
 
   return (
