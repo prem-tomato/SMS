@@ -192,16 +192,16 @@ export default function SocietiesPage() {
             message:
               "Login key already exists. Please use a different login key.",
           });
+
+          toast.error(
+            "Login key already exists. Please use a different login key."
+          );
         } else if (message.includes("phone")) {
           setError("phone", {
             type: "manual",
             message: "Phone number already exists or is invalid.",
           });
         }
-
-        // Also show toast (optional)
-        toast.error("Failed to create society. Please check your inputs.");
-
         throw error;
       }
     },
