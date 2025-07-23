@@ -43,3 +43,13 @@ export async function createUser(
   if (!res.ok) throw new Error(json.message || "Failed to create user");
   return json;
 }
+
+export async function fetchAllUsers() {
+  const token = getAccessToken();
+  const res = await fetch(`/api/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to fetch users");
+  return json.data;
+}
