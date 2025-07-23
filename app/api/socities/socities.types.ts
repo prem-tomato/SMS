@@ -152,6 +152,7 @@ export type AddNoticeReqBody = z.infer<
 
 export type NoticeResponse = {
   data: Pick<Notices, "id" | "title" | "content" | "created_at"> & {
+    society_id: string;
     society_name: string;
     created_by: string;
     status: string;

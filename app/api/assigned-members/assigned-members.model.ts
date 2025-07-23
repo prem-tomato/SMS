@@ -23,7 +23,8 @@ export const listAllAssignedMembers = async (
                 CONCAT(u.first_name, ' ', u.last_name) AS member_name,
                 s.name AS society_name,
                 b.name AS building_name,
-                f.flat_number
+                f.flat_number,
+                f.floor_number
             FROM members a
             LEFT JOIN users u ON u.id = a.user_id
             LEFT JOIN societies s ON s.id = a.society_id

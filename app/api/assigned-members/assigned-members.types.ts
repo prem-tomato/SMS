@@ -8,4 +8,5 @@ export type AssignedMemberResponse = Pick<
   society_name: string;
   building_name: string;
   flat_number: string;
+  floor_number: number;
 };

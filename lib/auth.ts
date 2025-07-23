@@ -23,3 +23,7 @@ export const getUserRole = () => {
 export const saveSocietyId = (societyId: string) => {
   localStorage.setItem("society_id", societyId);
 };
+
+export const getSocietyIdFromLocalStorage = () => {
+  return localStorage.getItem("society_id");
+};

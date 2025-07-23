@@ -30,10 +30,7 @@ export async function createNotice(
   return json.data;
 }
 
-export async function toggleNoticeStatus(
-  societyId: string,
-  noticeId: string
-) {
+export async function toggleNoticeStatus(societyId: string, noticeId: string) {
   const token = getAccessToken();
   const res = await fetch(`/api/socities/${societyId}/notices/${noticeId}`, {
     method: "POST",
@@ -44,6 +41,19 @@ export async function toggleNoticeStatus(
     body: JSON.stringify({}),
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.message || "Failed to toggle notice status");
+  if (!res.ok)
+    throw new Error(json.message || "Failed to toggle notice status");
   return json.data;
 }
+
+export const getAllNotices = async () => {
+  const token = getAccessToken();
+  const res = await fetch(`/api/notices`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to fetch notices");
+  return json.data;
+};

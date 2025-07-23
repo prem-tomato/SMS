@@ -112,7 +112,7 @@ export const addAdmin = async (
 };
 
 export const checkLoginKeyUnique = async (
-  loginKey: number,
+  loginKey: number
 ): Promise<string | undefined> => {
   try {
     const queryText = `
@@ -120,9 +120,7 @@ export const checkLoginKeyUnique = async (
       WHERE login_key = $1
     `;
 
-    const res: QueryResult<{ id: string }> = await query(queryText, [
-      loginKey,
-    ]);
+    const res: QueryResult<{ id: string }> = await query(queryText, [loginKey]);
 
     // Return user id if exists, otherwise undefined
     return res.rows.length > 0 ? res.rows[0].id : undefined;
@@ -505,9 +503,16 @@ export const createNotice = async (
 };
 
 export const getNotices = async (
-  societyId: string
+  societyId?: string
 ): Promise<NoticeResponse[]> => {
   try {
+    const values: any[] = [];
+    let whereClause: string = "";
+    if (societyId) {
+      values.push(societyId);
+      whereClause = `WHERE n.society_id = $1`;
+    }
+
     const queryText: string = `
       SELECT 
         n.id,
@@ -516,16 +521,17 @@ export const getNotices = async (
         n.created_at,
         n.status,
         s.name AS society_name,
+        s.id AS society_id,
         concat(u.first_name, ' ', u.last_name) AS created_by
       FROM notices n
       LEFT JOIN societies s ON s.id = n.society_id
       LEFT JOIN users u ON u.id = n.created_by
-      WHERE s.id = $1
+      ${whereClause}
     `;
 
     const res: QueryResult<NoticeResponse> = await query<NoticeResponse>(
       queryText,
-      [societyId]
+      values
     );
 
     return res.rows;
