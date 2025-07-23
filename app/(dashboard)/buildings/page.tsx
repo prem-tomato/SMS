@@ -14,7 +14,6 @@ import {
   Box,
   Button,
   Chip,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -152,7 +151,7 @@ export default function BuildingsPage() {
   };
 
   return (
-    <Container maxWidth="xl">
+    <Box height="calc(100vh - 100px)">
       {/* Header */}
       <Box
         display="flex"
@@ -179,6 +178,8 @@ export default function BuildingsPage() {
         rows={buildings}
         columns={columns}
         loading={loadingBuildings}
+        height="calc(100vh - 180px)" // Adjust based on header/toolbar height
+        pageSize={20}
       />
 
       {/* Add Building Dialog */}
@@ -320,6 +321,6 @@ export default function BuildingsPage() {
           </DialogActions>
         </Box>
       </Dialog>
-    </Container>
+    </Box>
   );
 }

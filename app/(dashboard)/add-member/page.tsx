@@ -5,7 +5,7 @@ import AddUserModal from "@/components/user/AddUserModal";
 import { getUserRole } from "@/lib/auth";
 import { fetchAllUsers, fetchUsersBySociety } from "@/services/user";
 import AddIcon from "@mui/icons-material/Add";
-import { Box, Button, Container } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
@@ -47,7 +47,7 @@ export default function UsersPage() {
   );
 
   return (
-    <Container maxWidth="xl">
+    <Box height="calc(100vh - 100px)">
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Button
           variant="outlined"
@@ -63,13 +63,19 @@ export default function UsersPage() {
         </Button>
       </Box>
 
-      <CommonDataGrid rows={users} columns={columns} loading={loadingUsers} />
+      <CommonDataGrid
+        rows={users}
+        columns={columns}
+        loading={loadingUsers}
+        height="calc(100vh - 180px)" // Adjust based on header/toolbar height
+        pageSize={20}
+      />
 
       <AddUserModal
         open={open}
         onClose={() => setOpen(false)}
         societyId={selectedSociety}
       />
-    </Container>
+    </Box>
   );
 }

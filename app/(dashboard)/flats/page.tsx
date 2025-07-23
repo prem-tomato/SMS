@@ -5,7 +5,7 @@ import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddFlatModal from "@/components/flat/FlatModel";
 import { listAllFlats, listAllFlatsBySociety } from "@/services/flats";
 import AddIcon from "@mui/icons-material/Add";
-import { Box, Button, Chip, Container } from "@mui/material";
+import { Box, Button, Chip } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
@@ -53,7 +53,7 @@ export default function FlatsPage() {
   );
 
   return (
-    <Container maxWidth="xl">
+    <Box height="calc(100vh - 100px)">
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Button
           variant="outlined"
@@ -65,7 +65,13 @@ export default function FlatsPage() {
         </Button>
       </Box>
 
-      <CommonDataGrid rows={flats} columns={columns} loading={isLoading} />
+      <CommonDataGrid
+        rows={flats}
+        columns={columns}
+        loading={isLoading}
+        height="calc(100vh - 180px)"
+        pageSize={20}
+      />
 
       <AddFlatModal
         open={addModal}
@@ -73,6 +79,6 @@ export default function FlatsPage() {
         role={role}
         societyId={societyId}
       />
-    </Container>
+    </Box>
   );
 }

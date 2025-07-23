@@ -281,7 +281,7 @@ export default function SocietiesPage() {
   };
 
   return (
-    <Container maxWidth="xl">
+    <Box height="calc(100vh - 100px)">
       <Box display="flex" justifyContent="space-between" mb={2}>
         <Button
           variant="outlined"
@@ -301,6 +301,8 @@ export default function SocietiesPage() {
         rows={filteredSocieties}
         columns={columns}
         loading={isLoading}
+        height="calc(100vh - 180px)" // Adjust based on header/toolbar height
+        pageSize={20}
       />
 
       {/* Three Dot Menu */}
@@ -652,6 +654,6 @@ export default function SocietiesPage() {
           </DialogActions>
         </Box>
       </Dialog>
-    </Container>
+    </Box>
   );
 }

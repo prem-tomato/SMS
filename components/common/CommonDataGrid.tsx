@@ -1,7 +1,7 @@
 "use client";
 
-import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import { Box, Typography } from "@mui/material";
+import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import { useState } from "react";
 
 type CommonDataGridProps = {
@@ -13,7 +13,6 @@ type CommonDataGridProps = {
   pageSizeOptions?: number[];
   height?: number | string;
 };
-
 export default function CommonDataGrid({
   rows,
   columns,
@@ -21,7 +20,7 @@ export default function CommonDataGrid({
   emptyText = "No records found.",
   pageSize = 10,
   pageSizeOptions = [5, 10, 20, 50],
-  height = 600,
+  height = "600px", // Now string-based for flexibility (e.g., '100vh' or 'calc(100vh - 200px)')
 }: CommonDataGridProps) {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
@@ -48,7 +47,7 @@ export default function CommonDataGrid({
   }));
 
   return (
-    <Box sx={{ height: 650, width: "100%" }}>
+    <Box sx={{ height, width: "100%" }}>
       <DataGrid
         rows={rowsWithId}
         columns={columns}
