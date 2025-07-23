@@ -15,7 +15,6 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Box,
   Button,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -83,17 +82,15 @@ const outputSchema = inputSchema.extend({
     .min(1, "Login key is required")
     .regex(/^\d+$/, "Login key must be a number")
     .transform((val) => parseInt(val, 10)),
-  opening_balance: z
-    .string()
-    .transform((val) => {
-      const num = parseFloat(val);
-      if (isNaN(num) || num < 0 || num > 1000000) {
-        throw new Error(
-          "Opening balance must be a valid number between 0 and 1,000,000"
-        );
-      }
-      return num;
-    }),
+  opening_balance: z.string().transform((val) => {
+    const num = parseFloat(val);
+    if (isNaN(num) || num < 0 || num > 1000000) {
+      throw new Error(
+        "Opening balance must be a valid number between 0 and 1,000,000"
+      );
+    }
+    return num;
+  }),
 });
 
 type FormInputData = z.infer<typeof inputSchema>;
@@ -128,9 +125,9 @@ export default function SocietiesPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormInputData>({
     resolver: zodResolver(inputSchema),
-    defaultValues: { 
+    defaultValues: {
       country: "India",
-      opening_balance: "0"
+      opening_balance: "0",
     },
   });
 
@@ -567,12 +564,6 @@ export default function SocietiesPage() {
 
               {/* Phone Input with react-phone-number-input */}
               <Box>
-                <Typography
-                  variant="body2"
-                  sx={{ mb: 1, color: "rgba(0, 0, 0, 0.6)" }}
-                >
-                  Phone Number
-                </Typography>
                 <Controller
                   name="phone"
                   control={control}
@@ -584,36 +575,7 @@ export default function SocietiesPage() {
                         defaultCountry="IN"
                         international
                         countryCallingCodeEditable={false}
-                        style={{
-                          width: "100%",
-                        }}
-                        inputStyle={{
-                          width: "100%",
-                          height: "56px",
-                          border: errors.phone
-                            ? "2px solid #d32f2f"
-                            : "1px solid rgba(0, 0, 0, 0.23)",
-                          borderRadius: "8px",
-                          padding: "16.5px 14px",
-                          fontSize: "16px",
-                          outline: "none",
-                          transition: "border-color 0.15s ease-in-out",
-                        }}
-                        dropdownStyle={{
-                          borderRadius: "8px",
-                        }}
-                        onFocus={(e) => {
-                          if (!errors.phone) {
-                            e.target.style.borderColor = "#1e1ee4";
-                            e.target.style.borderWidth = "2px";
-                          }
-                        }}
-                        onBlur={(e) => {
-                          if (!errors.phone) {
-                            e.target.style.borderColor = "rgba(0, 0, 0, 0.23)";
-                            e.target.style.borderWidth = "1px";
-                          }
-                        }}
+                        className="phone-input"
                       />
                       {errors.phone && (
                         <Typography
