@@ -1,13 +1,32 @@
 "use client";
 
-import { getAccessToken, getUserRole } from "@/lib/auth";
+import {
+  getAccessToken,
+  getSocietyIdFromLocalStorage,
+  getUserRole,
+} from "@/lib/auth";
 import { cn } from "@/utils/cn";
-import { ArcElement, Chart, Legend, Tooltip } from "chart.js";
+import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart,
+  Legend,
+  LinearScale,
+  Tooltip,
+} from "chart.js";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Doughnut } from "react-chartjs-2";
+import { Bar, Doughnut } from "react-chartjs-2";
 
-Chart.register(ArcElement, Legend, Tooltip);
+Chart.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  LinearScale,
+  BarElement,
+  CategoryScale
+);
 
 interface Notice {
   id: string;
@@ -43,6 +62,14 @@ interface DashboardData {
   all_notices: Notice[];
 }
 
+interface FinalBalanceData {
+  society_name: string;
+  society_balance: number;
+  total_expense: number;
+  total_maintenance: number;
+  final_balance: number;
+}
+
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData>({
     total_societies: 0,
@@ -56,6 +83,9 @@ export default function Dashboard() {
     all_notices: [],
   });
   const [role, setRole] = useState<string | null>(null);
+  const [finalBalance, setFinalBalance] = useState<FinalBalanceData | null>(
+    null
+  );
 
   useEffect(() => {
     const userRole = getUserRole();
@@ -80,12 +110,31 @@ export default function Dashboard() {
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       }
+
+      // Fetch final balance data for non-super admin users
+      if (userRole !== "super_admin") {
+        const societyId = getSocietyIdFromLocalStorage();
+
+        try {
+          const res = await fetch(`/api/final-balance/${societyId}`, {
+            headers: {
+              Authorization: `Bearer ${getAccessToken()}`,
+            },
+          });
+          const result = await res.json();
+          if (result.message === "list successful" && result.data) {
+            setFinalBalance(result.data);
+          }
+        } catch (err) {
+          console.error("Error fetching final balance:", err);
+        }
+      }
     }
 
     fetchData();
   }, []);
 
-  if (role === null) return null; // Avoid mismatch
+  if (role === null) return null; // Avoid hydration mismatch
 
   const chartData = {
     labels: ["Occupied Flats", "Vacant Flats"],
@@ -109,6 +158,76 @@ export default function Dashboard() {
         labels: { color: "#374151" },
       },
     },
+    maintainAspectRatio: false,
+  };
+
+  // Financial chart data and options
+  const financialChartData = finalBalance
+    ? {
+        labels: [
+          "Total Expense",
+          "Total Maintenance",
+          "Society Balance",
+          "Final Balance",
+        ],
+        datasets: [
+          {
+            label: "Amount (₹)",
+            data: [
+              Math.abs(finalBalance.total_expense || 0),
+              Math.abs(finalBalance.total_maintenance || 0),
+              Math.abs(finalBalance.society_balance || 0),
+              Math.abs(finalBalance.final_balance || 0),
+            ],
+            backgroundColor: [
+              "#EF4444", // Red for expenses
+              "#F59E0B", // Amber for maintenance
+              "#10B981", // Green for society balance
+              "#3B82F6", // Blue for final balance
+            ],
+            borderColor: ["#DC2626", "#D97706", "#059669", "#2563EB"],
+            borderWidth: 1,
+            borderRadius: 6,
+            borderSkipped: false,
+          },
+        ],
+      }
+    : null;
+
+  const financialChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const value = context.raw;
+            return `₹${value.toLocaleString("en-IN")}`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function (value: any) {
+            return `₹${value.toLocaleString("en-IN")}`;
+          },
+        },
+        grid: {
+          color: "#F3F4F6",
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+    },
   };
 
   return (
@@ -130,8 +249,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Stats Section */}
-      <div
+            {/* Stats Section */}
+            <div
         className={cn(
           "grid gap-6 mb-8",
           role === "super_admin"
@@ -139,7 +258,6 @@ export default function Dashboard() {
             : "grid-cols-3 justify-center place-items-center"
         )}
       >
-        {" "}
         {role === "super_admin" && (
           <>
             <Stats
@@ -176,13 +294,74 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Financial Overview Chart for non-super admin users */}
+      {role !== "super_admin" && finalBalance && financialChartData && (
+        <div className="p-6 rounded-2xl shadow-md space-y-6 mb-10">
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-red-50 p-5 rounded-xl shadow-sm">
+              <h3 className="text-sm text-red-700 font-medium mb-1">
+                Total Expense
+              </h3>
+              <p className="text-2xl font-semibold text-red-900">
+                ₹
+                {Math.abs(finalBalance.total_expense || 0).toLocaleString(
+                  "en-IN"
+                )}
+              </p>
+            </div>
+            <div className="bg-amber-50 p-5 rounded-xl shadow-sm">
+              <h3 className="text-sm text-amber-700 font-medium mb-1">
+                Total Maintenance
+              </h3>
+              <p className="text-2xl font-semibold text-amber-900">
+                ₹
+                {Math.abs(finalBalance.total_maintenance || 0).toLocaleString(
+                  "en-IN"
+                )}
+              </p>
+            </div>
+            <div className="bg-green-50 p-5 rounded-xl shadow-sm">
+              <h3 className="text-sm text-green-700 font-medium mb-1">
+                Society Balance
+              </h3>
+              <p className="text-2xl font-semibold text-green-900">
+                ₹
+                {Math.abs(finalBalance.society_balance || 0).toLocaleString(
+                  "en-IN"
+                )}
+              </p>
+            </div>
+            <div className="bg-blue-50 p-5 rounded-xl shadow-sm">
+              <h3 className="text-sm text-blue-700 font-medium mb-1">
+                Final Balance
+              </h3>
+              <p className="text-2xl font-semibold text-blue-900">
+                ₹
+                {Math.abs(finalBalance.final_balance || 0).toLocaleString(
+                  "en-IN"
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Financial Bar Chart */}
+          <div className="h-80 rounded-xl bg-gray-50 p-4 shadow-sm">
+            <Bar data={financialChartData} options={financialChartOptions} />
+          </div>
+        </div>
+      )}
+
+
+
       {/* Charts + Notices */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">
             Flat Occupancy
           </h2>
-          <div className="w-full max-w-xs mx-auto">
+          <div className="w-full max-w-xs mx-auto h-64">
             <Doughnut data={chartData} options={chartOptions} />
           </div>
         </div>
@@ -206,14 +385,12 @@ export default function Dashboard() {
       )}
 
       {role === "super_admin" && (
-        <>
-          <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-            <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-              Society Breakdown
-            </h2>
-            <SocietyBreakdownTable societies={data.societies_breakdown} />
-          </div>
-        </>
+        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Society Breakdown
+          </h2>
+          <SocietyBreakdownTable societies={data.societies_breakdown} />
+        </div>
       )}
     </motion.div>
   );
