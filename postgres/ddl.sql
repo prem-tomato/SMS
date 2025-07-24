@@ -151,6 +151,8 @@ CREATE TABLE public.societies (
 	city varchar(100) NOT NULL,
 	state varchar(100) NOT NULL,
 	country varchar(100) DEFAULT 'India'::character varying NOT NULL,
+	end_date date NULL,
+	opening_balance int4 NULL,
 	created_by uuid NOT NULL,
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	CONSTRAINT societies_pkey PRIMARY KEY (id)
@@ -263,3 +265,17 @@ ALTER TABLE public.user_sessions ADD CONSTRAINT employee_sessions_user_id_fkey F
 
 ALTER TABLE public.users ADD CONSTRAINT users_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
 ALTER TABLE public.users ADD CONSTRAINT users_society_id_fkey FOREIGN KEY (society_id) REFERENCES public.societies(id);
+
+
+-- changes
+
+
+
+alter table societies 
+add column end_date date
+
+alter table societies 
+add column opening_balance int
+
+ALTER TABLE public.users
+ADD CONSTRAINT unique_login_key_global UNIQUE (login_key);

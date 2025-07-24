@@ -259,7 +259,15 @@ export default function SocietiesPage() {
       field: "opening_balance",
       headerName: "Opening Balance",
       flex: 1,
-      renderCell: ({ row }: any) => row.opening_balance || "Set Balance",
+      renderCell: ({ row }: any) => {
+        const value = Number(row.opening_balance) || 0;
+        return value.toLocaleString("en-IN", {
+          style: "currency",
+          currency: "INR",
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+      },
     },
     ...(role === "super_admin"
       ? [
