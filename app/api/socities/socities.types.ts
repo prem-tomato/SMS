@@ -44,7 +44,7 @@ export type Flat = {
   pending_maintenance: {
     amount: number;
     reason: string;
-  };
+  }[];  
   current_maintenance: number;
   created_at: string;
   created_by: string;

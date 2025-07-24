@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -23,8 +24,9 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
+import { Controller, useForm, useFieldArray } from "react-hook-form";
+import { array, number, object, string, z } from "zod";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const schema = z.object({
   flat_number: z.string().min(1, "Flat number is required"),
@@ -36,10 +38,19 @@ const schema = z.object({
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Square foot must be a positive number",
     }),
-  pending_amount: z.string().refine((val) => !isNaN(Number(val)), {
-    message: "Pending amount must be a number",
-  }),
-  pending_reason: z.string().min(1, "Pending reason is required"),
+  pending_maintenance: array(
+    object({
+      amount: z.union([
+        z.number().min(0, "Amount must be greater than or equal to 0").max(1000000, "Amount must be less than or equal to 1000000"),
+        z.string().refine((val) => val === "" || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 1000000), {
+          message: "Amount must be a valid number between 0 and 1000000"
+        })
+      ]),
+      reason: string()
+        .min(1, "Pending maintenance reason is required")
+        .max(255, "Reason must be under 255 characters"),
+    })
+  ).min(1, "At least one pending maintenance entry is required"),
   current_maintenance: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Current maintenance must be a number",
   }),
@@ -67,7 +78,7 @@ export default function AddFlatModal({
   open: boolean;
   onClose: () => void;
   role: string;
-  societyId?: string; // Make optional with default
+  societyId?: string;
 }) {
   const queryClient = useQueryClient();
   const [societyId, setSocietyId] = useState(adminSocietyId || "");
@@ -122,10 +133,14 @@ export default function AddFlatModal({
       flat_number: "",
       floor_number: "",
       square_foot: "",
-      pending_amount: "",
-      pending_reason: "",
+      pending_maintenance: [{ amount: 0, reason: "" }],
       current_maintenance: "",
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "pending_maintenance",
   });
 
   const mutation = useMutation({
@@ -133,7 +148,7 @@ export default function AddFlatModal({
       flat_number: string;
       floor_number: number;
       square_foot: number;
-      pending_maintenance: { amount: number; reason: string };
+      pending_maintenance: { amount: number; reason: string }[];
       current_maintenance: number;
     }) => createFlat(societyId, buildingId, data),
     onSuccess: () => {
@@ -147,7 +162,6 @@ export default function AddFlatModal({
       try {
         let errorMessage = "Something went wrong";
 
-        // Handle different error response formats
         if (error?.response?.json) {
           const res = await error.response.json();
           errorMessage = res?.message || errorMessage;
@@ -169,19 +183,16 @@ export default function AddFlatModal({
   const onSubmit = (data: FormData) => {
     let hasErrors = false;
 
-    // Validate society selection
     if (!societyId) {
       setBackendError("Please select a society");
       hasErrors = true;
     }
 
-    // Validate building selection
     if (!buildingId) {
       setBackendError("Please select a building");
       hasErrors = true;
     }
 
-    // Validate floor number against building's total floors
     if (buildingId && data.floor_number) {
       const selectedBuilding = buildings.find((b) => b.id === buildingId);
       const floorNumber = Number(data.floor_number);
@@ -208,20 +219,26 @@ export default function AddFlatModal({
     setBackendError(null);
     mutation.mutate({
       flat_number: data.flat_number,
-      floor_number: Number(data.floor_number),
-      square_foot: Number(data.square_foot),
-      pending_maintenance: {
-        amount: Number(data.pending_amount),
-        reason: data.pending_reason,
-      },
-      current_maintenance: Number(data.current_maintenance),
+      floor_number: Number(data.floor_number) || 0,
+      square_foot: Number(data.square_foot) || 0,
+      pending_maintenance: data.pending_maintenance.map((item) => ({
+        amount: typeof item.amount === 'string' ? Number(item.amount) || 0 : item.amount,
+        reason: item.reason || "",
+      })),
+      current_maintenance: Number(data.current_maintenance) || 0,
     });
   };
 
   // Reset form and state when modal opens
   useEffect(() => {
     if (open) {
-      reset();
+      reset({
+        flat_number: "",
+        floor_number: "",
+        square_foot: "",
+        pending_maintenance: [{ amount: 0, reason: "" }],
+        current_maintenance: "",
+      });
       setBackendError(null);
 
       if (role === "admin") {
@@ -239,7 +256,6 @@ export default function AddFlatModal({
   // Reset building when society changes and clear floor validation
   useEffect(() => {
     setBuildingId("");
-    // Clear floor number errors when building changes
     if (errors.floor_number) {
       setError("floor_number", { type: "", message: "" });
     }
@@ -260,6 +276,16 @@ export default function AddFlatModal({
     setBuildingId("");
     setBackendError(null);
     onClose();
+  };
+
+  const addPendingMaintenance = () => {
+    append({ amount: 0, reason: "" });
+  };
+
+  const removePendingMaintenance = (index: number) => {
+    if (fields.length > 1) {
+      remove(index);
+    }
   };
 
   return (
@@ -450,38 +476,74 @@ export default function AddFlatModal({
             )}
           />
 
-          {/* Pending Maintenance Amount & Reason - side by side */}
-          <Box display="flex" gap={2}>
-            <Controller
-              name="pending_amount"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Pending Amount"
-                  placeholder="e.g., 10000"
-                  error={!!errors.pending_amount}
-                  helperText={errors.pending_amount?.message}
-                  type="number"
-                  fullWidth
+          {/* Pending Maintenance Entries */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Pending Maintenance Entries
+            </Typography>
+            {fields.map((field, index) => (
+              <Box key={field.id} display="flex" gap={2} mb={2} alignItems="start">
+                <Controller
+                  name={`pending_maintenance.${index}.amount` as const}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Amount"
+                      placeholder="e.g., 10000"
+                      type="number"
+                      fullWidth
+                      error={!!errors.pending_maintenance?.[index]?.amount}
+                      helperText={
+                        errors.pending_maintenance?.[index]?.amount?.message
+                      }
+                      inputProps={{ min: 0, max: 1000000 }}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            <Controller
-              name="pending_reason"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Pending Reason"
-                  placeholder="e.g., pipeline change"
-                  error={!!errors.pending_reason}
-                  helperText={errors.pending_reason?.message}
-                  fullWidth
+                <Controller
+                  name={`pending_maintenance.${index}.reason` as const}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Reason"
+                      placeholder="e.g., pipeline change"
+                      fullWidth
+                      error={!!errors.pending_maintenance?.[index]?.reason}
+                      helperText={
+                        errors.pending_maintenance?.[index]?.reason?.message
+                      }
+                    />
+                  )}
                 />
-              )}
-            />
+
+                {fields.length > 1 && (
+                  <IconButton
+                    onClick={() => removePendingMaintenance(index)}
+                    color="error"
+                    sx={{ mt: 1 }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                )}
+              </Box>
+            ))}
+            
+            <Button
+              onClick={addPendingMaintenance}
+              sx={{ textTransform: "none" }}
+              variant="outlined"
+            >
+              + Add Another Entry
+            </Button>
+            
+            {errors.pending_maintenance && typeof errors.pending_maintenance.message === 'string' && (
+              <Typography color="error" variant="caption" sx={{ mt: 0.5, display: 'block' }}>
+                {errors.pending_maintenance.message}
+              </Typography>
+            )}
           </Box>
 
           {/* Current Maintenance */}
