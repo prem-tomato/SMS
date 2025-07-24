@@ -120,8 +120,8 @@ export default function Dashboard() {
     >
       {/* Society Name for Admin/Member */}
       {role !== "super_admin" && data.societies_breakdown.length > 0 && (
-        <div className="relative mb-10">
-          <h1 className="text-4xl font-extrabold text-center text-blue-600 tracking-tight">
+        <div className="relative mb-14">
+          <h1 className="text-4xl font-extrabold text-center text-gray-600 tracking-tight">
             {data.societies_breakdown[0].name}
           </h1>
           <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-36 h-1 rounded-full shadow-lg overflow-hidden">

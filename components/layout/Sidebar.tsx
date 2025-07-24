@@ -2,21 +2,23 @@
 
 import { getUserRole } from "@/lib/auth";
 import {
-  Apartment,
-  Campaign,
-  Dashboard,
-  Face,
-  House,
-  People,
+  ApartmentOutlined,
+  CampaignOutlined,
+  DashboardOutlined,
+  FaceOutlined,
+  HouseOutlined,
+  PeopleOutlined,
 } from "@mui/icons-material";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import {
   Box,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,42 +27,90 @@ import { useEffect, useState } from "react";
 export default function Sidebar() {
   const pathname = usePathname();
   const [role, setRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const userRole = getUserRole();
-    setRole(userRole);
+    const fetchRole = async () => {
+      try {
+        const userRole = await getUserRole();
+        setRole(userRole);
+      } catch (error) {
+        console.error("Failed to get user role:", error);
+        setRole(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRole();
   }, []);
 
+  // Show loading skeleton while fetching role
+  if (isLoading) {
+    return (
+      <Box
+        width="240px"
+        bgcolor="white"
+        boxShadow={1}
+        p={2}
+        display="flex"
+        flexDirection="column"
+        height="100vh"
+      >
+        <Box display="flex" alignItems="center" gap={1} mb={4}>
+          <Skeleton variant="rectangular" width={32} height={32} />
+          <Skeleton variant="text" width={140} height={24} />
+        </Box>
+        <List sx={{ flex: 1 }}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <ListItem key={index} sx={{ mb: 0.5 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <Skeleton variant="circular" width={24} height={24} />
+              </ListItemIcon>
+              <ListItemText>
+                <Skeleton variant="text" width={80} />
+              </ListItemText>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+    );
+  }
+
+  // Don't render if no role (user not authenticated)
   if (role === null) return null;
 
   const navItems = [
-    { label: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+    { label: "Dashboard", icon: <DashboardOutlined />, path: "/dashboard" },
     ...(role === "super_admin"
       ? [
           {
             label: "Societies",
-            icon: <AccountBalanceIcon />,
+            icon: <AccountBalanceOutlinedIcon />,
             path: "/societies",
           },
-          { label: "Buildings", icon: <Apartment />, path: "/buildings" },
-          { label: "Flats", icon: <People />, path: "/flats" },
-          { label: "Add Member", icon: <Face />, path: "/add-member" },
-          { label: "Assign Flat", icon: <House />, path: "/assign-flats" },
-          { label: "Notices", icon: <Campaign />, path: "/notices" },
+          { label: "Buildings", icon: <ApartmentOutlined />, path: "/buildings" },
+          { label: "Flats", icon: <PeopleOutlined />, path: "/flats" },
+          { label: "Add Member", icon: <FaceOutlined />, path: "/add-member" },
+          { label: "Assign Flat", icon: <HouseOutlined />, path: "/assign-flats" },
+          { label: "Notices", icon: <CampaignOutlined />, path: "/notices" },
         ]
       : role === "admin"
       ? [
-          { label: "Buildings", icon: <Apartment />, path: "/buildings" },
-          { label: "Flats", icon: <People />, path: "/flats" },
-          { label: "Add Member", icon: <Face />, path: "/add-member" },
-          { label: "Assign Flat", icon: <House />, path: "/assign-flats" },
-          { label: "Notices", icon: <Campaign />, path: "/notices" },
+          { label: "Buildings", icon: <ApartmentOutlined />, path: "/buildings" },
+          { label: "Flats", icon: <PeopleOutlined />, path: "/flats" },
+          { label: "Add Member", icon: <FaceOutlined />, path: "/add-member" },
+          { label: "Assign Flat", icon: <HouseOutlined />, path: "/assign-flats" },
+          { label: "Notices", icon: <CampaignOutlined />, path: "/notices" },
         ]
       : []),
   ];
 
   return (
     <Box
+      component="nav"
+      role="navigation"
+      aria-label="Main navigation"
       width="240px"
       bgcolor="white"
       boxShadow={1}
@@ -68,7 +118,13 @@ export default function Sidebar() {
       display="flex"
       flexDirection="column"
       height="100vh"
+      sx={{
+        position: "sticky",
+        top: 0,
+        overflowY: "auto",
+      }}
     >
+      {/* Header */}
       <Box display="flex" alignItems="center" gap={1} mb={4}>
         <Box
           sx={{
@@ -80,48 +136,88 @@ export default function Sidebar() {
             justifyContent: "center",
           }}
         >
-          <Apartment sx={{ color: "white", fontSize: 20 }} />
+          <ApartmentOutlined sx={{ color: "white", fontSize: 20 }} />
         </Box>
-        <Typography fontWeight="bold" fontSize="18px" color="#333">
+        <Typography
+          variant="h6"
+          component="h1"
+          fontWeight="bold"
+          fontSize="18px"
+          color="#333"
+        >
           SocietyManager
         </Typography>
       </Box>
 
-      <List sx={{ flex: 1 }}>
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            href={item.path}
-            style={{ textDecoration: "none" }}
-          >
+      {/* Navigation List */}
+      <List
+        component="ul"
+        sx={{ flex: 1, p: 0 }}
+        role="list"
+        aria-label="Navigation menu"
+      >
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+          
+          return (
             <ListItem
-              sx={{
-                mb: 0.5,
-                borderRadius: 2,
-                bgcolor: pathname === item.path ? "#1e1ee4" : "transparent",
-                color: pathname === item.path ? "white" : "#666",
-                cursor: "pointer",
-                "&:hover": {
-                  bgcolor: pathname === item.path ? "#1e1ee4" : "#f5f5f5",
-                  color: pathname === item.path ? "white" : "#333",
-                },
-              }}
+              key={item.path}
+              component="li"
+              disablePadding
+              sx={{ mb: 0.5 }}
             >
-              <ListItemIcon
-                sx={{
-                  color: pathname === item.path ? "white" : "#666",
-                  minWidth: 40,
+              <Link
+                href={item.path}
+                style={{ 
+                  textDecoration: "none", 
+                  width: "100%",
+                  display: "block"
                 }}
+                passHref
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{ fontSize: "14px" }}
-              />
+                <ListItemButton
+                  component="a"
+                  role="menuitem"
+                  aria-current={isActive ? "page" : undefined}
+                  sx={{
+                    borderRadius: 1,
+                    border: isActive ? "2px solid #1e1ee4" : "1px solid #e0e0e0",
+                    bgcolor: isActive ? "white" : "transparent",
+                    color: "black",
+                    minHeight: 48,
+                    mb: 1,
+                    "&:hover": {
+                      borderColor: "#1e1ee4",
+                      bgcolor: isActive ? "white" : "rgba(30, 30, 228, 0.04)",
+                    },
+                    "&:focus-visible": {
+                      outline: "2px solid #1e1ee4",
+                      outlineOffset: "2px",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      color: "#1e1ee4",
+                      minWidth: 40,
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{ 
+                      fontSize: "12px",
+                      fontWeight: isActive ? 700 : 500,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  />
+                </ListItemButton>
+              </Link>
             </ListItem>
-          </Link>
-        ))}
+          );
+        })}
       </List>
     </Box>
   );
