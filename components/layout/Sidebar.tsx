@@ -17,8 +17,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Typography,
   Skeleton,
+  Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -89,19 +89,45 @@ export default function Sidebar() {
             icon: <AccountBalanceOutlinedIcon />,
             path: "/societies",
           },
-          { label: "Buildings", icon: <ApartmentOutlined />, path: "/buildings" },
+          {
+            label: "Buildings",
+            icon: <ApartmentOutlined />,
+            path: "/buildings",
+          },
           { label: "Flats", icon: <PeopleOutlined />, path: "/flats" },
           { label: "Add Member", icon: <FaceOutlined />, path: "/add-member" },
-          { label: "Assign Flat", icon: <HouseOutlined />, path: "/assign-flats" },
+          {
+            label: "Assign Flat",
+            icon: <HouseOutlined />,
+            path: "/assign-flats",
+          },
           { label: "Notices", icon: <CampaignOutlined />, path: "/notices" },
+          {
+            label: "Expense Tracking",
+            icon: <AccountBalanceOutlinedIcon />,
+            path: "/expense-tracking",
+          },
         ]
       : role === "admin"
       ? [
-          { label: "Buildings", icon: <ApartmentOutlined />, path: "/buildings" },
+          {
+            label: "Buildings",
+            icon: <ApartmentOutlined />,
+            path: "/buildings",
+          },
           { label: "Flats", icon: <PeopleOutlined />, path: "/flats" },
           { label: "Add Member", icon: <FaceOutlined />, path: "/add-member" },
-          { label: "Assign Flat", icon: <HouseOutlined />, path: "/assign-flats" },
+          {
+            label: "Assign Flat",
+            icon: <HouseOutlined />,
+            path: "/assign-flats",
+          },
           { label: "Notices", icon: <CampaignOutlined />, path: "/notices" },
+          {
+            label: "Expense Tracking",
+            icon: <AccountBalanceOutlinedIcon />,
+            path: "/expense-tracking",
+          },
         ]
       : []),
   ];
@@ -158,7 +184,7 @@ export default function Sidebar() {
       >
         {navItems.map((item) => {
           const isActive = pathname === item.path;
-          
+
           return (
             <ListItem
               key={item.path}
@@ -168,10 +194,10 @@ export default function Sidebar() {
             >
               <Link
                 href={item.path}
-                style={{ 
-                  textDecoration: "none", 
+                style={{
+                  textDecoration: "none",
                   width: "100%",
-                  display: "block"
+                  display: "block",
                 }}
                 passHref
               >
@@ -181,7 +207,9 @@ export default function Sidebar() {
                   aria-current={isActive ? "page" : undefined}
                   sx={{
                     borderRadius: 1,
-                    border: isActive ? "2px solid #1e1ee4" : "1px solid #e0e0e0",
+                    border: isActive
+                      ? "2px solid #1e1ee4"
+                      : "1px solid #e0e0e0",
                     bgcolor: isActive ? "white" : "transparent",
                     color: "black",
                     minHeight: 48,
@@ -206,7 +234,7 @@ export default function Sidebar() {
                   </ListItemIcon>
                   <ListItemText
                     primary={item.label}
-                    primaryTypographyProps={{ 
+                    primaryTypographyProps={{
                       fontSize: "12px",
                       fontWeight: isActive ? 700 : 500,
                       textTransform: "uppercase",

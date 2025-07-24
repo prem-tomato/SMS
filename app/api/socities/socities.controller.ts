@@ -5,6 +5,7 @@ import socitiesLogger from "./socities.logger";
 import {
   addAdmin,
   addBuilding,
+  addExpenseTracking,
   addFlat,
   addMember,
   addSocieties,
@@ -19,6 +20,7 @@ import {
   getAssignedFlatsUser,
   getBuildings,
   getBuildingsBySociety,
+  getExpenseTracking,
   getFlats,
   getNotices,
   getSocieties,
@@ -34,6 +36,7 @@ import {
   AddAdminReqBody,
   AddBuildingReqBody,
   AddEndDateReqBody,
+  AddExpenseTrackingReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
@@ -44,6 +47,7 @@ import {
   Building,
   BuildingResponse,
   BuildingResponseForSociety,
+  ExpenseTrackingResponse,
   Flat,
   FlatOptions,
   FlatResponse,
@@ -725,6 +729,61 @@ export const getBuildingControllerBySociety = async (
   } catch (error: any) {
     socitiesLogger.error("Error in getBuildingsBySociety:", error);
     socitiesLogger.error("Error in getBuildingControllerBySociety:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const addExpenseTrackingController = async (
+  request: Request,
+  reqBody: AddExpenseTrackingReqBody,
+  societyId: string
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    await addExpenseTracking(reqBody, societyId, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("EXPENSE_TRACKING_ADDED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in addExpenseTrackingController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getExpenseTrackingController = async (
+  societyId: string
+): Promise<Response<ExpenseTrackingResponse[]>> => {
+  try {
+    const expenseTrackings = await getExpenseTracking(societyId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      expenseTrackings
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getExpenseTrackingController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

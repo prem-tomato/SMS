@@ -290,3 +290,25 @@ ADD COLUMN pending_maintenance JSONB;
 
 ALTER TABLE flats 
 ADD COLUMN current_maintenance NUMERIC(10, 2);
+
+create type expense_type_enum as enum ('fixed', 'monthly')
+
+CREATE TABLE expense_tracking (
+    id UUID DEFAULT gen_random_uuid() NOT null primary key,
+    
+    society_id UUID NOT NULL REFERENCES societies(id),
+    expense_type expense_type_enum NOT NULL,
+    expense_reason TEXT NOT NULL,
+    expense_amount NUMERIC(10,2) NOT NULL,
+    
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    
+    updated_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    
+    deleted_by UUID REFERENCES users(id),
+    deleted_at TIMESTAMPTZ
+);

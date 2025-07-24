@@ -5,6 +5,7 @@ import {
   AddAdminReqBody,
   AddBuildingReqBody,
   AddEndDateReqBody,
+  AddExpenseTrackingReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
@@ -14,6 +15,7 @@ import {
   AssignMemberReqBody,
   Building,
   BuildingResponseForSociety,
+  ExpenseTrackingResponse,
   Flat,
   FlatOptions,
   NoticeResponse,
@@ -625,5 +627,64 @@ export const getBuildingsBySociety = async (
     return res.rows;
   } catch (error) {
     throw new Error(`Error getting buildings by society: ${error}`);
+  }
+};
+
+export const addExpenseTracking = async (
+  reqBody: AddExpenseTrackingReqBody,
+  societyId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      INSERT INTO expense_tracking
+      (expense_type, expense_amount, expense_reason, society_id, created_by, created_at, updated_by, updated_at)
+      VALUES ($1, $2, $3, $4, $5, NOW(), $5, NOW())
+    `;
+
+    await query(queryText, [
+      reqBody.expense_type,
+      reqBody.expense_amount,
+      reqBody.expense_reason,
+      societyId,
+      userId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error adding expense tracking: ${error}`);
+  }
+};
+
+export const getExpenseTracking = async (
+  societyId?: string
+): Promise<ExpenseTrackingResponse[]> => {
+  try {
+
+    const values: any[] = [];
+    let whereClause: string = "";
+    if (societyId) {
+      values.push(societyId);
+      whereClause = `WHERE et.society_id = $1`;
+    }
+
+    const queryText: string = `
+      SELECT 
+        et.id,
+        et.expense_type,
+        et.expense_amount,
+        et.expense_reason,
+        s.name AS society_name,
+        concat(u.first_name, ' ', u.last_name) AS action_by
+      FROM expense_tracking et
+      LEFT JOIN societies s ON s.id = et.society_id
+      LEFT JOIN users u ON u.id = et.updated_by
+      ${whereClause}
+    `;
+
+    const res: QueryResult<ExpenseTrackingResponse> =
+      await query<ExpenseTrackingResponse>(queryText, values);
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting expense tracking: ${error}`);
   }
 };

@@ -48,7 +48,9 @@ export default function FlatsPage() {
         ),
       },
       { field: "building_name", headerName: "Building", flex: 1 },
-      { field: "society_name", headerName: "Society", flex: 1 },
+      ...(role === "super_admin"
+        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        : []),
       {
         field: "current_maintenance",
         headerName: "Current Maintenance",
@@ -64,7 +66,7 @@ export default function FlatsPage() {
         },
       },
     ],
-    []
+    [role]
   );
 
   return (

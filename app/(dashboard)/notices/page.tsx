@@ -166,6 +166,10 @@ export default function NoticesPage() {
           });
         },
       },
+      ...(role === "super_admin"
+        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        : []),
+
       {
         field: "actions",
         headerName: "Actions",
@@ -193,7 +197,7 @@ export default function NoticesPage() {
         },
       },
     ];
-  }, [toggling, toggleStatus]);
+  }, [toggling, toggleStatus, role]);
 
   return (
     <Box height="calc(100vh - 100px)">

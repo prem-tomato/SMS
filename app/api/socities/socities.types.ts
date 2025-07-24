@@ -1,9 +1,11 @@
+import { expenseType } from "@/db/utils/enums/enum";
 import z from "zod";
 import { User } from "../auth/auth.types";
 import {
   addAdminValidation,
   addBuildingValidation,
   addEndDateValidation,
+  addExpenseTrackingValidation,
   addFlatValidation,
   addMemberValidation,
   addSocietyValidation,
@@ -44,7 +46,7 @@ export type Flat = {
   pending_maintenance: {
     amount: number;
     reason: string;
-  }[];  
+  }[];
   current_maintenance: number;
   created_at: string;
   created_by: string;
@@ -166,3 +168,32 @@ export type NoticeResponse = {
 };
 
 export type AddEndDateReqBody = z.infer<typeof addEndDateValidation.shape.body>;
+
+export type ExpenseTracking = {
+  id: string;
+  society_id: string;
+  expense_type: typeof expenseType.FIXED | typeof expenseType.MONTHLY;
+  expense_reason: string;
+  expense_amount: number;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_by: string;
+  updated_at: string;
+  deleted_by: string;
+  deleted_at: string;
+};
+
+export type AddExpenseTrackingReqBody = z.infer<
+  typeof addExpenseTrackingValidation.shape.body
+>;
+
+export type ExpenseTrackingResponse = {
+  data: Pick<
+    ExpenseTracking,
+    "id" | "expense_type" | "expense_reason" | "expense_amount"
+  > & {
+    society_name: string;
+    action_by: string;
+  };
+};

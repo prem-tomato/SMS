@@ -118,7 +118,9 @@ export default function BuildingsPage() {
   const columns = useMemo(
     () => [
       { field: "name", headerName: "Building Name", flex: 1 },
-      { field: "society_name", headerName: "Society", flex: 1 },
+      ...(role === "super_admin"
+        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        : []),
       { field: "total_floors", headerName: "Total Floors", flex: 1 },
       {
         field: "action_by",
@@ -134,7 +136,7 @@ export default function BuildingsPage() {
         ),
       },
     ],
-    []
+    [role]
   );
 
   const handleOpen = () => {

@@ -27,5 +27,6 @@
     "END_DATE_UPDATED_SUCCESSFULLY": "end date updated successfully",
     "NOT_ALLOWED_TO_UPDATE_END_DATE": "not allowed to update end date",
     "SOCIETY_SUBSCRIPTION_ENDED": "society subscription ended",
-    "SOCIETY_DELETED_SUCCESSFULLY": "society deleted successfully"
+    "SOCIETY_DELETED_SUCCESSFULLY": "society deleted successfully",
+    "EXPENSE_TRACKING_ADDED_SUCCESSFULLY": "expense tracking added successfully"
 }

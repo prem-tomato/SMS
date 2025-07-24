@@ -1,4 +1,4 @@
-import { addRoleType, memberType } from "@/db/utils/enums/enum";
+import { addRoleType, expenseType, memberType } from "@/db/utils/enums/enum";
 import z, { array, enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
@@ -87,7 +87,9 @@ export const addFlatValidation = object({
     pending_maintenance: z
       .array(
         z.object({
-          amount: z.number().min(0, "Amount must be greater than or equal to 0"),
+          amount: z
+            .number()
+            .min(0, "Amount must be greater than or equal to 0"),
           reason: z.string().min(1, "Reason is required"),
         })
       )
@@ -153,5 +155,20 @@ export const addEndDateValidation = object({
   }),
   body: object({
     end_date: string().date(),
+  }),
+});
+
+export const addExpenseTrackingValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+  body: object({
+    expense_type: enum_(expenseType),
+    expense_reason: string()
+      .min(1, "Expense reason is required")
+      .max(255, "Expense reason must be less than 255 characters"),
+    expense_amount: number()
+      .min(0, "Expense amount must be greater than or equal to 0")
+      .max(100000000, "Expense amount must be less than or equal to 100000000"),
   }),
 });

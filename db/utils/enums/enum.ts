@@ -20,3 +20,11 @@ export const adminType = {
 export const memberType = {
   MEMBER,
 } as const;
+
+export const FIXED = "fixed";
+export const MONTHLY = "monthly";
+
+export const expenseType = {
+  FIXED,
+  MONTHLY,
+} as const;

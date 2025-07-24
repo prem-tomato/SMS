@@ -66,9 +66,8 @@ export default function AssignFlatsPage() {
       },
       { field: "building_name", headerName: "Building", flex: 1 },
       ...(role === "super_admin"
-        ? [{ field: "society_name", headerName: "Society Name", flex: 1 }]
+        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
         : []),
-
       {
         field: "move_in_date",
         headerName: "move-in Date",

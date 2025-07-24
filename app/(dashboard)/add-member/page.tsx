@@ -40,7 +40,7 @@ export default function UsersPage() {
       { field: "role", headerName: "Role", flex: 1 },
       { field: "phone", headerName: "Phone", flex: 1 },
       ...(role === "super_admin"
-        ? [{ field: "society_name", headerName: "Society Name", flex: 1 }]
+        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
         : []),
     ],
     [role]
