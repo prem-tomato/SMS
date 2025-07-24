@@ -40,6 +40,12 @@ export type Flat = {
   flat_number: string;
   floor_number: number;
   is_occupied: boolean;
+  square_foot: number;
+  pending_maintenance: {
+    amount: number;
+    reason: string;
+  };
+  current_maintenance: number;
   created_at: string;
   created_by: string;
 };
@@ -78,7 +84,7 @@ export type AddBuildingReqBody = z.infer<
 >;
 
 export type BuildingResponse = {
-  data: Pick<Building,  "total_floors"> & {
+  data: Pick<Building, "total_floors"> & {
     building_name: string;
     society_name: string;
   };

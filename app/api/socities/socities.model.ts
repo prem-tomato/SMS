@@ -206,9 +206,18 @@ export const addFlat = async (
 ): Promise<Flat> => {
   try {
     const queryText: string = `
-        INSERT INTO flats (society_id, building_id, flat_number, floor_number, created_by)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING *
+      INSERT INTO flats (
+        society_id, 
+        building_id, 
+        flat_number, 
+        floor_number, 
+        created_by, 
+        square_foot, 
+        pending_maintenance, 
+        current_maintenance
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *;
     `;
 
     const res: QueryResult<Flat> = await query<Flat>(queryText, [
@@ -217,6 +226,9 @@ export const addFlat = async (
       reqBody.flat_number,
       reqBody.floor_number,
       userId,
+      reqBody.square_foot,
+      JSON.stringify(reqBody.pending_maintenance),
+      reqBody.current_maintenance,
     ]);
 
     return res.rows[0];

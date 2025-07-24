@@ -279,3 +279,14 @@ add column opening_balance int
 
 ALTER TABLE public.users
 ADD CONSTRAINT unique_login_key_global UNIQUE (login_key);
+
+-- 24-7-25
+
+ALTER TABLE flats
+ADD COLUMN square_foot NUMERIC(10, 2);
+
+ALTER TABLE flats 
+ADD COLUMN pending_maintenance JSONB;
+
+ALTER TABLE flats 
+ADD COLUMN current_maintenance NUMERIC(10, 2);

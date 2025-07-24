@@ -78,7 +78,32 @@ export const addFlatValidation = object({
     flat_number: string()
       .min(1, "Flat number is required")
       .max(10, "Flat number must be less than 10 characters"),
-    floor_number: number(),
+    floor_number: number()
+      .int("Floor number must be an integer")
+      .min(1, "Floor number must be at least 1"),
+    square_foot: number()
+      .int("Square foot must be an integer")
+      .min(1, "Square foot must be at least 1"),
+    pending_maintenance: object({
+      amount: number()
+        .min(0, "Pending maintenance amount must be greater than or equal to 0")
+        .max(
+          1000000,
+          "Pending maintenance amount must be less than or equal to 1000000"
+        ),
+      reason: string()
+        .min(1, "Pending maintenance reason is required")
+        .max(
+          255,
+          "Pending maintenance reason must be less than or equal to 255 characters"
+        ),
+    }),
+    current_maintenance: number()
+      .min(0, "Current maintenance must be greater than or equal to 0")
+      .max(
+        1000000,
+        "Current maintenance must be less than or equal to 1000000"
+      ),
   }),
 });
 
