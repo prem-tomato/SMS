@@ -15,6 +15,7 @@ export const getFinalBalance = async (
           (
             s.opening_balance
             - COALESCE(expense_data.total_expense, 0)
+            + COALESCE(maintenance_data.total_maintenance, 0)
           )::int AS final_balance
         FROM societies s
         LEFT JOIN (
