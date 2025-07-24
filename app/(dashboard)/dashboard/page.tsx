@@ -120,10 +120,16 @@ export default function Dashboard() {
     >
       {/* Society Name for Admin/Member */}
       {role !== "super_admin" && data.societies_breakdown.length > 0 && (
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-          {data.societies_breakdown[0].name}
-        </h1>
+        <div className="relative mb-10">
+          <h1 className="text-4xl font-extrabold text-center text-blue-600 tracking-tight">
+            {data.societies_breakdown[0].name}
+          </h1>
+          <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-36 h-1 rounded-full shadow-lg overflow-hidden">
+            <div className="w-full h-full bg-gray-400" />
+          </div>
+        </div>
       )}
+
       {/* Stats Section */}
       <div
         className={cn(
