@@ -90,13 +90,15 @@ export const addFlatValidation = object({
         .max(
           1000000,
           "Pending maintenance amount must be less than or equal to 1000000"
-        ),
+        )
+        .optional(),
       reason: string()
         .min(1, "Pending maintenance reason is required")
         .max(
           255,
           "Pending maintenance reason must be less than or equal to 255 characters"
-        ),
+        )
+        .optional(),
     }),
     current_maintenance: number()
       .min(0, "Current maintenance must be greater than or equal to 0")

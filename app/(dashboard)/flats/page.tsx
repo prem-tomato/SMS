@@ -49,6 +49,20 @@ export default function FlatsPage() {
       },
       { field: "building_name", headerName: "Building", flex: 1 },
       { field: "society_name", headerName: "Society", flex: 1 },
+      {
+        field: "current_maintenance",
+        headerName: "Current Maintenance",
+        flex: 1,
+        renderCell: (params: any) => {
+          const value = Number(params.value) || 0;
+          return value.toLocaleString("en-IN", {
+            style: "currency",
+            currency: "INR",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          });
+        },
+      },
     ],
     []
   );

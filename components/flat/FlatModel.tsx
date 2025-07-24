@@ -31,6 +31,18 @@ const schema = z.object({
   floor_number: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Invalid floor number",
   }),
+  square_foot: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Square foot must be a positive number",
+    }),
+  pending_amount: z.string().refine((val) => !isNaN(Number(val)), {
+    message: "Pending amount must be a number",
+  }),
+  pending_reason: z.string().min(1, "Pending reason is required"),
+  current_maintenance: z.string().refine((val) => !isNaN(Number(val)), {
+    message: "Current maintenance must be a number",
+  }),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -106,12 +118,24 @@ export default function AddFlatModal({
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { flat_number: "", floor_number: "" },
+    defaultValues: {
+      flat_number: "",
+      floor_number: "",
+      square_foot: "",
+      pending_amount: "",
+      pending_reason: "",
+      current_maintenance: "",
+    },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: { flat_number: string; floor_number: number }) =>
-      createFlat(societyId, buildingId, data),
+    mutationFn: (data: {
+      flat_number: string;
+      floor_number: number;
+      square_foot: number;
+      pending_maintenance: { amount: number; reason: string };
+      current_maintenance: number;
+    }) => createFlat(societyId, buildingId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["flats", societyId] });
       reset();
@@ -185,6 +209,12 @@ export default function AddFlatModal({
     mutation.mutate({
       flat_number: data.flat_number,
       floor_number: Number(data.floor_number),
+      square_foot: Number(data.square_foot),
+      pending_maintenance: {
+        amount: Number(data.pending_amount),
+        reason: data.pending_reason,
+      },
+      current_maintenance: Number(data.current_maintenance),
     });
   };
 
@@ -401,6 +431,74 @@ export default function AddFlatModal({
                 />
               );
             }}
+          />
+
+          {/* Square Foot */}
+          <Controller
+            name="square_foot"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Square Foot"
+                placeholder="e.g., 1200"
+                error={!!errors.square_foot}
+                helperText={errors.square_foot?.message}
+                fullWidth
+                type="number"
+              />
+            )}
+          />
+
+          {/* Pending Maintenance Amount & Reason - side by side */}
+          <Box display="flex" gap={2}>
+            <Controller
+              name="pending_amount"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Pending Amount"
+                  placeholder="e.g., 10000"
+                  error={!!errors.pending_amount}
+                  helperText={errors.pending_amount?.message}
+                  type="number"
+                  fullWidth
+                />
+              )}
+            />
+
+            <Controller
+              name="pending_reason"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Pending Reason"
+                  placeholder="e.g., pipeline change"
+                  error={!!errors.pending_reason}
+                  helperText={errors.pending_reason?.message}
+                  fullWidth
+                />
+              )}
+            />
+          </Box>
+
+          {/* Current Maintenance */}
+          <Controller
+            name="current_maintenance"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Current Maintenance"
+                placeholder="e.g., 2500"
+                error={!!errors.current_maintenance}
+                helperText={errors.current_maintenance?.message}
+                fullWidth
+                type="number"
+              />
+            )}
           />
 
           {/* Backend error */}
