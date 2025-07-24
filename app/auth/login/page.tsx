@@ -32,16 +32,83 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gray-50 p-4 overflow-hidden">
-      {/* Background Building Icon */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      {/* Background Building Stroke Icons */}
+      <div className="absolute top-10 left-10 opacity-30 pointer-events-none z-0">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
-          className="w-[500px] h-[500px] text-gray-400"
-          fill="currentColor"
+          className="w-64 h-64"
+          style={{ color: "#4b4bff" }}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
         >
-          <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.5L18 11h-1v6h-2v-6H9v6H7v-6H6l6-5.5z" />
+          <path d="M3 22V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14" />
+          <path d="M7 22V10h10v12" />
+          <path d="M10 10h4" />
+          <path d="M10 14h4" />
+          <path d="M10 18h4" />
+          <path d="M5 10h2" />
+          <path d="M17 10h2" />
+        </svg>
+      </div>
+
+      <div className="absolute bottom-10 right-10 opacity-30 pointer-events-none z-0">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          className="w-72 h-72"
+          style={{ color: "#00c4b4" }}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M4 21V9l8-6 8 6v12" />
+          <path d="M8 21v-6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6" />
+          <path d="M10 9h.01" />
+          <path d="M14 9h.01" />
+          <path d="M12 13v6" />
+        </svg>
+      </div>
+
+      <div className="absolute top-1/3 left-1/3 opacity-25 pointer-events-none z-0">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          className="w-80 h-80"
+          style={{ color: "#1e1ee4" }}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M3 21h18" />
+          <path d="M5 21V7l7-4 7 4v14" />
+          <path d="M9 9h.01" />
+          <path d="M9 12h.01" />
+          <path d="M9 15h.01" />
+          <path d="M15 9h.01" />
+          <path d="M15 12h.01" />
+          <path d="M15 15h.01" />
+        </svg>
+      </div>
+
+      <div className="absolute bottom-1/4 right-1/4 opacity-25 pointer-events-none z-0">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          className="w-60 h-60"
+          style={{ color: "#ff6f61" }}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18" />
+          <path d="M6 12H4a2 2 0 0 0-2 2v8h20v-8a2 2 0 0 0-2-2h-2" />
+          <path d="M10 6h.01" />
+          <path d="M10 10h.01" />
+          <path d="M14 6h.01" />
+          <path d="M14 10h.01" />
         </svg>
       </div>
 
@@ -53,13 +120,13 @@ export default function LoginPage() {
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
-              className="w-6 h-6 text-white"
+              className="w-8 h-8 text-white"
               fill="currentColor"
             >
               <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.5L18 11h-1v6h-2v-6H9v6H7v-6H6l6-5.5z" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-gray-800">SocietyManager</h1>
+          <h1 className="text-xl font-bold text-gray-800">Society Manager</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -90,10 +157,19 @@ export default function LoginPage() {
               <input
                 id="login_key"
                 type="text"
-                placeholder="Enter your access key"
+                inputMode="numeric"
+                pattern="\d{6}"
+                maxLength={6}
                 value={login_key}
-                onChange={(e) => setLoginKey(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Only allow digits and max 6 characters
+                  if (/^\d{0,6}$/.test(val)) {
+                    setLoginKey(val);
+                  }
+                }}
+                placeholder="Enter your access key"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e1ee4] focus:border-transparent transition duration-300 bg-gray-50"
                 required
                 disabled={isLoading}
               />
@@ -124,7 +200,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition duration-200 shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+            className="w-full text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: isLoading ? "#9CA3AF" : "#1e1ee4",
+            }}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
@@ -161,7 +240,7 @@ export default function LoginPage() {
             Need help accessing your account?{" "}
             <button
               type="button"
-              className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
+              className="text-[#1e1ee4] hover:text-[#4b4bff] font-medium hover:underline"
               onClick={() => {
                 alert("Please contact your Society Admin for assistance.");
               }}

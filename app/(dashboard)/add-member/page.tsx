@@ -2,7 +2,7 @@
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddUserModal from "@/components/user/AddUserModal";
-import { getUserRole } from "@/lib/auth";
+import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import { fetchAllUsers, fetchUsersBySociety } from "@/services/user";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button } from "@mui/material";
@@ -19,7 +19,7 @@ export default function UsersPage() {
     setRole(role!);
 
     if (role === "admin") {
-      const societyId = localStorage.getItem("society_id");
+      const societyId = getSocietyIdFromLocalStorage();
       if (societyId) setSelectedSociety(societyId);
     }
   }, []);

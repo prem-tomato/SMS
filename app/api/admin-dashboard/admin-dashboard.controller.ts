@@ -16,12 +16,11 @@ export const getAdminDashboardController = async (
 
     let dashboardData;
 
-    if (userRole === "super_admin" || userRole === "admin") {
+    if (userRole === "super_admin") {
       dashboardData = await getAdminDashboard(); // all societies
-    } else if (userRole === "member") {
-      // Example: getSocietyIdByMemberId fetches their assigned society
+    } else if (userRole === "admin" || userRole === "member") {
       const societyId = await getSocietyIdByMemberId(userId);
-      dashboardData = await getAdminDashboard(societyId);
+      dashboardData = await getAdminDashboard(societyId); // scoped to one society
     } else {
       throw new Error("Unauthorized role");
     }

@@ -20,10 +20,18 @@ export const getUserRole = () => {
   return localStorage.getItem("role");
 };
 
+export const removeUserRole = () => {
+  localStorage.removeItem("role");
+};
+
 export const saveSocietyId = (societyId: string) => {
   localStorage.setItem("society_id", societyId);
 };
 
 export const getSocietyIdFromLocalStorage = () => {
   return localStorage.getItem("society_id");
+};
+
+export const removeSocietyId = () => {
+  localStorage.removeItem("society_id");
 };

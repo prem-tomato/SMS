@@ -1,25 +1,27 @@
-'use client';
+"use client";
 
+import {
+  getAccessToken,
+  removeAccessToken,
+  removeSocietyId,
+  removeUserRole,
+} from "@/lib/auth";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import PersonIcon from "@mui/icons-material/Person";
 import {
   AppBar,
   Avatar,
-  Badge,
   Box,
   Chip,
-  IconButton,
-  Toolbar,
-  Typography,
+  Divider,
   Menu,
   MenuItem,
-  Divider,
-} from '@mui/material';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import PersonIcon from '@mui/icons-material/Person';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getAccessToken } from '@/lib/auth';
+  Toolbar,
+  Typography,
+} from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type User = {
   first_name: string;
@@ -35,20 +37,20 @@ export default function Topbar() {
   useEffect(() => {
     const token = getAccessToken();
     if (!token) {
-      router.push('/auth/login');
+      router.push("/auth/login");
       return;
     }
 
-    fetch('/api/auth/me', {
+    fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(res => res.json())
-      .then(res => {
+      .then((res) => res.json())
+      .then((res) => {
         if (res.data) {
           setUser(res.data);
         }
       })
-      .catch(() => router.push('/auth/login'));
+      .catch(() => router.push("/auth/login"));
   }, [router]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -60,15 +62,15 @@ export default function Topbar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('society_id');
-    router.push('/auth/login');
+    removeAccessToken();
+    removeUserRole();
+    removeSocietyId();
+    router.push("/auth/login");
     handleMenuClose();
   };
 
   const handleProfile = () => {
-    router.push('/profile');
+    router.push("/profile");
     handleMenuClose();
   };
 
@@ -78,15 +80,17 @@ export default function Topbar() {
         position="sticky"
         elevation={0}
         sx={{
-          bgcolor: 'white',
-          color: 'black',
-          borderBottom: '1px solid #e0e0e0',
+          bgcolor: "white",
+          color: "black",
+          borderBottom: "1px solid #e0e0e0",
           height: 64,
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between', height: '100%' }}>
+        <Toolbar sx={{ justifyContent: "space-between", height: "100%" }}>
           <Box />
-          <Typography fontWeight="bold" color="text.secondary">Loading...</Typography>
+          <Typography fontWeight="bold" color="text.secondary">
+            Loading...
+          </Typography>
         </Toolbar>
       </AppBar>
     );
@@ -98,40 +102,40 @@ export default function Topbar() {
         position="sticky"
         elevation={0}
         sx={{
-          bgcolor: 'white',
-          color: 'black',
-          borderBottom: '1px solid #e0e0e0',
+          bgcolor: "white",
+          color: "black",
+          borderBottom: "1px solid #e0e0e0",
           height: 64,
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between', height: '100%' }}>
+        <Toolbar sx={{ justifyContent: "space-between", height: "100%" }}>
           <Box />
-          
-          <Box display="flex" alignItems="center" gap={2}>
 
+          <Box display="flex" alignItems="center" gap={2}>
             {/* User Profile Section */}
-            <Box 
-              display="flex" 
-              alignItems="center" 
+            <Box
+              display="flex"
+              alignItems="center"
               gap={1}
-              sx={{ 
-                cursor: 'pointer',
+              sx={{
+                cursor: "pointer",
                 borderRadius: 2,
                 p: 1,
-                '&:hover': { bgcolor: '#f5f5f5' }
+                "&:hover": { bgcolor: "#f5f5f5" },
               }}
               onClick={handleMenuOpen}
             >
-              <Avatar 
-                sx={{ 
-                  bgcolor: '#1e1ee4', 
-                  width: 32, 
+              <Avatar
+                sx={{
+                  bgcolor: "#1e1ee4",
+                  width: 32,
                   height: 32,
-                  fontSize: '14px',
-                  fontWeight: 'bold'
+                  fontSize: "14px",
+                  fontWeight: "bold",
                 }}
               >
-                {user.first_name.charAt(0).toUpperCase()}{user.last_name.charAt(0).toUpperCase()}
+                {user.first_name.charAt(0).toUpperCase()}
+                {user.last_name.charAt(0).toUpperCase()}
               </Avatar>
               <Box textAlign="left">
                 <Typography variant="body2" fontWeight="600" color="#333">
@@ -141,15 +145,15 @@ export default function Topbar() {
                   label={user.role}
                   size="small"
                   color="error"
-                  sx={{ 
-                    height: 18, 
-                    fontSize: '0.7rem',
+                  sx={{
+                    height: 18,
+                    fontSize: "0.7rem",
                     fontWeight: 500,
-                    '& .MuiChip-label': { px: 1 }
+                    "& .MuiChip-label": { px: 1 },
                   }}
                 />
               </Box>
-              <KeyboardArrowDownIcon sx={{ color: '#666', fontSize: 16 }} />
+              <KeyboardArrowDownIcon sx={{ color: "#666", fontSize: 16 }} />
             </Box>
           </Box>
         </Toolbar>
@@ -161,12 +165,12 @@ export default function Topbar() {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
         transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
+          vertical: "top",
+          horizontal: "right",
         }}
         sx={{ mt: 1 }}
       >

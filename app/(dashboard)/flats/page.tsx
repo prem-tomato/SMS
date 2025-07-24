@@ -3,6 +3,7 @@
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddFlatModal from "@/components/flat/FlatModel";
+import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import { listAllFlats, listAllFlatsBySociety } from "@/services/flats";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Chip } from "@mui/material";
@@ -15,10 +16,10 @@ export default function FlatsPage() {
   const [role, setRole] = useState("");
 
   useEffect(() => {
-    const userRole = localStorage.getItem("role") || "";
-    const storedSocietyId = localStorage.getItem("society_id") || "";
-    setRole(userRole);
-    if (userRole === "admin") setSocietyId(storedSocietyId);
+    const userRole = getUserRole();
+    const storedSocietyId = getSocietyIdFromLocalStorage();
+    setRole(userRole!);
+    if (userRole === "admin") setSocietyId(storedSocietyId!);
   }, []);
 
   const { data: flats = [], isLoading } = useQuery({

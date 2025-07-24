@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import CommonButton from "../common/CommonButton";
+import { getUserRole } from "@/lib/auth";
 
 const schema = z.object({
   title: z.string().min(1, "Title required"),
@@ -46,7 +47,7 @@ export default function AddNoticeModal({
 
   // Get role from localStorage
   useEffect(() => {
-    const storedRole = localStorage.getItem("role");
+    const storedRole = getUserRole();
     setRole(storedRole!);
   }, []);
 

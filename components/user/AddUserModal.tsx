@@ -1,6 +1,7 @@
 "use client";
 
 import CommonButton from "@/components/common/CommonButton";
+import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import { fetchSocietyOptions } from "@/services/societies";
 import { createUser } from "@/services/user";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -86,11 +87,11 @@ export default function AddUserModal({
   });
 
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = getUserRole();
     setUserRole(role);
 
     if (role === "admin") {
-      const societyId = localStorage.getItem("society_id");
+      const societyId = getSocietyIdFromLocalStorage();
       if (societyId) setAdminSocietyId(societyId);
     }
   }, []);

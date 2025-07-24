@@ -1,6 +1,7 @@
 "use client";
 
 import CommonButton from "@/components/common/CommonButton";
+import { getSocietyIdFromLocalStorage } from "@/lib/auth";
 import { fetchBuildingsBySociety } from "@/services/building";
 import { createFlat } from "@/services/flats";
 import { fetchSocietyOptions } from "@/services/societies";
@@ -62,7 +63,9 @@ export default function AddFlatModal({
   const [backendError, setBackendError] = useState<string | null>(null);
 
   // Fetch societies for super_admin
-  const { data: societies = [], isLoading: societiesLoading } = useQuery<Society[]>({
+  const { data: societies = [], isLoading: societiesLoading } = useQuery<
+    Society[]
+  >({
     queryKey: ["societies"],
     queryFn: fetchSocietyOptions,
     enabled: role === "super_admin",
@@ -87,7 +90,9 @@ export default function AddFlatModal({
   });
 
   // Fetch buildings
-  const { data: buildings = [], isLoading: buildingsLoading } = useQuery<Building[]>({
+  const { data: buildings = [], isLoading: buildingsLoading } = useQuery<
+    Building[]
+  >({
     queryKey: ["buildings", societyId],
     queryFn: () => fetchBuildingsBySociety(societyId),
     enabled: !!societyId,
@@ -117,7 +122,7 @@ export default function AddFlatModal({
     onError: async (error: any) => {
       try {
         let errorMessage = "Something went wrong";
-        
+
         // Handle different error response formats
         if (error?.response?.json) {
           const res = await error.response.json();
@@ -139,13 +144,13 @@ export default function AddFlatModal({
 
   const onSubmit = (data: FormData) => {
     let hasErrors = false;
-    
+
     // Validate society selection
     if (!societyId) {
       setBackendError("Please select a society");
       hasErrors = true;
     }
-    
+
     // Validate building selection
     if (!buildingId) {
       setBackendError("Please select a building");
@@ -154,21 +159,21 @@ export default function AddFlatModal({
 
     // Validate floor number against building's total floors
     if (buildingId && data.floor_number) {
-      const selectedBuilding = buildings.find(b => b.id === buildingId);
+      const selectedBuilding = buildings.find((b) => b.id === buildingId);
       const floorNumber = Number(data.floor_number);
-      
+
       if (selectedBuilding && floorNumber > selectedBuilding.total_floors) {
-        setError("floor_number", { 
-          type: "manual", 
-          message: `Floor number cannot exceed ${selectedBuilding.total_floors} (building's total floors)` 
+        setError("floor_number", {
+          type: "manual",
+          message: `Floor number cannot exceed ${selectedBuilding.total_floors} (building's total floors)`,
         });
         hasErrors = true;
       }
-      
+
       if (floorNumber < 0) {
-        setError("floor_number", { 
-          type: "manual", 
-          message: "Floor number cannot be negative" 
+        setError("floor_number", {
+          type: "manual",
+          message: "Floor number cannot be negative",
         });
         hasErrors = true;
       }
@@ -188,9 +193,9 @@ export default function AddFlatModal({
     if (open) {
       reset();
       setBackendError(null);
-      
+
       if (role === "admin") {
-        const storedId = adminSocietyId || localStorage?.getItem?.("society_id");
+        const storedId = adminSocietyId || getSocietyIdFromLocalStorage();
         if (storedId) {
           setSocietyId(storedId);
         }
@@ -255,7 +260,10 @@ export default function AddFlatModal({
         >
           {/* Society Field */}
           {role === "super_admin" ? (
-            <FormControl fullWidth error={!societyId && backendError?.includes("society")}>
+            <FormControl
+              fullWidth
+              error={!societyId && backendError?.includes("society")}
+            >
               <InputLabel>Society</InputLabel>
               <Select
                 label="Society"
@@ -293,7 +301,11 @@ export default function AddFlatModal({
             <Box>
               <Typography variant="subtitle2">Society</Typography>
               <Chip
-                label={societyNameLoading ? "Loading..." : (societyName || "Selected Society")}
+                label={
+                  societyNameLoading
+                    ? "Loading..."
+                    : societyName || "Selected Society"
+                }
                 color="primary"
                 sx={{ mt: 1 }}
               />
@@ -301,7 +313,11 @@ export default function AddFlatModal({
           )}
 
           {/* Building Dropdown */}
-          <FormControl fullWidth disabled={!societyId || buildingsLoading} error={!buildingId && backendError?.includes("building")}>
+          <FormControl
+            fullWidth
+            disabled={!societyId || buildingsLoading}
+            error={!buildingId && backendError?.includes("building")}
+          >
             <InputLabel>Building</InputLabel>
             <Select
               label="Building"
@@ -354,24 +370,30 @@ export default function AddFlatModal({
             name="floor_number"
             control={control}
             render={({ field }) => {
-              const selectedBuilding = buildings.find(b => b.id === buildingId);
+              const selectedBuilding = buildings.find(
+                (b) => b.id === buildingId
+              );
               const maxFloors = selectedBuilding?.total_floors;
-              
+
               return (
                 <TextField
                   {...field}
                   label="Floor Number"
-                  placeholder={maxFloors ? `e.g., 1 (max: ${maxFloors})` : "e.g., 1"}
+                  placeholder={
+                    maxFloors ? `e.g., 1 (max: ${maxFloors})` : "e.g., 1"
+                  }
                   type="number"
                   error={!!errors.floor_number}
                   helperText={
-                    errors.floor_number?.message || 
-                    (maxFloors ? `Maximum floors in this building: ${maxFloors}` : "")
+                    errors.floor_number?.message ||
+                    (maxFloors
+                      ? `Maximum floors in this building: ${maxFloors}`
+                      : "")
                   }
                   fullWidth
                   inputProps={{
                     min: 0,
-                    max: maxFloors || undefined
+                    max: maxFloors || undefined,
                   }}
                   sx={{
                     "& .MuiOutlinedInput-root": { borderRadius: 2 },

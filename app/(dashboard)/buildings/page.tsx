@@ -2,6 +2,7 @@
 
 import CommonButton from "@/components/common/CommonButton";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
+import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
   createBuilding,
   fetchBuildingBySocietyForAdmin,
@@ -56,8 +57,8 @@ export default function BuildingsPage() {
   const [adminSocietyId, setAdminSocietyId] = useState<string | null>(null);
 
   useEffect(() => {
-    const userRole = localStorage.getItem("role");
-    const society = localStorage.getItem("society_id");
+    const userRole = getUserRole();
+    const society = getSocietyIdFromLocalStorage();
     setRole(userRole);
     setAdminSocietyId(society);
   }, []);

@@ -2,6 +2,7 @@
 
 import CommonButton from "@/components/common/CommonButton";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
+import { getUserRole } from "@/lib/auth";
 import {
   createSociety,
   deleteSociety,
@@ -109,7 +110,7 @@ export default function SocietiesPage() {
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedRole = localStorage.getItem("role");
+    const storedRole = getUserRole();
     setRole(storedRole);
   }, []);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { getUserRole } from "@/lib/auth";
 import {
   Apartment,
   Campaign,
@@ -20,13 +20,14 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const userRole = localStorage.getItem("role");
+    const userRole = getUserRole();
     setRole(userRole);
   }, []);
 
@@ -36,7 +37,11 @@ export default function Sidebar() {
     { label: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
     ...(role === "super_admin"
       ? [
-          { label: "Societies", icon: <AccountBalanceIcon />, path: "/societies" },
+          {
+            label: "Societies",
+            icon: <AccountBalanceIcon />,
+            path: "/societies",
+          },
           { label: "Buildings", icon: <Apartment />, path: "/buildings" },
           { label: "Flats", icon: <People />, path: "/flats" },
           { label: "Add Member", icon: <Face />, path: "/add-member" },
@@ -53,7 +58,6 @@ export default function Sidebar() {
         ]
       : []),
   ];
-  
 
   return (
     <Box

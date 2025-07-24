@@ -30,7 +30,7 @@ export const loginController = async (
     if (!user) {
       await rollbackTransaction(transaction);
       return generateResponseJSON(
-        StatusCodes.UNAUTHORIZED,
+        StatusCodes.NOT_FOUND,
         getMessage("LOGIN_KEY_NOT_FOUND")
       );
     }
@@ -44,7 +44,7 @@ export const loginController = async (
     ) {
       await rollbackTransaction(transaction);
       return generateResponseJSON(
-        StatusCodes.UNAUTHORIZED,
+        StatusCodes.FORBIDDEN,
         getMessage("SOCIETY_SUBSCRIPTION_ENDED")
       );
     }
