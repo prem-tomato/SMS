@@ -41,11 +41,14 @@ const inputSchema = z.object({
   expense_reason: z.string().min(1, "Expense reason is required"),
   expense_amount: z
     .string()
-    .transform((val) => Number(val))
-    .refine((val) => val > 0, "Amount must be greater than 0"),
+    .min(1, "Amount is required")
+    .refine(
+      (val) => !isNaN(Number(val)) && Number(val) > 0,
+      "Amount must be a valid number greater than 0"
+    ),
 });
 
-type InputValues = z.infer<typeof inputSchema>;
+type FormInputValues = z.infer<typeof inputSchema>;
 
 // ------------------------
 // 🧠 Component
@@ -87,22 +90,22 @@ export default function ExpenseTrackingPage() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<InputValues>({
-    resolver: zodResolver(inputSchema as any),
+  } = useForm<FormInputValues>({
+    resolver: zodResolver(inputSchema),
     defaultValues: {
       society_id: "",
       expense_type: "",
       expense_reason: "",
-      expense_amount: 0,
+      expense_amount: "",
     },
   });
 
   const mutation = useMutation({
-    mutationFn: ({ society_id, ...payload }: InputValues) =>
+    mutationFn: ({ society_id, expense_amount, ...payload }: FormInputValues) =>
       createExpenseTracking(society_id, {
         expense_type: payload.expense_type,
         expense_reason: payload.expense_reason,
-        expense_amount: payload.expense_amount,
+        expense_amount: Number(expense_amount), // Transform string to number here
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
@@ -111,7 +114,7 @@ export default function ExpenseTrackingPage() {
     },
   });
 
-  const onSubmit = (data: InputValues) => {
+  const onSubmit = (data: FormInputValues) => {
     mutation.mutate(data);
   };
 
@@ -122,7 +125,7 @@ export default function ExpenseTrackingPage() {
         society_id: adminSocietyId,
         expense_type: "",
         expense_reason: "",
-        expense_amount: 0,
+        expense_amount: "",
       });
     } else {
       // For super_admin, reset with empty society_id to show dropdown
@@ -130,7 +133,7 @@ export default function ExpenseTrackingPage() {
         society_id: "",
         expense_type: "",
         expense_reason: "",
-        expense_amount: 0,
+        expense_amount: "",
       });
     }
     setOpen(true);
