@@ -1,6 +1,6 @@
 import { query, queryWithClient } from "@/db/database-connect";
 import { PoolClient, QueryResult } from "pg";
-import { User } from "./auth.types";
+import { User, UserAgentData } from "./auth.types";
 
 export const findUserByLoginKey = async (
   loginKey: number
@@ -24,15 +24,22 @@ export const addToken = async (
   client: PoolClient,
   token: string,
   userId: string,
-  clientIp: string
+  userAgentData: UserAgentData
 ): Promise<void> => {
   try {
     const queryText = `
-        INSERT INTO user_sessions (user_id, refresh_token, created_at, updated_at, created_by, ip_address)
-        VALUES ($1, $2, NOW(), NOW(), $1, $3)
+        INSERT INTO user_sessions (user_id, refresh_token, created_at, updated_at, created_by, ip_address, device, os, browser)
+        VALUES ($1, $2, NOW(), NOW(), $1, $3, $4, $5, $6)
     `;
 
-    await queryWithClient(client, queryText, [userId, token, clientIp]);
+    await queryWithClient(client, queryText, [
+      userId,
+      token,
+      userAgentData.clientIp,
+      userAgentData.device,
+      userAgentData.os,
+      userAgentData.browser,
+    ]);
   } catch (error) {
     throw new Error(`Error adding token: ${error}`);
   }

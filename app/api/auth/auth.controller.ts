@@ -8,6 +8,7 @@ import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import authorizeServices from "@/services/auth.services";
 import config from "@/services/config";
+import { parseUserAgent } from "@/utils/parseUserAgent";
 import dayjs from "dayjs";
 import { StatusCodes } from "http-status-codes";
 import { findSocietyById } from "../socities/socities.model";
@@ -19,7 +20,7 @@ import {
   findUserByLoginKey,
   removeOtherTokens,
 } from "./auth.model";
-import { LoginBody, LoginResponse, User } from "./auth.types";
+import { LoginBody, LoginResponse, User, UserAgentData } from "./auth.types";
 
 const JWT_SECRET: string = config.JWT_SECRET!;
 const JWT_ACCESS_TOKEN_LIFE_TIME: string = config.JWT_ACCESS_TOKEN_LIFE_TIME!;
@@ -36,6 +37,8 @@ export const loginController = async (
       .get("x-forwarded-for")!
       ?.split(",")[0]
       .trim();
+
+    const userAgent = request.headers.get("user-agent") || "";
 
     const user: User | undefined = await findUserByLoginKey(reqBody.login_key);
     if (!user) {
@@ -82,8 +85,17 @@ export const loginController = async (
 
     await removeOtherTokens(client, user.id);
 
+    const { browser, os, device } = parseUserAgent(userAgent);
+
+    const userAgentData: UserAgentData = {
+      browser,
+      os,
+      device,
+      clientIp,
+    };
+
     // Store the token
-    await addToken(client, refreshToken, user.id, clientIp);
+    await addToken(client, refreshToken, user.id, userAgentData);
 
     await commitTransaction(transaction);
 

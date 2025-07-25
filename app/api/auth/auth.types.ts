@@ -21,8 +21,12 @@ export type LoginResponse = {
   access_token: string;
   role: string;
   societyId: string;
-  user: Pick<
-    User,
-    "id"  | "first_name" | "last_name" | "phone"
-  >;
+  user: Pick<User, "id" | "first_name" | "last_name" | "phone">;
+};
+
+export type UserAgentData = {
+  browser: string;
+  os: string;
+  device: string;
+  clientIp: string;
 };
