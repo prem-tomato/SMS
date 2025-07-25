@@ -189,11 +189,9 @@ export type AddExpenseTrackingReqBody = z.infer<
 >;
 
 export type ExpenseTrackingResponse = {
-  data: Pick<
-    ExpenseTracking,
-    "id" | "expense_type" | "expense_reason" | "expense_amount"
-  > & {
-    society_name: string;
-    action_by: string;
-  };
+  data: Pick<ExpenseTracking, "id" | "expense_type"> &
+    Partial<Pick<ExpenseTracking, "expense_reason" | "expense_amount">> & {
+      society_name: string;
+      action_by: string;
+    };
 };

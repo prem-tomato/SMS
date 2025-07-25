@@ -6,6 +6,7 @@ import { fetchBuildingsBySociety } from "@/services/building";
 import { createFlat } from "@/services/flats";
 import { fetchSocietyOptions } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   Box,
   Button,
@@ -24,9 +25,8 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm, useFieldArray } from "react-hook-form";
-import { array, number, object, string, z } from "zod";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { array, object, string, z } from "zod";
 
 const schema = z.object({
   flat_number: z.string().min(1, "Flat number is required"),
@@ -40,17 +40,30 @@ const schema = z.object({
     }),
   pending_maintenance: array(
     object({
-      amount: z.union([
-        z.number().min(0, "Amount must be greater than or equal to 0").max(1000000, "Amount must be less than or equal to 1000000"),
-        z.string().refine((val) => val === "" || (!isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 1000000), {
-          message: "Amount must be a valid number between 0 and 1000000"
-        })
-      ]),
-      reason: string()
-        .min(1, "Pending maintenance reason is required")
-        .max(255, "Reason must be under 255 characters"),
+      amount: z
+        .union([
+          z
+            .number()
+            .min(0, "Amount must be greater than or equal to 0")
+            .max(1000000, "Amount must be less than or equal to 1000000"),
+          z
+            .string()
+            .refine(
+              (val) =>
+                val === "" ||
+                (!isNaN(Number(val)) &&
+                  Number(val) >= 0 &&
+                  Number(val) <= 1000000),
+              {
+                message: "Amount must be a valid number between 0 and 1000000",
+              }
+            )
+            .optional(),
+        ])
+        .optional(),
+      reason: string().optional(),
     })
-  ).min(1, "At least one pending maintenance entry is required"),
+  ).optional(),
   current_maintenance: z.string().refine((val) => !isNaN(Number(val)), {
     message: "Current maintenance must be a number",
   }),
@@ -221,9 +234,12 @@ export default function AddFlatModal({
       flat_number: data.flat_number,
       floor_number: Number(data.floor_number) || 0,
       square_foot: Number(data.square_foot) || 0,
-      pending_maintenance: data.pending_maintenance.map((item) => ({
-        amount: typeof item.amount === 'string' ? Number(item.amount) || 0 : item.amount,
-        reason: item.reason || "",
+      pending_maintenance: (data.pending_maintenance ?? []).map((item) => ({
+        amount:
+          typeof item.amount === "string"
+            ? Number(item.amount) || 0
+            : item.amount ?? 0,
+        reason: item.reason ?? "",
       })),
       current_maintenance: Number(data.current_maintenance) || 0,
     });
@@ -482,7 +498,13 @@ export default function AddFlatModal({
               Pending Maintenance Entries
             </Typography>
             {fields.map((field, index) => (
-              <Box key={field.id} display="flex" gap={2} mb={2} alignItems="start">
+              <Box
+                key={field.id}
+                display="flex"
+                gap={2}
+                mb={2}
+                alignItems="start"
+              >
                 <Controller
                   name={`pending_maintenance.${index}.amount` as const}
                   control={control}
@@ -530,7 +552,7 @@ export default function AddFlatModal({
                 )}
               </Box>
             ))}
-            
+
             <Button
               onClick={addPendingMaintenance}
               sx={{ textTransform: "none" }}
@@ -538,12 +560,17 @@ export default function AddFlatModal({
             >
               + Add Another Entry
             </Button>
-            
-            {errors.pending_maintenance && typeof errors.pending_maintenance.message === 'string' && (
-              <Typography color="error" variant="caption" sx={{ mt: 0.5, display: 'block' }}>
-                {errors.pending_maintenance.message}
-              </Typography>
-            )}
+
+            {errors.pending_maintenance &&
+              typeof errors.pending_maintenance.message === "string" && (
+                <Typography
+                  color="error"
+                  variant="caption"
+                  sx={{ mt: 0.5, display: "block" }}
+                >
+                  {errors.pending_maintenance.message}
+                </Typography>
+              )}
           </Box>
 
           {/* Current Maintenance */}
