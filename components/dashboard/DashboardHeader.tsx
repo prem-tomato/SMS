@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { Building2, ChevronDown, Users } from "lucide-react";
+import { Building2, Building2Icon, ChevronDown, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DashboardData } from "./typesOfDash";
 
@@ -53,9 +53,12 @@ export const DashboardHeader = ({
   return (
     <div className="mb-8">
       <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-200">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold text-gray-800">
-            Society Dashboard
+            <div className="flex gap-4 items-center">
+
+            <Building2Icon className="w-8 h-8 text-blue-600" />Dashboard
+            </div>
           </h2>
 
           {/* Society Selector Dropdown */}
@@ -157,74 +160,6 @@ export const DashboardHeader = ({
             )}
           </div>
         </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-6">
-            <div className="inline-flex items-center justify-center space-x-2">
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-              <p className="text-gray-600 text-sm">Loading society data...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Stats Summary */}
-        {!loading && selectedSociety && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {selectedSociety.total_buildings}
-                </p>
-                <p className="text-sm text-gray-600">Buildings</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {selectedSociety.total_flats}
-                </p>
-                <p className="text-sm text-gray-600">Total Flats</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {selectedSociety.total_members}
-                </p>
-                <p className="text-sm text-gray-600">Members</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* All Societies Summary */}
-        {!loading && !selectedSociety && (
-          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold text-blue-900">
-                  {data.societies_breakdown.length}
-                </p>
-                <p className="text-sm text-blue-700">Societies</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-900">
-                  {data.total_buildings}
-                </p>
-                <p className="text-sm text-blue-700">Buildings</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-900">
-                  {data.total_flats}
-                </p>
-                <p className="text-sm text-blue-700">Total Flats</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-900">
-                  {data.total_members}
-                </p>
-                <p className="text-sm text-blue-700">Members</p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
