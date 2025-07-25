@@ -24,9 +24,12 @@ export type LoginResponse = {
   user: Pick<User, "id" | "first_name" | "last_name" | "phone">;
 };
 
-export type UserAgentData = {
+export interface UserAgentData {
   browser: string;
   os: string;
   device: string;
   clientIp: string;
-};
+  latitude: number;
+  longitude: number;
+  location: string;
+}

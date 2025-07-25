@@ -12,6 +12,9 @@ export type LoginsResponse = {
   browser: string;
   os: string;
   device: string;
+  latitude: number;
+  longitude: number;
+  location: string;
 };
 
 export const getLoginsController = async (

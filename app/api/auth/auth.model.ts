@@ -28,8 +28,21 @@ export const addToken = async (
 ): Promise<void> => {
   try {
     const queryText = `
-        INSERT INTO user_sessions (user_id, refresh_token, created_at, updated_at, created_by, ip_address, device, os, browser)
-        VALUES ($1, $2, NOW(), NOW(), $1, $3, $4, $5, $6)
+      INSERT INTO user_sessions (
+        user_id,
+        refresh_token,
+        created_at,
+        updated_at,
+        created_by,
+        ip_address,
+        device,
+        os,
+        browser,
+        latitude,
+        longitude,
+        location
+      )
+      VALUES ($1, $2, NOW(), NOW(), $1, $3, $4, $5, $6, $7, $8, $9)
     `;
 
     await queryWithClient(client, queryText, [
@@ -39,6 +52,9 @@ export const addToken = async (
       userAgentData.device,
       userAgentData.os,
       userAgentData.browser,
+      userAgentData.latitude,
+      userAgentData.longitude,
+      userAgentData.location,
     ]);
   } catch (error) {
     throw new Error(`Error adding token: ${error}`);

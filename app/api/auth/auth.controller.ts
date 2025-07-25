@@ -32,11 +32,10 @@ export const loginController = async (
 ): Promise<Response<LoginResponse>> => {
   const transaction: Transaction = await startTransaction();
   const { client } = transaction;
+
   try {
-    const clientIp: string = request.headers
-      .get("x-forwarded-for")!
-      ?.split(",")[0]
-      .trim();
+    const clientIp: string =
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
 
     const userAgent = request.headers.get("user-agent") || "";
 
@@ -49,9 +48,7 @@ export const loginController = async (
       );
     }
 
-    const society: Societies | undefined = await findSocietyById(
-      user.society_id
-    );
+    const society: Societies | undefined = await findSocietyById(user.society_id);
     if (
       society?.end_date &&
       dayjs(society.end_date).endOf("day").isBefore(dayjs())
@@ -70,7 +67,6 @@ export const loginController = async (
       societyId: user?.society_id,
     };
 
-    // Generate JWT token
     const accessToken: string = authorizeServices.createToken(
       tokenPayload,
       JWT_SECRET,
@@ -87,14 +83,22 @@ export const loginController = async (
 
     const { browser, os, device } = parseUserAgent(userAgent);
 
+    // Get geo location info
+    const geo = await fetch(`https://ipapi.co/${clientIp}/json/`)
+      .then((res) => res.json())
+      .catch(() => null);
+
     const userAgentData: UserAgentData = {
       browser,
       os,
       device,
       clientIp,
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+      location: geo ? `${geo.city}, ${geo.country_name}` : "",
     };
 
-    // Store the token
+    // Store session with token and metadata
     await addToken(client, refreshToken, user.id, userAgentData);
 
     await commitTransaction(transaction);
@@ -111,11 +115,8 @@ export const loginController = async (
       },
     });
   } catch (error: any) {
-    // Log the error and return an internal server error response
     authLogger.error(`Error from login controller => ${error}`);
-
     await rollbackTransaction(transaction);
-
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,
@@ -123,6 +124,7 @@ export const loginController = async (
     );
   }
 };
+
 
 export const getMeController = async (
   request: Request

@@ -12,10 +12,14 @@ export const getLoginsList = async (): Promise<LoginsResponse[]> => {
         l.ip_address AS login_ip,
         l.device AS device,
         l.os AS os,
-        l.browser AS browser
+        l.browser AS browser,
+        l.latitude AS latitude,
+        l.longitude AS longitude, 
+        l.location AS location
       FROM 
       user_sessions l
         LEFT JOIN users u ON l.user_id = u.id
+      WHERE l.is_deleted = false
     `;
 
     const res: QueryResult<LoginsResponse> = await query<LoginsResponse>(
