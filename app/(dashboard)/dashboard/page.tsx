@@ -198,6 +198,10 @@ export default function Dashboard() {
           loading={loading}
         />
 
+        {role !== "super_admin" && (
+          <SocietyTitle selectedSocietyName={selectedSocietyName} role={role} />
+        )}
+
         <div key={selectedSocietyId || "default"}>
           {/* Conditional Content Based on Selection */}
           {role === "super_admin" && !selectedSocietyId ? (
