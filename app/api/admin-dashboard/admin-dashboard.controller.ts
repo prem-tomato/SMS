@@ -7,7 +7,8 @@ import {
 } from "./admin-dashboard.model";
 
 export const getAdminDashboardController = async (
-  request: Request
+  request: Request,
+  societyId?: string
 ): Promise<Response<any>> => {
   try {
     const userId: string = request.headers.get("userId")!;
@@ -17,7 +18,7 @@ export const getAdminDashboardController = async (
     let dashboardData;
 
     if (userRole === "super_admin") {
-      dashboardData = await getAdminDashboard(); // all societies
+      dashboardData = await getAdminDashboard(societyId!); // all societies
     } else if (userRole === "admin" || userRole === "member") {
       const societyId = await getSocietyIdByMemberId(userId);
       dashboardData = await getAdminDashboard(societyId); // scoped to one society

@@ -70,7 +70,7 @@ export default function FlatsPage() {
   );
 
   return (
-    <Box height="calc(100vh - 100px)">
+    <Box height="calc(100vh - 180px)">
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Button
           variant="outlined"

@@ -220,7 +220,21 @@ export default function AssignMemberModal({
               render={({ field }) => (
                 <FormControl fullWidth error={!!getSocietyIdError()}>
                   <InputLabel>Society</InputLabel>
-                  <Select {...field} label="Society" sx={{ borderRadius: 2 }}>
+                  <Select
+                    {...field}
+                    label="Society"
+                    sx={{ borderRadius: 2 }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          "& .MuiMenuItem-root": {
+                            fontSize: "0.875rem",
+                          },
+                        },
+                      },
+                    }}
+                  >
                     {lsSoc ? (
                       <MenuItem disabled>Loading...</MenuItem>
                     ) : (

@@ -296,7 +296,7 @@ export default function SocietiesPage() {
 
   return (
     <>
-      <Box height="calc(100vh - 100px)">
+      <Box height="calc(100vh - 180px)">
         <Box display="flex" justifyContent="space-between" mb={2}>
           <Button
             variant="outlined"

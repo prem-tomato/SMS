@@ -165,7 +165,7 @@ export default function ExpenseTrackingPage() {
   );
 
   return (
-    <Box height="calc(100vh - 100px)">
+    <Box height="calc(100vh - 180px)">
       {/* Header */}
       <Box
         display="flex"

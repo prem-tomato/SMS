@@ -18,7 +18,7 @@ export const getSocietyIdByMemberId = async (
   }
 };
 
-export const getAdminDashboard = async (societyId?: string): Promise<any> => {
+export const getAdminDashboard = async (societyId: string): Promise<any> => {
   try {
     const societyFilter = societyId ? `WHERE s.id = '${societyId}'` : "";
 

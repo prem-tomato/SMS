@@ -134,17 +134,16 @@ export default function Sidebar() {
 
   return (
     <Box
-      component="nav"
-      role="navigation"
-      aria-label="Main navigation"
-      width="240px"
-      bgcolor="white"
-      boxShadow={1}
-      p={2}
-      display="flex"
-      flexDirection="column"
-      height="100vh"
+      component="aside"
       sx={{
+        width: 240,
+        minWidth: 240,
+        height: "100vh",
+        bgcolor: "white",
+        boxShadow: 1,
+        p: 2,
+        display: "flex",
+        flexDirection: "column",
         position: "sticky",
         top: 0,
         overflowY: "auto",

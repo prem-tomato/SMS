@@ -200,7 +200,7 @@ export default function NoticesPage() {
   }, [toggling, toggleStatus, role]);
 
   return (
-    <Box height="calc(100vh - 100px)">
+    <Box height="calc(100vh - 180px)">
       {/* ✅ Top Bar */}
       <Box
         display="flex"

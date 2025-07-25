@@ -1,15 +1,27 @@
-'use client';
-import { Box } from '@mui/material';
-import Sidebar from './Sidebar';
-import Topbar from './Topbar';
+import { Box } from "@mui/material";
+import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Box display="flex" height="100vh">
+    <Box display="flex" height="100vh" width="100vw" overflow="hidden">
       <Sidebar />
-      <Box flexGrow={1} display="flex" flexDirection="column">
+
+      <Box
+        display="flex"
+        flexDirection="column"
+        flexGrow={1}
+        minWidth={0}
+        overflow="hidden"
+      >
         <Topbar />
-        <Box component="main" flexGrow={1} bgcolor="#f8f9fb" p={2} overflow="auto">
+        <Box
+          component="main"
+          flexGrow={1}
+          overflow="auto"
+          p={3}
+          sx={{ bgcolor: "#f8f9fb" }}
+        >
           {children}
         </Box>
       </Box>
