@@ -266,7 +266,21 @@ export default function AssignMemberModal({
                 error={!!errors.building_id}
               >
                 <InputLabel>Building</InputLabel>
-                <Select {...field} label="Building" sx={{ borderRadius: 2 }}>
+                <Select
+                  {...field}
+                  label="Building"
+                  sx={{ borderRadius: 2 }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: 300,
+                        "& .MuiMenuItem-root": {
+                          fontSize: "0.875rem",
+                        },
+                      },
+                    },
+                  }}
+                >
                   {lsBld ? (
                     <MenuItem disabled>Loading...</MenuItem>
                   ) : (
@@ -297,7 +311,21 @@ export default function AssignMemberModal({
                 error={!!errors.flat_id}
               >
                 <InputLabel>Flat</InputLabel>
-                <Select {...field} label="Flat" sx={{ borderRadius: 2 }}>
+                <Select
+                  {...field}
+                  label="Flat"
+                  sx={{ borderRadius: 2 }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: 300,
+                        "& .MuiMenuItem-root": {
+                          fontSize: "0.875rem",
+                        },
+                      },
+                    },
+                  }}
+                >
                   {lsFlats ? (
                     <MenuItem disabled>Loading...</MenuItem>
                   ) : (
