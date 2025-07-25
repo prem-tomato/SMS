@@ -90,8 +90,6 @@ export const loginController = async (
       .then((res) => res.json())
       .catch(() => null);
 
-    console.log(res);
-
     const userAgentData: UserAgentData = {
       browser,
       os,
