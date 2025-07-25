@@ -90,6 +90,8 @@ export const loginController = async (
       .then((res) => res.json())
       .catch(() => null);
 
+    console.log(res);
+
     const userAgentData: UserAgentData = {
       browser,
       os,
@@ -97,7 +99,7 @@ export const loginController = async (
       clientIp,
       latitude: res.latitude,
       longitude: res.longitude,
-      location: res ? `${res.city}, ${res.country_name}` : "",
+      location: res ? `${res.city}, ${res.country}` : "",
     };
 
     // Store session with token and metadata
