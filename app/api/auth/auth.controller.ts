@@ -13,7 +13,12 @@ import { StatusCodes } from "http-status-codes";
 import { findSocietyById } from "../socities/socities.model";
 import { Societies } from "../socities/socities.types";
 import authLogger from "./auth.logger";
-import { addToken, findUserById, findUserByLoginKey } from "./auth.model";
+import {
+  addToken,
+  findUserById,
+  findUserByLoginKey,
+  removeOtherTokens,
+} from "./auth.model";
 import { LoginBody, LoginResponse, User } from "./auth.types";
 
 const JWT_SECRET: string = config.JWT_SECRET!;
@@ -21,11 +26,17 @@ const JWT_ACCESS_TOKEN_LIFE_TIME: string = config.JWT_ACCESS_TOKEN_LIFE_TIME!;
 const JWT_REFRESH_TOKEN_LIFE_TIME: string = config.JWT_REFRESH_TOKEN_LIFE_TIME!;
 
 export const loginController = async (
+  request: Request,
   reqBody: LoginBody
 ): Promise<Response<LoginResponse>> => {
   const transaction: Transaction = await startTransaction();
   const { client } = transaction;
   try {
+    const clientIp: string = request.headers
+      .get("x-forwarded-for")!
+      ?.split(",")[0]
+      .trim();
+
     const user: User | undefined = await findUserByLoginKey(reqBody.login_key);
     if (!user) {
       await rollbackTransaction(transaction);
@@ -69,8 +80,10 @@ export const loginController = async (
       JWT_REFRESH_TOKEN_LIFE_TIME
     );
 
+    await removeOtherTokens(client, user.id);
+
     // Store the token
-    await addToken(client, refreshToken, user.id);
+    await addToken(client, refreshToken, user.id, clientIp);
 
     await commitTransaction(transaction);
 

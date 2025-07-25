@@ -23,15 +23,16 @@ export const findUserByLoginKey = async (
 export const addToken = async (
   client: PoolClient,
   token: string,
-  userId: string
+  userId: string,
+  clientIp: string
 ): Promise<void> => {
   try {
     const queryText = `
-        INSERT INTO user_sessions (user_id, refresh_token, created_at, updated_at, created_by)
-        VALUES ($1, $2, NOW(), NOW(), $1)
+        INSERT INTO user_sessions (user_id, refresh_token, created_at, updated_at, created_by, ip_address)
+        VALUES ($1, $2, NOW(), NOW(), $1, $3)
     `;
 
-    await queryWithClient(client, queryText, [userId, token]);
+    await queryWithClient(client, queryText, [userId, token, clientIp]);
   } catch (error) {
     throw new Error(`Error adding token: ${error}`);
   }
@@ -52,5 +53,25 @@ export const findUserById = async (
     return res.rows[0];
   } catch (error) {
     throw new Error(`Error finding user by id: ${error}`);
+  }
+};
+
+export const removeOtherTokens = async (
+  client: PoolClient,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText = `
+      UPDATE user_sessions
+        SET is_deleted = true,
+        deleted_at = NOW(),
+        updated_at = NOW(),
+        deleted_by = $1
+      WHERE user_id = $1
+        AND is_deleted = false;`;
+
+    await queryWithClient(client, queryText, [userId]);
+  } catch (error) {
+    throw new Error(`Error deleting user sessions: ${error}`);
   }
 };

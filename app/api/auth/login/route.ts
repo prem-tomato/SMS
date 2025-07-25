@@ -20,7 +20,7 @@ export const POST = async (request: NextRequest): Promise<NextResponse> => {
 
   // Call the login controller with the validated request body
   const { status, ...responseData }: Response<LoginResponse> =
-    await loginController(reqBody);
+    await loginController(request, reqBody);
 
   // Return the response from the login controller with the appropriate status code
   return NextResponse.json(responseData, { status });
