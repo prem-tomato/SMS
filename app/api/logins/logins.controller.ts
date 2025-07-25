@@ -23,7 +23,7 @@ export const getLoginsController = async (
   try {
     const role = request.headers.get("role")!;
 
-    if (role !== "super_admin") {
+    if (role === "member" ) {
       return generateResponseJSON(
         StatusCodes.FORBIDDEN,
         getMessage("NOT_ALLOWED_TO_VIEW_LOGINS")

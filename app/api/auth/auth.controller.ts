@@ -48,7 +48,9 @@ export const loginController = async (
       );
     }
 
-    const society: Societies | undefined = await findSocietyById(user.society_id);
+    const society: Societies | undefined = await findSocietyById(
+      user.society_id
+    );
     if (
       society?.end_date &&
       dayjs(society.end_date).endOf("day").isBefore(dayjs())
@@ -84,7 +86,7 @@ export const loginController = async (
     const { browser, os, device } = parseUserAgent(userAgent);
 
     // Get geo location info
-    const geo = await fetch(`https://ipapi.co/${clientIp}/json/`)
+    const res = await fetch(`https://ipwho.is/${clientIp}`)
       .then((res) => res.json())
       .catch(() => null);
 
@@ -93,9 +95,9 @@ export const loginController = async (
       os,
       device,
       clientIp,
-      latitude: geo.latitude,
-      longitude: geo.longitude,
-      location: geo ? `${geo.city}, ${geo.country_name}` : "",
+      latitude: res.latitude,
+      longitude: res.longitude,
+      location: res ? `${res.city}, ${res.country_name}` : "",
     };
 
     // Store session with token and metadata
@@ -124,7 +126,6 @@ export const loginController = async (
     );
   }
 };
-
 
 export const getMeController = async (
   request: Request
