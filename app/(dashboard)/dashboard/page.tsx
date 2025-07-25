@@ -87,50 +87,55 @@ export default function Dashboard() {
     null
   );
 
-  useEffect(() => {
+  async function fetchData() {
     const userRole = getUserRole();
     setRole(userRole);
 
-    async function fetchData() {
-      try {
-        const response = await fetch("/api/admin-dashboard", {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        });
-        const result = await response.json();
+    const headers = {
+      Authorization: `Bearer ${getAccessToken()}`,
+    };
+
+    const societyId = getSocietyIdFromLocalStorage();
+
+    try {
+      const dashboardPromise = fetch("/api/admin-dashboard", { headers });
+      const finalBalancePromise =
+        userRole !== "super_admin"
+          ? fetch(`/api/final-balance/${societyId}`, { headers })
+          : null;
+
+      const [dashboardRes, finalBalanceRes] = await Promise.all([
+        dashboardPromise,
+        finalBalancePromise,
+      ]);
+
+      const dashboardJson = await dashboardRes.json();
+      if (
+        dashboardJson.message === "admin dashboard listed successfully" &&
+        dashboardJson.data
+      ) {
+        setData(dashboardJson.data);
+      } else {
+        console.warn("Unexpected dashboard response:", dashboardJson);
+      }
+
+      if (finalBalanceRes) {
+        const finalBalanceJson = await finalBalanceRes.json();
         if (
-          result.message === "admin dashboard listed successfully" &&
-          result.data
+          finalBalanceJson.message === "list successful" &&
+          finalBalanceJson.data
         ) {
-          setData(result.data);
+          setFinalBalance(finalBalanceJson.data);
         } else {
-          console.warn("Unexpected API response:", result);
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-      }
-
-      // Fetch final balance data for non-super admin users
-      if (userRole !== "super_admin") {
-        const societyId = getSocietyIdFromLocalStorage();
-
-        try {
-          const res = await fetch(`/api/final-balance/${societyId}`, {
-            headers: {
-              Authorization: `Bearer ${getAccessToken()}`,
-            },
-          });
-          const result = await res.json();
-          if (result.message === "list successful" && result.data) {
-            setFinalBalance(result.data);
-          }
-        } catch (err) {
-          console.error("Error fetching final balance:", err);
+          console.warn("Unexpected final balance response:", finalBalanceJson);
         }
       }
+    } catch (error) {
+      console.error("Error fetching dashboard/final balance:", error);
     }
+  }
 
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -249,8 +254,8 @@ export default function Dashboard() {
         </div>
       )}
 
-            {/* Stats Section */}
-            <div
+      {/* Stats Section */}
+      <div
         className={cn(
           "grid gap-6 mb-8",
           role === "super_admin"
@@ -297,7 +302,6 @@ export default function Dashboard() {
       {/* Financial Overview Chart for non-super admin users */}
       {role !== "super_admin" && finalBalance && financialChartData && (
         <div className="p-6 rounded-2xl shadow-md space-y-6 mb-10">
-
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-red-50 p-5 rounded-xl shadow-sm">
@@ -352,8 +356,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
-
 
       {/* Charts + Notices */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
