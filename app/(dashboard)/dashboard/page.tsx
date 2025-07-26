@@ -22,7 +22,6 @@ import {
   getSocietyIdFromLocalStorage,
   getUserRole,
 } from "@/lib/auth";
-import { cn } from "@/utils/cn";
 import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 
@@ -260,15 +259,8 @@ export default function Dashboard() {
             // Show society-specific data when a society is selected or for non-super admin
             <>
               {/* Stats Section */}
-              <div
-                className={cn(
-                  "grid gap-6 mb-8",
-                  role === "super_admin"
-                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-                    : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                )}
-              >
-                {role === "super_admin" && (
+              <div className={"grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"}>
+                {role && (
                   <SimpleStatsCard
                     label="Buildings"
                     value={loading ? 0 : displayData.total_buildings}
@@ -319,7 +311,7 @@ export default function Dashboard() {
                     <FinancialCard
                       title="Collected Amount"
                       value={Math.abs(
-                        displayData.final_balance.total_maintenance || 0,
+                        displayData.final_balance.total_maintenance || 0
                       )}
                       color="amber"
                     />

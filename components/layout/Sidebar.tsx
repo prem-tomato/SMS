@@ -63,8 +63,8 @@ export default function Sidebar() {
           <Skeleton variant="text" width={140} height={24} />
         </Box>
         <List sx={{ flex: 1 }}>
-          {Array.from({ length: 6 }).map((_, index) => (
-            <ListItem key={index} sx={{ mb: 0.5 }}>
+          {Array.from({ length: 9 }).map((_, index) => (
+            <ListItem key={index} sx={{ mb: 1.5 }}>
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <Skeleton variant="circular" width={24} height={24} />
               </ListItemIcon>
