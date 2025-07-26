@@ -23,7 +23,6 @@ import {
   Menu,
   MenuItem,
   TextField,
-  Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -232,6 +231,7 @@ export default function FlatsPage() {
           <Button
             variant="contained"
             disabled={isPending}
+            sx={{ bgcolor: "#1e1ee4" }}
             onClick={() =>
               addPenalty({
                 societyId: selectedFlat.society_id,
