@@ -119,3 +119,45 @@ export async function listAllFlatsBySociety(societyId: string) {
   if (!res.ok) throw new Error(json.message || "Failed to fetch flats");
   return json.data;
 }
+
+export async function addFlatPenalty(
+  societyId: string,
+  buildingId: string,
+  flatId: string,
+  payload: { amount: number; reason: string }
+) {
+  const token = getAccessToken();
+  const res = await fetch(
+    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}/penalty`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message);
+  return json;
+}
+
+export async function getParticularFlat(
+  societyId: string,
+  buildingId: string,
+  flatId: string
+) {
+  const token = getAccessToken();
+  const res = await fetch(
+    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message);
+  return json;
+}

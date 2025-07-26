@@ -1,19 +1,53 @@
-// ✅ Optimized FlatsPage.tsx
 "use client";
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddFlatModal from "@/components/flat/FlatModel";
+import { ViewFlatModal } from "@/components/flat/ViewFlatModal"; // Import the ViewFlatModal
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
-import { listAllFlats, listAllFlatsBySociety } from "@/services/flats";
+import {
+  addFlatPenalty,
+  listAllFlats,
+  listAllFlatsBySociety,
+} from "@/services/flats";
 import AddIcon from "@mui/icons-material/Add";
-import { Box, Button, Chip } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Menu,
+  MenuItem,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 export default function FlatsPage() {
   const [addModal, setAddModal] = useState(false);
   const [societyId, setSocietyId] = useState("");
   const [role, setRole] = useState("");
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedFlat, setSelectedFlat] = useState<any>(null);
+  const [penaltyDialogOpen, setPenaltyDialogOpen] = useState(false);
+  const [penaltyAmount, setPenaltyAmount] = useState("");
+  const [penaltyReason, setPenaltyReason] = useState("");
+
+  // Updated view dialog state to work with ViewFlatModal
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewFlatData, setViewFlatData] = useState<{
+    societyId: string;
+    buildingId: string;
+    flatId: string;
+  } | null>(null);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const userRole = getUserRole();
@@ -30,6 +64,60 @@ export default function FlatsPage() {
         : listAllFlatsBySociety(societyId),
     enabled: role === "super_admin" || !!societyId,
   });
+
+  const { mutate: addPenalty, isPending } = useMutation({
+    mutationFn: ({
+      societyId,
+      buildingId,
+      flatId,
+      payload,
+    }: {
+      societyId: string;
+      buildingId: string;
+      flatId: string;
+      payload: { amount: number; reason: string };
+    }) => addFlatPenalty(societyId, buildingId, flatId, payload),
+    onSuccess: () => {
+      setPenaltyDialogOpen(false);
+      setPenaltyAmount("");
+      setPenaltyReason("");
+      queryClient.invalidateQueries(["flats", societyId] as any);
+    },
+    onError: (error: any) => {
+      alert(error.message || "Failed to add penalty");
+    },
+  });
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, flat: any) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedFlat(flat);
+  };
+
+  const handleMenuClose = () => setAnchorEl(null);
+
+  const handleOpenPenaltyDialog = () => {
+    setPenaltyDialogOpen(true);
+    handleMenuClose();
+  };
+
+  // Updated handleViewFlat to work with ViewFlatModal
+  const handleViewFlat = () => {
+    handleMenuClose();
+    if (!selectedFlat) return;
+
+    setViewFlatData({
+      societyId: selectedFlat.society_id,
+      buildingId: selectedFlat.building_id,
+      flatId: selectedFlat.id,
+    });
+    setViewDialogOpen(true);
+  };
+
+  // Handle closing the view modal
+  const handleCloseViewModal = () => {
+    setViewDialogOpen(false);
+    setViewFlatData(null);
+  };
 
   const columns = useMemo(
     () => [
@@ -65,6 +153,16 @@ export default function FlatsPage() {
           });
         },
       },
+      {
+        field: "actions",
+        headerName: "Actions",
+        sortable: false,
+        renderCell: (params: any) => (
+          <IconButton onClick={(e) => handleMenuOpen(e, params.row)}>
+            <MoreVertIcon />
+          </IconButton>
+        ),
+      },
     ],
     [role]
   );
@@ -95,6 +193,67 @@ export default function FlatsPage() {
         onClose={() => setAddModal(false)}
         role={role}
         societyId={societyId}
+      />
+
+      {/* 3-dot Action Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={handleViewFlat}>View</MenuItem>
+        <MenuItem onClick={handleOpenPenaltyDialog}>Add Penalty</MenuItem>
+      </Menu>
+
+      {/* Penalty Dialog */}
+      <Dialog
+        open={penaltyDialogOpen}
+        onClose={() => setPenaltyDialogOpen(false)}
+      >
+        <DialogTitle>Add Penalty</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Amount"
+            type="number"
+            fullWidth
+            value={penaltyAmount}
+            onChange={(e) => setPenaltyAmount(e.target.value)}
+            sx={{ mb: 2, mt: 1 }}
+          />
+          <TextField
+            label="Reason"
+            fullWidth
+            value={penaltyReason}
+            onChange={(e) => setPenaltyReason(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPenaltyDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={isPending}
+            onClick={() =>
+              addPenalty({
+                societyId: selectedFlat.society_id,
+                buildingId: selectedFlat.building_id,
+                flatId: selectedFlat.id,
+                payload: {
+                  amount: Number(penaltyAmount),
+                  reason: penaltyReason,
+                },
+              })
+            }
+          >
+            {isPending ? "Saving..." : "Add Penalty"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* View Flat Modal */}
+      <ViewFlatModal
+        open={viewDialogOpen}
+        onClose={handleCloseViewModal}
+        selectedFlat={viewFlatData}
       />
     </Box>
   );

@@ -9,6 +9,8 @@ export type GetAllFlats = Pick<
   | "square_foot"
   | "pending_maintenance"
   | "current_maintenance"
+  | "society_id"
+  | "building_id"
 > & {
   society_name: string;
   building_name: string;

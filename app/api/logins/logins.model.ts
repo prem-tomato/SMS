@@ -2,8 +2,17 @@ import { query } from "@/db/database-connect";
 import { QueryResult } from "pg";
 import { LoginsResponse } from "./logins.controller";
 
-export const getLoginsList = async (): Promise<LoginsResponse[]> => {
+export const getLoginsList = async (
+  societyId?: string
+): Promise<LoginsResponse[]> => {
   try {
+    const values: any[] = [];
+    let whereClause: string = "";
+    if (societyId) {
+      whereClause = `AND u.society_id = $1`;
+      values.push(societyId);
+    }
+
     const queryText = `
       SELECT 
         l.id,
@@ -19,11 +28,12 @@ export const getLoginsList = async (): Promise<LoginsResponse[]> => {
       FROM 
       user_sessions l
         LEFT JOIN users u ON l.user_id = u.id
-      WHERE l.is_deleted = false
+      WHERE l.is_deleted = false ${whereClause}
     `;
 
     const res: QueryResult<LoginsResponse> = await query<LoginsResponse>(
-      queryText
+      queryText,
+      values
     );
     return res.rows;
   } catch (error) {

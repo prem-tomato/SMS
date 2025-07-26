@@ -312,3 +312,29 @@ CREATE TABLE expense_tracking (
     deleted_by UUID REFERENCES users(id),
     deleted_at TIMESTAMPTZ
 );
+
+ALTER TABLE public.user_sessions ADD ip_address inet NULL;
+ALTER TABLE public.user_sessions ADD browser text NULL;
+ALTER TABLE public.user_sessions ADD os text NULL;
+ALTER TABLE public.user_sessions ADD device text NULL;
+
+ALTER TABLE user_sessions
+ADD COLUMN latitude DOUBLE PRECISION,
+ADD COLUMN longitude DOUBLE PRECISION,
+ADD COLUMN location TEXT;
+
+CREATE TABLE flat_penalties (
+    id UUID DEFAULT gen_random_uuid() NOT NULL,
+	society_id UUID NOT NULL REFERENCES societies(id),
+	building_id UUID NOT NULL REFERENCES buildings(id),
+    flat_id UUID NOT NULL REFERENCES flats(id),
+    amount NUMERIC(10, 2) NOT NULL,
+    reason TEXT NOT NULL,
+    is_deleted boolean default false NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_by UUID NOT NULL REFERENCES users(id),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_by UUID REFERENCES users(id),
+    deleted_at TIMESTAMPTZ
+);

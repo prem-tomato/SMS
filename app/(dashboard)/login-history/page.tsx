@@ -1,16 +1,36 @@
 "use client";
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
-import { getLoginHistoryService } from "@/services/logins";
+import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
+import {
+  getLoginHistoryService,
+  getLoginHistoryServiceBySocietyId,
+} from "@/services/logins";
 import { Box } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function LoginsPage() {
+  const [role, setRole] = useState<string>("");
+  const [adminSocietyId, setAdminSocietyId] = useState<string>("");
+
+  useEffect(() => {
+    const userRole = getUserRole();
+    const societyId = getSocietyIdFromLocalStorage();
+    setRole(userRole!);
+    setAdminSocietyId(societyId!);
+  }, []);
+
   const { data: logins = [], isLoading } = useQuery({
     queryKey: ["logins"],
-    queryFn: getLoginHistoryService,
+    queryFn: async () => {
+      if (role === "admin" && adminSocietyId) {
+        return getLoginHistoryServiceBySocietyId(adminSocietyId);
+      }
+      return getLoginHistoryService();
+    },
+    enabled: !!role,
   });
 
   const columns = useMemo(

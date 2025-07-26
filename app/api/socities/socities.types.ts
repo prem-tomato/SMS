@@ -10,6 +10,7 @@ import {
   addMemberValidation,
   addSocietyValidation,
   assignMemberValidation,
+  flatPenaltyValidation,
   noticeResponseValidation,
 } from "./socities.validation";
 
@@ -194,4 +195,35 @@ export type ExpenseTrackingResponse = {
       society_name: string;
       action_by: string;
     };
+};
+
+export type FlatPenalty = {
+  id: string;
+  society_id: string;
+  building_id: string;
+  flat_id: string;
+  amount: number;
+  reason: string;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_by: string;
+  updated_at: string;
+  deleted_by: string;
+  deleted_at: string;
+};
+
+export type AddflatPenaltyReqBody = z.infer<
+  typeof flatPenaltyValidation.shape.body
+>;
+
+export type FlatView = Flat & {
+  penalties: {
+    id: string;
+    amount: number;
+    reason: string;
+  }[];
+  building_name: string;
+  society_name: string;
+  action_by: string;
 };

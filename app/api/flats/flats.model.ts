@@ -14,7 +14,9 @@ export const listAllFlats = async (): Promise<GetAllFlats[]> => {
                 buildings.name as building_name,
                 flats.square_foot,
                 flats.pending_maintenance,
-                flats.current_maintenance
+                flats.current_maintenance,
+                societies.id as society_id,
+                buildings.id as building_id
             FROM flats
             INNER JOIN societies ON flats.society_id = societies.id
             INNER JOIN buildings ON flats.building_id = buildings.id
@@ -44,7 +46,9 @@ export const listAllFlatsBySociety = async (
                 buildings.name as building_name,
                 flats.square_foot,
                 flats.pending_maintenance,
-                flats.current_maintenance
+                flats.current_maintenance,
+                societies.id as society_id,
+                buildings.id as building_id
             FROM flats
             INNER JOIN societies ON flats.society_id = societies.id
             INNER JOIN buildings ON flats.building_id = buildings.id

@@ -6,6 +6,7 @@ import {
   AddBuildingReqBody,
   AddEndDateReqBody,
   AddExpenseTrackingReqBody,
+  AddflatPenaltyReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
@@ -18,6 +19,7 @@ import {
   ExpenseTrackingResponse,
   Flat,
   FlatOptions,
+  FlatView,
   NoticeResponse,
   Societies,
   SocietyOptions,
@@ -320,25 +322,63 @@ export const getBuildings = async (params: {
 };
 
 export const getFlats = async (params: {
-  id: string;
+  id: string; // Assuming this is society_id
   buildingId: string;
   flatId: string;
-}): Promise<Flat[]> => {
+}): Promise<FlatView> => {
   try {
     const queryText: string = `
-      SELECT * FROM flats
-      WHERE society_id = $1 AND building_id = $2 AND id = $3
+      SELECT 
+        f.id,
+        f.flat_number,
+        f.floor_number,
+        f.is_occupied,
+        b.name AS building_name,
+        societies.name AS society_name,
+        f.square_foot,
+        f.pending_maintenance,
+        f.current_maintenance,
+        societies.id AS society_id,
+        b.id AS building_id,
+        f.created_at,
+        f.created_by,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', fp.id,
+              'amount', fp.amount,
+              'reason', fp.reason
+            )
+          ) FILTER (WHERE fp.id IS NOT NULL),
+          '[]'
+        ) AS penalties,
+          concat(u.first_name, ' ', u.last_name) AS action_by
+      FROM flats f
+      LEFT JOIN flat_penalties fp ON fp.flat_id = f.id
+      LEFT JOIN buildings b ON b.id = f.building_id
+      LEFT JOIN societies ON societies.id = f.society_id
+      LEFT JOIN users u ON u.id = f.created_by
+      WHERE f.society_id = $1 AND f.building_id = $2 AND f.id = $3
+      GROUP BY 
+        f.id, f.flat_number, f.floor_number, f.is_occupied, 
+        b.name, societies.name, f.square_foot, 
+        f.pending_maintenance, f.current_maintenance, 
+        societies.id, b.id, f.created_at, f.created_by,
+        u.first_name, u.last_name
     `;
 
-    const res: QueryResult<Flat[]> = await query<Flat[]>(queryText, [
+    const res: QueryResult<FlatView> = await query<FlatView>(queryText, [
       params.id,
       params.buildingId,
       params.flatId,
     ]);
 
+
+
     return res.rows[0];
   } catch (error) {
-    throw new Error(`Error getting flats: ${error}`);
+    const err = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error getting flats: ${err}`);
   }
 };
 
@@ -658,7 +698,6 @@ export const getExpenseTracking = async (
   societyId?: string
 ): Promise<ExpenseTrackingResponse[]> => {
   try {
-
     const values: any[] = [];
     let whereClause: string = "";
     if (societyId) {
@@ -686,5 +725,34 @@ export const getExpenseTracking = async (
     return res.rows;
   } catch (error) {
     throw new Error(`Error getting expense tracking: ${error}`);
+  }
+};
+
+export const addFlatPenalty = async (
+  reqBody: AddflatPenaltyReqBody,
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+  },
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      INSERT INTO flat_penalties
+      (amount, reason, flat_id, society_id, building_id, created_by, created_at, updated_by, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), $6, NOW())
+    `;
+
+    await query(queryText, [
+      reqBody.amount,
+      reqBody.reason,
+      params.flatId,
+      params.id,
+      params.buildingId,
+      userId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error adding flat penalty: ${error}`);
   }
 };

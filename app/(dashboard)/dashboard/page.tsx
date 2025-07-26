@@ -317,21 +317,21 @@ export default function Dashboard() {
                       color="red"
                     />
                     <FinancialCard
-                      title="Total Maintenance"
+                      title="Collected Amount"
                       value={Math.abs(
                         displayData.final_balance.total_maintenance || 0
                       )}
                       color="amber"
                     />
                     <FinancialCard
-                      title="Society Balance"
+                      title="Opening Balance"
                       value={Math.abs(
                         displayData.final_balance.society_balance || 0
                       )}
                       color="green"
                     />
                     <FinancialCard
-                      title="Final Balance"
+                      title="Available Balance"
                       value={Math.abs(
                         displayData.final_balance.final_balance || 0
                       )}

@@ -7,6 +7,7 @@ import {
   addBuilding,
   addExpenseTracking,
   addFlat,
+  addFlatPenalty,
   addMember,
   addSocieties,
   assignMembersToFlat,
@@ -37,6 +38,7 @@ import {
   AddBuildingReqBody,
   AddEndDateReqBody,
   AddExpenseTrackingReqBody,
+  AddflatPenaltyReqBody,
   AddFlatReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
@@ -51,6 +53,7 @@ import {
   Flat,
   FlatOptions,
   FlatResponse,
+  FlatView,
   MemberResponse,
   NoticeResponse,
   Societies,
@@ -418,9 +421,9 @@ export const getFlatsController = async (params: {
   id: string;
   buildingId: string;
   flatId: string;
-}): Promise<Response<Flat[]>> => {
+}): Promise<Response<FlatView>> => {
   try {
-    const flats: Flat[] = await getFlats(params);
+    const flats: FlatView = await getFlats(params);
 
     return generateResponseJSON(
       StatusCodes.OK,
@@ -784,6 +787,64 @@ export const getExpenseTrackingController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in getExpenseTrackingController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const addFlatPenaltyController = async (
+  request: Request,
+  reqBody: AddflatPenaltyReqBody,
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+  }
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    // Check if the society exists
+    const society: Societies | undefined = await findSocietyById(params.id);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    // Check if the building exists
+    const building: Building | undefined = await findBuildingById(
+      params.buildingId
+    );
+    if (!building) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("BUILDING_NOT_FOUND")
+      );
+    }
+
+    // Check if the flat exists
+    const flat: Flat | undefined = await findFlatById(params.flatId);
+    if (!flat) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_NOT_FOUND")
+      );
+    }
+
+    await addFlatPenalty(reqBody, params, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("FLAT_PENALTY_ADDED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in addFlatPenaltyController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

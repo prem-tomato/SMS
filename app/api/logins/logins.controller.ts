@@ -18,7 +18,8 @@ export type LoginsResponse = {
 };
 
 export const getLoginsController = async (
-  request: Request
+  request: Request,
+  societyId?: string
 ): Promise<Response<LoginsResponse[]>> => {
   try {
     const role = request.headers.get("role")!;
@@ -30,7 +31,7 @@ export const getLoginsController = async (
       );
     }
 
-    const logins = await getLoginsList();
+    const logins = await getLoginsList(societyId);
 
     return generateResponseJSON(
       StatusCodes.OK,

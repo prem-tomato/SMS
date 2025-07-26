@@ -168,3 +168,19 @@ export const addExpenseTrackingValidation = object({
       .max(100000000, "Expense amount must be less than or equal to 100000000"),
   }),
 });
+
+export const flatPenaltyValidation = object({
+  params: object({
+    id: idValidation,
+    buildingId: idValidation,
+    flatId: idValidation,
+  }),
+  body: object({
+    amount: number()
+      .min(0, "Amount must be greater than or equal to 0")
+      .max(1000000, "Amount must be less than or equal to 1000000"),
+    reason: string()
+      .min(1, "Reason is required")
+      .max(255, "Reason must be less than 255 characters"), 
+  }),
+});

@@ -495,7 +495,7 @@ export default function AddFlatModal({
           {/* Pending Maintenance Entries */}
           <Box>
             <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Pending Maintenance Entries
+              Previous Pending Amounts
             </Typography>
             {fields.map((field, index) => (
               <Box
