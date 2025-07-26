@@ -40,7 +40,7 @@ export default function LoginsPage() {
         rows={logins}
         columns={columns}
         loading={isLoading}
-        height="calc(100vh - 180px)"
+        height="calc(100vh - 117px)"
         pageSize={20}
       />
     </Box>
