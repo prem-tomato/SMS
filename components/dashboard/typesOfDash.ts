@@ -38,6 +38,8 @@ export interface FinalBalanceData {
   total_expense: number
   total_maintenance: number
   final_balance: number
+  raw_maintenance_amount: number
+  total_penalties: number
 }
 
 export interface SocietySpecificData {
