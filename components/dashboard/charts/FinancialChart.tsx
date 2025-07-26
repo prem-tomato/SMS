@@ -50,7 +50,7 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
             <p className="font-medium text-gray-800 mb-2">{label}</p>
             <div className="space-y-1">
               <p className="text-sm text-blue-600">
-                Collected Amount: ₹{Math.abs(data.total_maintenance || 0).toLocaleString("en-IN")}
+                Amount: ₹{Math.abs(data.total_maintenance || 0).toLocaleString("en-IN")}
               </p>
               <p className="text-sm text-orange-600">
                 Penalties: ₹{Math.abs(data.total_penalties || 0).toLocaleString("en-IN")}
