@@ -198,7 +198,9 @@ export default function Dashboard() {
         />
 
         {role !== "super_admin" && (
-          <SocietyTitle selectedSocietyName={selectedSocietyName} role={role} />
+          <div className="mb-8">
+            <SocietyTitle selectedSocietyName={selectedSocietyName} role={role} />
+          </div>
         )}
 
         <div key={selectedSocietyId || "default"}>
