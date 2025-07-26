@@ -1,7 +1,13 @@
-// app/api/cron/keep-alive/route.ts
 import { NextResponse } from "next/server";
-import "@/lib/cron/generateMonthlyDues"; // ✅ This registers the cron
+import { generateMonthlyDues } from "@/lib/cron/generateMonthlyDues";
 
 export async function GET() {
-  return NextResponse.json({ message: "Cron registered." });
+  console.log(
+    "🕒 Cron fired at:",
+    new Date().toLocaleString("en-IN", { timeZone: "Asia/Singapore" })
+  );
+
+  await generateMonthlyDues();
+
+  return NextResponse.json({ message: "Monthly dues generated" });
 }
