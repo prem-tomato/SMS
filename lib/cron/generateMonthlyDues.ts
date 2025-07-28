@@ -11,18 +11,21 @@ export async function generateMonthlyDues() {
         society_id,
         building_id,
         flat_id,
-        member_id,
+        member_ids,
         month_year,
         maintenance_amount,
         penalty_amount,
-        created_by
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
       )
       SELECT
         m.society_id,
         m.building_id,
         m.flat_id,
-        m.id as member_id,
-        date_trunc('month', CURRENT_DATE)::date as month_year,
+        array_agg(m.id) AS member_ids,
+        '2025-09-01'::date as month_year,
         f.current_maintenance,
         COALESCE((
           SELECT SUM(p.amount)
@@ -31,12 +34,16 @@ export async function generateMonthlyDues() {
             AND date_trunc('month', p.created_at) = date_trunc('month', CURRENT_DATE)
             AND p.is_deleted = false
         ), 0) as penalty_amount,
-        '537a3518-e7f7-4049-9867-7254ca1486da'::uuid  -- Replace with your admin UUID
+        '537a3518-e7f7-4049-9867-7254ca1486da', -- created_by
+        NOW(),                                  -- created_at
+        '537a3518-e7f7-4049-9867-7254ca1486da', -- updated_by
+        NOW()                                   -- updated_at
       FROM public.members m
       JOIN public.flats f ON f.id = m.flat_id
-      WHERE NOT EXISTS (
+      GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
+      HAVING NOT EXISTS (
         SELECT 1 FROM public.member_monthly_dues d
-        WHERE d.member_id = m.id AND d.month_year = date_trunc('month', CURRENT_DATE)
+        WHERE d.flat_id = m.flat_id AND d.month_year = '2025-09-01'::date
       );
     `;
 
