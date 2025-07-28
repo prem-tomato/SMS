@@ -47,11 +47,12 @@ export const updateMemberMonthlyDues = async (
   societyId: string,
   buildingId: string,
   flatId: string,
+  recordId: string,
   payload: { maintenance_paid?: boolean; penalty_paid?: boolean }
 ): Promise<void> => {
   const token = getAccessToken();
   const response = await fetch(
-    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}/monetize-dues`,
+    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}/monetize-dues/${recordId}/edit`,
     {
       method: "PATCH",
       headers: {

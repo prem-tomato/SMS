@@ -762,6 +762,7 @@ export const updateMonthlyDues = async (
     id: string;
     buildingId: string;
     flatId: string;
+    recordId: string;
   },
   userId: string
 ): Promise<void> => {
@@ -781,9 +782,9 @@ export const updateMonthlyDues = async (
           penalty_paid_at = NOW(),
           updated_by = $1,
           updated_at = NOW()
-        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4
+        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4 AND id = $5
       `;
-      queryParams = [userId, params.flatId, params.id, params.buildingId];
+      queryParams = [userId, params.flatId, params.id, params.buildingId, params.recordId];
     } else if (maintenance_paid) {
       queryText = `
         UPDATE member_monthly_dues
@@ -792,9 +793,9 @@ export const updateMonthlyDues = async (
           maintenance_paid_at = NOW(),
           updated_by = $1,
           updated_at = NOW()
-        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4
+        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4 AND id = $5
       `;
-      queryParams = [userId, params.flatId, params.id, params.buildingId];
+      queryParams = [userId, params.flatId, params.id, params.buildingId, params.recordId];
     } else if (penalty_paid) {
       queryText = `
         UPDATE member_monthly_dues
@@ -803,9 +804,9 @@ export const updateMonthlyDues = async (
           penalty_paid_at = NOW(),
           updated_by = $1,
           updated_at = NOW()
-        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4
+        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4 AND id = $5
       `;
-      queryParams = [userId, params.flatId, params.id, params.buildingId];
+      queryParams = [userId, params.flatId, params.id, params.buildingId, params.recordId];
     } else {
       return;
     }

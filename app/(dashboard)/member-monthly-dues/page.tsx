@@ -52,13 +52,16 @@ export default function MemberMonthlyDues() {
       societyId,
       buildingId,
       flatId,
+      recordId,
       payload,
     }: {
       societyId: string;
       buildingId: string;
       flatId: string;
+      recordId: string;
       payload: { maintenance_paid?: boolean; penalty_paid?: boolean };
-    }) => updateMemberMonthlyDues(societyId, buildingId, flatId, payload),
+    }) =>
+      updateMemberMonthlyDues(societyId, buildingId, flatId, recordId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["member-monthly-dues"] });
     },
@@ -195,6 +198,7 @@ export default function MemberMonthlyDues() {
             societyId: row.society_id,
             buildingId: row.building_id,
             flatId: row.flat_id,
+            recordId: row.id,
             payload,
           });
         };

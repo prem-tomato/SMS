@@ -863,6 +863,7 @@ export const updateMonthlyDuesValidationController = async (
     id: string;
     buildingId: string;
     flatId: string;
+    recordId: string;
   }
 ): Promise<Response<void>> => {
   try {

@@ -9,10 +9,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const PATCH = async (
   request: NextRequest,
-  { params }: { params: { id: string; buildingId: string; flatId: string } }
+  { params }: { params: { id: string; buildingId: string; flatId: string, recordId: string } }
 ): Promise<NextResponse> => {
   socitiesLogger.info(
-    "POST api/socities/[id]/building/[buildingId]/flat/[flatId]/monetize-dues"
+    "POST api/socities/[id]/building/[buildingId]/flat/[flatId]/monetize-dues/[recordId]/edit"
   );
   socitiesLogger.debug(`monetize dues for flat ${params.flatId}`);
 
