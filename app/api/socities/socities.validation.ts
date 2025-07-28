@@ -1,5 +1,5 @@
 import { addRoleType, expenseType, memberType } from "@/db/utils/enums/enum";
-import z, { array, enum as enum_, number, object, string } from "zod";
+import z, { array, boolean, enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
   body: object({
@@ -181,6 +181,18 @@ export const flatPenaltyValidation = object({
       .max(1000000, "Amount must be less than or equal to 1000000"),
     reason: string()
       .min(1, "Reason is required")
-      .max(255, "Reason must be less than 255 characters"), 
+      .max(255, "Reason must be less than 255 characters"),
+  }),
+});
+
+export const updateMonthlyDuesValidation = object({
+  params: object({
+    id: idValidation,
+    buildingId: idValidation,
+    flatId: idValidation,
+  }),
+  body: object({
+    maintenance_paid: boolean().optional(),
+    penalty_paid: boolean().optional(),
   }),
 });

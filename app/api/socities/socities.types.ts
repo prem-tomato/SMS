@@ -12,6 +12,7 @@ import {
   assignMemberValidation,
   flatPenaltyValidation,
   noticeResponseValidation,
+  updateMonthlyDuesValidation,
 } from "./socities.validation";
 
 export type Societies = {
@@ -227,3 +228,7 @@ export type FlatView = Flat & {
   society_name: string;
   action_by: string;
 };
+
+export type UpdateMonthlyDuesReqBody = z.infer<
+  typeof updateMonthlyDuesValidation.shape.body
+>;

@@ -30,5 +30,7 @@
     "SOCIETY_DELETED_SUCCESSFULLY": "society deleted successfully",
     "EXPENSE_TRACKING_ADDED_SUCCESSFULLY": "expense tracking added successfully",
     "NOT_ALLOWED_TO_VIEW_LOGINS": "not allowed to view logins",
-    "FLAT_PENALTY_ADDED_SUCCESSFULLY": "flat penalty added successfully"
+    "FLAT_PENALTY_ADDED_SUCCESSFULLY": "flat penalty added successfully",
+    "MONTHLY_DUES_UPDATED_SUCCESSFULLY": "monthly dues updated successfully",
+    "NOT_ALLOWED_TO_UPDATE_MONTHLY_DUES": "not allowed to update monthly dues"
 }

@@ -8,6 +8,7 @@ import {
   FaceOutlined,
   HouseOutlined,
   LoginOutlined,
+  Money,
   PeopleOutlined,
 } from "@mui/icons-material";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
@@ -113,6 +114,11 @@ export default function Sidebar() {
             icon: <LoginOutlined />,
             path: "/login-history",
           },
+          {
+            label: "Dues",
+            icon: <Money />,
+            path: "/member-monthly-dues",
+          },
         ]
       : role === "admin"
       ? [
@@ -138,6 +144,11 @@ export default function Sidebar() {
             label: "Login History",
             icon: <LoginOutlined />,
             path: "/login-history",
+          },
+          {
+            label: "Dues",
+            icon: <Money />,
+            path: "/member-monthly-dues",
           },
         ]
       : []),

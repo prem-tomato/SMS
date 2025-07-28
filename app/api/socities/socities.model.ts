@@ -23,6 +23,7 @@ import {
   NoticeResponse,
   Societies,
   SocietyOptions,
+  UpdateMonthlyDuesReqBody,
 } from "./socities.types";
 
 export const findSocityByName = async (
@@ -372,8 +373,6 @@ export const getFlats = async (params: {
       params.buildingId,
       params.flatId,
     ]);
-
-
 
     return res.rows[0];
   } catch (error) {
@@ -754,5 +753,65 @@ export const addFlatPenalty = async (
     ]);
   } catch (error) {
     throw new Error(`Error adding flat penalty: ${error}`);
+  }
+};
+
+export const updateMonthlyDues = async (
+  reqBody: UpdateMonthlyDuesReqBody,
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+  },
+  userId: string
+): Promise<void> => {
+  try {
+    let queryText = "";
+    let queryParams: any[] = [];
+
+    const { maintenance_paid, penalty_paid } = reqBody;
+
+    if (maintenance_paid && penalty_paid) {
+      queryText = `
+        UPDATE member_monthly_dues
+        SET 
+          maintenance_paid = TRUE,
+          maintenance_paid_at = NOW(),
+          penalty_paid = TRUE,
+          penalty_paid_at = NOW(),
+          updated_by = $1,
+          updated_at = NOW()
+        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4
+      `;
+      queryParams = [userId, params.flatId, params.id, params.buildingId];
+    } else if (maintenance_paid) {
+      queryText = `
+        UPDATE member_monthly_dues
+        SET 
+          maintenance_paid = TRUE,
+          maintenance_paid_at = NOW(),
+          updated_by = $1,
+          updated_at = NOW()
+        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4
+      `;
+      queryParams = [userId, params.flatId, params.id, params.buildingId];
+    } else if (penalty_paid) {
+      queryText = `
+        UPDATE member_monthly_dues
+        SET 
+          penalty_paid = TRUE,
+          penalty_paid_at = NOW(),
+          updated_by = $1,
+          updated_at = NOW()
+        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4
+      `;
+      queryParams = [userId, params.flatId, params.id, params.buildingId];
+    } else {
+      return;
+    }
+
+    await query(queryText, queryParams);
+  } catch (error) {
+    throw new Error(`Error updating monthly dues: ${error}`);
   }
 };

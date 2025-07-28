@@ -338,3 +338,138 @@ CREATE TABLE flat_penalties (
     deleted_by UUID REFERENCES users(id),
     deleted_at TIMESTAMPTZ
 );
+
+
+-- 28-7-25
+
+-- CREATE TABLE public.member_monthly_dues (
+-- 	id uuid DEFAULT gen_random_uuid() NOT NULL,
+-- 	society_id uuid NOT NULL,
+-- 	building_id uuid NOT NULL,
+-- 	flat_id uuid NOT NULL,
+-- 	member_id uuid NOT NULL,
+-- 	month_year date NOT NULL,
+-- 	maintenance_amount numeric(10, 2) DEFAULT 0 NOT NULL,
+-- 	penalty_amount numeric(10, 2) DEFAULT 0 NOT NULL,
+-- 	total_due numeric(10, 2) GENERATED ALWAYS AS ((maintenance_amount + penalty_amount)) STORED NULL,
+-- 	maintenance_paid bool DEFAULT false NULL,
+-- 	maintenance_paid_at timestamptz NULL,
+-- 	penalty_paid bool DEFAULT false NULL,
+-- 	penalty_paid_at timestamptz NULL,
+-- 	created_at timestamptz DEFAULT now() NULL,
+-- 	created_by uuid NOT NULL,
+-- 	updated_at timestamptz DEFAULT now() NULL,
+-- 	updated_by uuid NOT NULL,
+-- 	CONSTRAINT member_monthly_dues_flat_id_member_id_month_year_key UNIQUE (flat_id, member_id, month_year),
+-- 	CONSTRAINT member_monthly_dues_pkey PRIMARY KEY (id),
+-- 	CONSTRAINT member_monthly_dues_building_id_fkey FOREIGN KEY (building_id) REFERENCES public.buildings(id),
+-- 	CONSTRAINT member_monthly_dues_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
+-- 	CONSTRAINT member_monthly_dues_flat_id_fkey FOREIGN KEY (flat_id) REFERENCES public.flats(id),
+-- 	CONSTRAINT member_monthly_dues_member_id_fkey FOREIGN KEY (member_id) REFERENCES public.members(id),
+-- 	CONSTRAINT member_monthly_dues_society_id_fkey FOREIGN KEY (society_id) REFERENCES public.societies(id)
+-- );
+
+-- INSERT INTO public.member_monthly_dues (
+--   society_id,
+--   building_id,
+--   flat_id,
+--   member_id,
+--   month_year,
+--   maintenance_amount,
+--   penalty_amount,
+--   created_by,
+--   created_at,
+--   updated_by,
+--   updated_at
+-- )
+-- SELECT
+--   m.society_id,
+--   m.building_id,
+--   m.flat_id,
+--   m.id as member_id,
+--   date_trunc('month', CURRENT_DATE)::date as month_year,
+--   f.current_maintenance,
+--   COALESCE((
+--     SELECT SUM(p.amount)
+--     FROM public.flat_penalties p
+--     WHERE p.flat_id = m.flat_id
+--       AND date_trunc('month', p.created_at) = date_trunc('month', CURRENT_DATE)
+--       AND p.is_deleted = false
+--   ), 0) as penalty_amount,
+--   '537a3518-e7f7-4049-9867-7254ca1486da' -- replace with real user ID
+--   NOW(),
+--   '537a3518-e7f7-4049-9867-7254ca1486da' -- replace with real user ID
+--   NOW()
+-- FROM public.members m
+-- JOIN public.flats f ON f.id = m.flat_id
+-- WHERE NOT EXISTS (
+--   SELECT 1 FROM public.member_monthly_dues d
+--   WHERE d.member_id = m.id AND d.month_year = date_trunc('month', CURRENT_DATE)
+-- );
+
+
+CREATE TABLE public.member_monthly_dues (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	society_id uuid NOT NULL,
+	building_id uuid NOT NULL,
+	flat_id uuid NOT NULL,
+	member_ids uuid[] NOT NULL,
+	month_year date NOT NULL,
+	maintenance_amount numeric(10, 2) DEFAULT 0 NOT NULL,
+	penalty_amount numeric(10, 2) DEFAULT 0 NOT NULL,
+	total_due numeric(10, 2) GENERATED ALWAYS AS ((maintenance_amount + penalty_amount)) STORED,
+	maintenance_paid bool DEFAULT false,
+	maintenance_paid_at timestamptz,
+	penalty_paid bool DEFAULT false,
+	penalty_paid_at timestamptz,
+	created_at timestamptz DEFAULT now(),
+	created_by uuid NOT NULL,
+	updated_at timestamptz DEFAULT now(),
+	updated_by uuid NOT NULL,
+	CONSTRAINT member_monthly_dues_pkey PRIMARY KEY (id),
+	CONSTRAINT member_monthly_dues_flat_id_month_year_key UNIQUE (flat_id, month_year),
+	CONSTRAINT member_monthly_dues_building_id_fkey FOREIGN KEY (building_id) REFERENCES public.buildings(id),
+	CONSTRAINT member_monthly_dues_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
+	CONSTRAINT member_monthly_dues_flat_id_fkey FOREIGN KEY (flat_id) REFERENCES public.flats(id),
+	CONSTRAINT member_monthly_dues_society_id_fkey FOREIGN KEY (society_id) REFERENCES public.societies(id)
+);
+
+
+INSERT INTO public.member_monthly_dues (
+  society_id,
+  building_id,
+  flat_id,
+  member_ids,
+  month_year,
+  maintenance_amount,
+  penalty_amount,
+  created_by,
+  created_at,
+  updated_by,
+  updated_at
+)
+SELECT
+  m.society_id,
+  m.building_id,
+  m.flat_id,
+  array_agg(m.id) AS member_ids,
+  date_trunc('month', CURRENT_DATE)::date as month_year,
+  f.current_maintenance,
+  COALESCE((
+    SELECT SUM(p.amount)
+    FROM public.flat_penalties p
+    WHERE p.flat_id = m.flat_id
+      AND date_trunc('month', p.created_at) = date_trunc('month', CURRENT_DATE)
+      AND p.is_deleted = false
+  ), 0) as penalty_amount,
+  '537a3518-e7f7-4049-9867-7254ca1486da', -- created_by
+  NOW(),                                  -- created_at
+  '537a3518-e7f7-4049-9867-7254ca1486da', -- updated_by
+  NOW()                                   -- updated_at
+FROM public.members m
+JOIN public.flats f ON f.id = m.flat_id
+GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
+HAVING NOT EXISTS (
+  SELECT 1 FROM public.member_monthly_dues d
+  WHERE d.flat_id = m.flat_id AND d.month_year = date_trunc('month', CURRENT_DATE)::date
+);

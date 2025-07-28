@@ -32,6 +32,7 @@ import {
   toggleForIsOccupied,
   toggleNoticeStatus,
   updateEndDate,
+  updateMonthlyDues,
 } from "./socities.model";
 import {
   AddAdminReqBody,
@@ -58,6 +59,7 @@ import {
   NoticeResponse,
   Societies,
   SocietyOptions,
+  UpdateMonthlyDuesReqBody,
 } from "./socities.types";
 
 export const addSocietyController = async (
@@ -845,6 +847,76 @@ export const addFlatPenaltyController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in addFlatPenaltyController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const updateMonthlyDuesValidationController = async (
+  request: Request,
+  reqBody: UpdateMonthlyDuesReqBody,
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+  }
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const role = request.headers.get("role")!;
+
+    if (role === "member") {
+      return generateResponseJSON(
+        StatusCodes.FORBIDDEN,
+        getMessage("NOT_ALLOWED_TO_UPDATE_MONTHLY_DUES")
+      );
+    }
+
+    // Check if the society exists
+    const society: Societies | undefined = await findSocietyById(params.id);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    // Check if the building exists
+    const building: Building | undefined = await findBuildingById(
+      params.buildingId
+    );
+    if (!building) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("BUILDING_NOT_FOUND")
+      );
+    }
+
+    // Check if the flat exists
+    const flat: Flat | undefined = await findFlatById(params.flatId);
+    if (!flat) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_NOT_FOUND")
+      );
+    }
+
+    await updateMonthlyDues(reqBody, params, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("MONTHLY_DUES_UPDATED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error(
+      "Error in updateMonthlyDuesValidationController:",
+      error
+    );
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

@@ -1,0 +1,254 @@
+"use client";
+
+import CommonDataGrid from "@/components/common/CommonDataGrid";
+import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
+import {
+  getMembersMonthlyDues,
+  getMembersMonthlyDuesForAdmin,
+  updateMemberMonthlyDues,
+} from "@/services/members-monthly-dues";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import {
+  Box,
+  FormControl,
+  IconButton,
+  InputLabel,
+  Menu,
+  MenuItem,
+  Box as MuiBox,
+  Select,
+  Tooltip,
+} from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+
+export default function MemberMonthlyDues() {
+  const queryClient = useQueryClient();
+  const [role, setRole] = useState<string>("");
+  const [adminSocietyId, setAdminSocietyId] = useState<string>("");
+  const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
+  useEffect(() => {
+    const userRole = getUserRole();
+    const society = getSocietyIdFromLocalStorage();
+    setRole(userRole!);
+    setAdminSocietyId(society!);
+  }, []);
+
+  const { mutateAsync: updateDues, isPending } = useMutation({
+    mutationFn: ({
+      societyId,
+      buildingId,
+      flatId,
+      payload,
+    }: {
+      societyId: string;
+      buildingId: string;
+      flatId: string;
+      payload: { maintenance_paid?: boolean; penalty_paid?: boolean };
+    }) => updateMemberMonthlyDues(societyId, buildingId, flatId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["member-monthly-dues"] });
+    },
+  });
+
+  const { data: MemberMonthlyDues = [], isLoading: loadingMemberMonthlyDues } =
+    useQuery({
+      queryKey: ["member-monthly-dues", selectedMonth],
+      queryFn: async () => {
+        if (role === "admin" && adminSocietyId) {
+          return await getMembersMonthlyDuesForAdmin(
+            adminSocietyId,
+            selectedMonth
+          );
+        }
+        return await getMembersMonthlyDues(selectedMonth);
+      },
+      enabled: !!role && !!selectedMonth,
+    });
+
+  const { data: availableMonths = [] } = useQuery({
+    queryKey: ["dues-year-month"],
+    queryFn: async () => {
+      const res = await fetch("/api/dues-year-month");
+      if (!res.ok) throw new Error("Failed to fetch months");
+      const json = await res.json();
+      return json.map((item: any) => item.month_year);
+    },
+  });
+
+  const columns = [
+    { field: "society_name", headerName: "Society", flex: 1 },
+    { field: "building_name", headerName: "Building", flex: 1 },
+    { field: "flat_number", headerName: "Flat Number", flex: 1 },
+    {
+      field: "member_name",
+      headerName: "Members",
+      flex: 2,
+      sortable: false,
+      renderCell: ({ row }: { row: any }) => (
+        <span style={{ fontSize: "0.875rem" }}>
+          {(row.member_name || []).join(", ")}
+        </span>
+      ),
+    },
+
+    {
+      field: "month_year",
+      headerName: "Month",
+      flex: 1,
+      renderCell: ({ row }: { row: any }) => (
+        <span style={{ fontSize: "0.875rem" }}>
+          {dayjs(row.month_year).format("YYYY-MM-DD")}
+        </span>
+      ),
+    },
+    { field: "maintenance_amount", headerName: "Maintenance", flex: 1 },
+    {
+      field: "penalty_amount",
+      headerName: "Penalty",
+      flex: 1,
+      renderCell: ({ row }: { row: any }) =>
+        row.penalty_amount > 0 ? (
+          <span style={{ fontSize: "0.875rem" }}>{row.penalty_amount}</span>
+        ) : null,
+    },
+    { field: "total_due", headerName: "Total Due", flex: 1 },
+    {
+      field: "maintenance_paid",
+      headerName: "Maintenance Paid",
+      flex: 1,
+      renderCell: ({ row }: { row: any }) => (
+        <span
+          style={{
+            color: row.maintenance_paid ? "#1e1ee4" : "#d32f2f",
+            fontSize: "0.875rem",
+          }}
+        >
+          {row.maintenance_paid ? "Yes" : "No"}
+        </span>
+      ),
+    },
+    {
+      field: "penalty_paid",
+      headerName: "Penalty Paid",
+      flex: 1,
+      renderCell: ({ row }: { row: any }) =>
+        row.penalty_amount > 0 ? (
+          <span
+            style={{
+              color: row.penalty_paid ? "#1e1ee4" : "#d32f2f",
+              fontSize: "0.875rem",
+            }}
+          >
+            {row.penalty_paid ? "Yes" : "No"}
+          </span>
+        ) : null,
+    },
+
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      flex: 1,
+      renderCell: ({ row }: { row: any }) => {
+        const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+        const open = Boolean(anchorEl);
+        const hasPenalty = row.penalty_amount > 0;
+
+        const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+          setAnchorEl(event.currentTarget);
+        };
+
+        const handleClose = () => {
+          setAnchorEl(null);
+        };
+
+        const handleUpdate = async (payload: {
+          maintenance_paid?: boolean;
+          penalty_paid?: boolean;
+        }) => {
+          handleClose();
+          await updateDues({
+            societyId: row.society_id,
+            buildingId: row.building_id,
+            flatId: row.flat_id,
+            payload,
+          });
+        };
+
+        return (
+          <>
+            <Tooltip title="Actions">
+              <IconButton size="small" onClick={handleOpen}>
+                <MoreVertIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+              <MenuItem
+                disabled={isPending}
+                onClick={() => handleUpdate({ maintenance_paid: true })}
+              >
+                Mark Maintenance Paid
+              </MenuItem>
+
+              {hasPenalty && (
+                <>
+                  <MenuItem
+                    disabled={isPending}
+                    onClick={() => handleUpdate({ penalty_paid: true })}
+                  >
+                    Mark Penalty Paid
+                  </MenuItem>
+                  <MenuItem
+                    disabled={isPending}
+                    onClick={() =>
+                      handleUpdate({
+                        maintenance_paid: true,
+                        penalty_paid: true,
+                      })
+                    }
+                  >
+                    Mark Both Paid
+                  </MenuItem>
+                </>
+              )}
+            </Menu>
+          </>
+        );
+      },
+    },
+  ];
+
+  return (
+    <Box height="calc(100vh - 180px)">
+      <MuiBox mb={2} display="flex" justifyContent="flex-start">
+        <FormControl size="small">
+          <InputLabel id="month-select-label">Month</InputLabel>
+          <Select
+            labelId="month-select-label"
+            value={selectedMonth}
+            label="Month"
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            {availableMonths.map((month: string) => (
+              <MenuItem key={month} value={month}>
+                {dayjs(month).format("YYYY-MM")}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </MuiBox>
+
+      <CommonDataGrid
+        rows={MemberMonthlyDues}
+        columns={columns}
+        loading={loadingMemberMonthlyDues}
+        height="calc(100vh - 180px)"
+        pageSize={20}
+      />
+    </Box>
+  );
+}
