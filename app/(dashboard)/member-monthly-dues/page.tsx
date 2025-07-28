@@ -1,8 +1,10 @@
 "use client";
 
+import { GetMemberMonthlyDuesResponse } from "@/app/api/member-monthly-dues/member-monthly-dues.types";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
+  getMemberMonthlyDueRecord,
   getMembersMonthlyDues,
   getMembersMonthlyDuesForAdmin,
   updateMemberMonthlyDues,
@@ -11,14 +13,21 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Box,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Divider,
   FormControl,
   IconButton,
   InputLabel,
   Menu,
   MenuItem,
   Box as MuiBox,
+  Paper,
   Select,
+  Stack,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
@@ -161,10 +170,13 @@ export default function MemberMonthlyDues() {
       headerName: "Actions",
       sortable: false,
       flex: 1,
-      renderCell: ({ row }: { row: any }) => {
+      renderCell: ({ row }: { row: GetMemberMonthlyDuesResponse }) => {
         const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
         const open = Boolean(anchorEl);
         const hasPenalty = row.penalty_amount > 0;
+
+        const [openDialog, setOpenDialog] = useState(false);
+        const [recordDetails, setRecordDetails] = useState<any>(null);
 
         const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
           setAnchorEl(event.currentTarget);
@@ -187,6 +199,17 @@ export default function MemberMonthlyDues() {
           });
         };
 
+        const handleView = async () => {
+          handleClose();
+          try {
+            const res = await getMemberMonthlyDueRecord(row.id);
+            setRecordDetails(res);
+            setOpenDialog(true);
+          } catch (error) {
+            console.error(error);
+          }
+        };
+
         return (
           <>
             <Tooltip title="Actions">
@@ -195,6 +218,8 @@ export default function MemberMonthlyDues() {
               </IconButton>
             </Tooltip>
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+              <MenuItem onClick={handleView}>View Record</MenuItem>
+
               <MenuItem
                 disabled={isPending}
                 onClick={() => handleUpdate({ maintenance_paid: true })}
@@ -224,6 +249,129 @@ export default function MemberMonthlyDues() {
                 </>
               )}
             </Menu>
+
+            {/* Dialog for Record View */}
+            <Dialog
+              open={openDialog}
+              onClose={() => setOpenDialog(false)}
+              maxWidth="sm"
+              fullWidth
+            >
+              <DialogTitle>Monthly Due Record</DialogTitle>
+              <DialogContent dividers>
+                {recordDetails ? (
+                  <Stack spacing={2}>
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Flat Details
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Society:</strong> {recordDetails.society_name}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Building:</strong> {recordDetails.building_name}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Flat:</strong> {recordDetails.flat_number}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Month:</strong>{" "}
+                        {dayjs(recordDetails.month_year).format("MMMM YYYY")}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Member(s):</strong>{" "}
+                        {(recordDetails.member_name || []).join(", ")}
+                      </Typography>
+                    </Paper>
+
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Charges
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Maintenance:</strong> ₹
+                        {recordDetails.maintenance_amount}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Penalty:</strong> ₹
+                        {recordDetails.penalty_amount}
+                      </Typography>
+                      <Divider sx={{ my: 1 }} />
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        Total Due: ₹{recordDetails.total_due}
+                      </Typography>
+                    </Paper>
+
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Payment Status
+                      </Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Typography variant="body2">
+                          Maintenance Paid:
+                        </Typography>
+                        <Chip
+                          label={recordDetails.maintenance_paid ? "Yes" : "No"}
+                          color={
+                            recordDetails.maintenance_paid ? "success" : "error"
+                          }
+                          size="small"
+                        />
+                      </Stack>
+                      {recordDetails.maintenance_paid_at && (
+                        <Typography variant="caption" display="block" mt={0.5}>
+                          {dayjs(recordDetails.maintenance_paid_at).format(
+                            "YYYY-MM-DD HH:mm"
+                          )}
+                        </Typography>
+                      )}
+
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                        mt={1}
+                      >
+                        <Typography variant="body2">Penalty Paid:</Typography>
+                        <Chip
+                          label={recordDetails.penalty_paid ? "Yes" : "No"}
+                          color={
+                            recordDetails.penalty_paid ? "success" : "error"
+                          }
+                          size="small"
+                        />
+                      </Stack>
+                      {recordDetails.penalty_paid_at && (
+                        <Typography variant="caption" display="block" mt={0.5}>
+                          {dayjs(recordDetails.penalty_paid_at).format(
+                            "YYYY-MM-DD HH:mm"
+                          )}
+                        </Typography>
+                      )}
+                    </Paper>
+
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Action Info
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Action By:</strong> {recordDetails.action_by}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Action At:</strong>{" "}
+                        {recordDetails.action_at
+                          ? dayjs(recordDetails.action_at).format(
+                              "YYYY-MM-DD HH:mm"
+                            )
+                          : "-"}
+                      </Typography>
+                    </Paper>
+                  </Stack>
+                ) : (
+                  <Typography>Loading...</Typography>
+                )}
+              </DialogContent>
+            </Dialog>
           </>
         );
       },

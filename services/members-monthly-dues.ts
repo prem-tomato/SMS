@@ -64,3 +64,17 @@ export const updateMemberMonthlyDues = async (
   const json = await response.json();
   if (!response.ok) throw new Error(json.message || "Failed to update dues");
 };
+
+export const getMemberMonthlyDueRecord = async (recordId: string) => {
+  const token = getAccessToken();
+  const response = await fetch(`/api/member-monthly-dues/view/${recordId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const json = await response.json();
+  if (!response.ok) throw new Error(json.message || "Failed to fetch dues");
+  return json.data;
+};
