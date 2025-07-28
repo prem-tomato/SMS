@@ -6,7 +6,7 @@ export const GET = async () => {
     const queryText = `
         SELECT
             DISTINCT TO_CHAR(month_year, 'YYYY-MM-DD') AS month_year
-        FROM member_monthly_dues
+        FROM member_monthly_maintenance_dues
         ORDER BY month_year DESC;
     `;
 

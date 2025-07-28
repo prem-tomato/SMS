@@ -757,7 +757,6 @@ export const addFlatPenalty = async (
 };
 
 export const updateMonthlyDues = async (
-  reqBody: UpdateMonthlyDuesReqBody,
   params: {
     id: string;
     buildingId: string;
@@ -767,27 +766,8 @@ export const updateMonthlyDues = async (
   userId: string
 ): Promise<void> => {
   try {
-    let queryText = "";
-    let queryParams: any[] = [];
-
-    const { maintenance_paid, penalty_paid } = reqBody;
-
-    if (maintenance_paid && penalty_paid) {
-      queryText = `
-        UPDATE member_monthly_dues
-        SET 
-          maintenance_paid = TRUE,
-          maintenance_paid_at = NOW(),
-          penalty_paid = TRUE,
-          penalty_paid_at = NOW(),
-          updated_by = $1,
-          updated_at = NOW()
-        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4 AND id = $5
-      `;
-      queryParams = [userId, params.flatId, params.id, params.buildingId, params.recordId];
-    } else if (maintenance_paid) {
-      queryText = `
-        UPDATE member_monthly_dues
+    const queryText = `
+        UPDATE member_monthly_maintenance_dues
         SET 
           maintenance_paid = TRUE,
           maintenance_paid_at = NOW(),
@@ -795,23 +775,14 @@ export const updateMonthlyDues = async (
           updated_at = NOW()
         WHERE flat_id = $2 AND society_id = $3 AND building_id = $4 AND id = $5
       `;
-      queryParams = [userId, params.flatId, params.id, params.buildingId, params.recordId];
-    } else if (penalty_paid) {
-      queryText = `
-        UPDATE member_monthly_dues
-        SET 
-          penalty_paid = TRUE,
-          penalty_paid_at = NOW(),
-          updated_by = $1,
-          updated_at = NOW()
-        WHERE flat_id = $2 AND society_id = $3 AND building_id = $4 AND id = $5
-      `;
-      queryParams = [userId, params.flatId, params.id, params.buildingId, params.recordId];
-    } else {
-      return;
-    }
 
-    await query(queryText, queryParams);
+    await query(queryText, [
+      userId,
+      params.flatId,
+      params.id,
+      params.buildingId,
+      params.recordId,
+    ]);
   } catch (error) {
     throw new Error(`Error updating monthly dues: ${error}`);
   }

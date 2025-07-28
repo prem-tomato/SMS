@@ -461,6 +461,7 @@ SELECT
     WHERE p.flat_id = m.flat_id
       AND date_trunc('month', p.created_at) = date_trunc('month', CURRENT_DATE)
       AND p.is_deleted = false
+	  AND p.is_paid = false
   ), 0) as penalty_amount,
   '537a3518-e7f7-4049-9867-7254ca1486da', -- created_by
   NOW(),                                  -- created_at
@@ -473,3 +474,114 @@ HAVING NOT EXISTS (
   SELECT 1 FROM public.member_monthly_dues d
   WHERE d.flat_id = m.flat_id AND d.month_year = date_trunc('month', CURRENT_DATE)::date
 );
+
+-----------------
+
+🔧 1. member_monthly_maintenance_dues Table
+sql
+Copy
+Edit
+CREATE TABLE public.member_monthly_maintenance_dues (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  society_id UUID NOT NULL REFERENCES societies(id),
+  building_id UUID NOT NULL REFERENCES buildings(id),
+  flat_id UUID NOT NULL REFERENCES flats(id),
+  member_ids UUID[] NOT NULL,
+  month_year DATE NOT NULL,
+  maintenance_amount NUMERIC(10, 2) DEFAULT 0 NOT NULL,
+  maintenance_paid BOOLEAN DEFAULT false,
+  maintenance_paid_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID NOT NULL REFERENCES users(id),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID NOT NULL REFERENCES users(id),
+  UNIQUE (flat_id, month_year)
+);
+🔧 2. member_penalty_dues Table (one row per penalty)
+sql
+Copy
+Edit
+CREATE TABLE public.member_penalty_dues (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  society_id UUID NOT NULL REFERENCES societies(id),
+  building_id UUID NOT NULL REFERENCES buildings(id),
+  flat_id UUID NOT NULL REFERENCES flats(id),
+  member_ids UUID[] NOT NULL,
+  penalty_id UUID NOT NULL REFERENCES flat_penalties(id) ON DELETE CASCADE,
+  month_year DATE NOT NULL,
+  amount NUMERIC(10,2) NOT NULL,
+  is_paid BOOLEAN DEFAULT false,
+  paid_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID NOT NULL REFERENCES users(id),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID NOT NULL REFERENCES users(id),
+  UNIQUE (penalty_id)  -- ensure no duplicates
+);
+✅ Insert Logic (Monthly Cron)
+For Maintenance:
+sql
+Copy
+Edit
+INSERT INTO public.member_monthly_maintenance_dues (
+  society_id, building_id, flat_id, member_ids, month_year,
+  maintenance_amount, created_by, created_at, updated_by, updated_at
+)
+SELECT
+  m.society_id,
+  m.building_id,
+  m.flat_id,
+  ARRAY_AGG(m.id),
+  date_trunc('month', CURRENT_DATE)::date,
+  f.current_maintenance,
+  'your-user-id',
+  NOW(),
+  'your-user-id',
+  NOW()
+FROM public.members m
+JOIN public.flats f ON f.id = m.flat_id
+GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
+HAVING NOT EXISTS (
+  SELECT 1 FROM public.member_monthly_maintenance_dues d
+  WHERE d.flat_id = m.flat_id AND d.month_year = date_trunc('month', CURRENT_DATE)::date
+);
+For Penalties:
+sql
+Copy
+Edit
+INSERT INTO public.member_penalty_dues (
+  society_id, building_id, flat_id, member_ids, penalty_id,
+  month_year, amount, created_by, created_at, updated_by, updated_at
+)
+SELECT
+  m.society_id,
+  m.building_id,
+  m.flat_id,
+  ARRAY_AGG(m.id),
+  p.id,
+  date_trunc('month', p.created_at)::date,
+  p.amount,
+  'your-user-id',
+  NOW(),
+  'your-user-id',
+  NOW()
+FROM public.flat_penalties p
+JOIN public.members m ON m.flat_id = p.flat_id
+WHERE p.is_paid = false
+  AND p.is_deleted = false
+  AND date_trunc('month', p.created_at) = date_trunc('month', CURRENT_DATE)
+  AND NOT EXISTS (
+    SELECT 1 FROM public.member_penalty_dues d WHERE d.penalty_id = p.id
+  )
+GROUP BY m.society_id, m.building_id, m.flat_id, p.id, p.amount, p.created_at;
+
+
+-----------------
+
+alter table flat_penalties 
+add column is_paid boolean default false
+
+ALTER TABLE flat_penalties
+ADD COLUMN paid_at timestamptz;
+
+

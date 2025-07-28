@@ -7,42 +7,26 @@ export async function generateMonthlyDues() {
 
   try {
     const result = await sql`
-      INSERT INTO public.member_monthly_dues (
-        society_id,
-        building_id,
-        flat_id,
-        member_ids,
-        month_year,
-        maintenance_amount,
-        penalty_amount,
-        created_by,
-        created_at,
-        updated_by,
-        updated_at
-      )
+      INSERT INTO public.member_monthly_maintenance_dues (
+      society_id, building_id, flat_id, member_ids, month_year,
+      maintenance_amount, created_by, created_at, updated_by, updated_at
+    )
       SELECT
         m.society_id,
         m.building_id,
         m.flat_id,
-        array_agg(m.id) AS member_ids,
-        date_trunc('month', CURRENT_DATE)::date as month_year,
+        ARRAY_AGG(m.id),
+        date_trunc('month', CURRENT_DATE)::date,
         f.current_maintenance,
-        COALESCE((
-          SELECT SUM(p.amount)
-          FROM public.flat_penalties p
-          WHERE p.flat_id = m.flat_id
-            AND date_trunc('month', p.created_at) = date_trunc('month', CURRENT_DATE)
-            AND p.is_deleted = false
-        ), 0) as penalty_amount,
-        '537a3518-e7f7-4049-9867-7254ca1486da', -- created_by
-        NOW(),                                  -- created_at
-        '537a3518-e7f7-4049-9867-7254ca1486da', -- updated_by
-        NOW()                                   -- updated_at
+        '537a3518-e7f7-4049-9867-7254ca1486da',
+        NOW(),
+        '537a3518-e7f7-4049-9867-7254ca1486da',
+        NOW()
       FROM public.members m
       JOIN public.flats f ON f.id = m.flat_id
       GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
       HAVING NOT EXISTS (
-        SELECT 1 FROM public.member_monthly_dues d
+        SELECT 1 FROM public.member_monthly_maintenance_dues d
         WHERE d.flat_id = m.flat_id AND d.month_year = date_trunc('month', CURRENT_DATE)::date
       );
     `;

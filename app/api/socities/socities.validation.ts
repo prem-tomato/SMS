@@ -192,7 +192,6 @@ export const updateMonthlyDuesValidation = object({
     flatId: idValidation,
   }),
   body: object({
-    maintenance_paid: boolean().optional(),
-    penalty_paid: boolean().optional(),
+    maintenance_paid: boolean(),
   }),
 });

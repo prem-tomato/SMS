@@ -16,7 +16,6 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Divider,
   FormControl,
   IconButton,
   InputLabel,
@@ -120,16 +119,6 @@ export default function MemberMonthlyDues() {
     },
     { field: "maintenance_amount", headerName: "Maintenance", flex: 1 },
     {
-      field: "penalty_amount",
-      headerName: "Penalty",
-      flex: 1,
-      renderCell: ({ row }: { row: any }) =>
-        row.penalty_amount > 0 ? (
-          <span style={{ fontSize: "0.875rem" }}>{row.penalty_amount}</span>
-        ) : null,
-    },
-    { field: "total_due", headerName: "Total Due", flex: 1 },
-    {
       field: "maintenance_paid",
       headerName: "Maintenance",
       flex: 1,
@@ -149,26 +138,6 @@ export default function MemberMonthlyDues() {
       ),
     },
     {
-      field: "penalty_paid",
-      headerName: "Penalty",
-      flex: 1,
-      renderCell: ({ row }: { row: any }) =>
-        row.penalty_amount > 0 ? (
-          <Chip
-            label={row.penalty_paid ? "Paid" : "Unpaid"}
-            sx={{
-              backgroundColor: row.penalty_paid ? "#E6F4EA" : "#FDECEA",
-              color: row.penalty_paid ? "#2E7D32" : "#C62828",
-              fontWeight: 500,
-              fontSize: "0.8rem",
-              borderRadius: "8px",
-              px: 1.5,
-              height: 28,
-            }}
-          />
-        ) : null,
-    },
-    {
       field: "actions",
       headerName: "Actions",
       sortable: false,
@@ -176,7 +145,6 @@ export default function MemberMonthlyDues() {
       renderCell: ({ row }: { row: GetMemberMonthlyDuesResponse }) => {
         const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
         const open = Boolean(anchorEl);
-        const hasPenalty = row.penalty_amount > 0;
 
         const [openDialog, setOpenDialog] = useState(false);
         const [recordDetails, setRecordDetails] = useState<any>(null);
@@ -191,7 +159,6 @@ export default function MemberMonthlyDues() {
 
         const handleUpdate = async (payload: {
           maintenance_paid?: boolean;
-          penalty_paid?: boolean;
         }) => {
           handleClose();
           await updateDues({
@@ -223,35 +190,12 @@ export default function MemberMonthlyDues() {
             </Tooltip>
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
               <MenuItem onClick={handleView}>View Record</MenuItem>
-
               <MenuItem
                 disabled={isPending}
                 onClick={() => handleUpdate({ maintenance_paid: true })}
               >
                 Mark Maintenance Paid
               </MenuItem>
-
-              {hasPenalty && (
-                <>
-                  <MenuItem
-                    disabled={isPending}
-                    onClick={() => handleUpdate({ penalty_paid: true })}
-                  >
-                    Mark Penalty Paid
-                  </MenuItem>
-                  <MenuItem
-                    disabled={isPending}
-                    onClick={() =>
-                      handleUpdate({
-                        maintenance_paid: true,
-                        penalty_paid: true,
-                      })
-                    }
-                  >
-                    Mark Both Paid
-                  </MenuItem>
-                </>
-              )}
             </Menu>
 
             {/* Dialog for Record View */}
@@ -296,14 +240,6 @@ export default function MemberMonthlyDues() {
                         <strong>Maintenance:</strong> ₹
                         {recordDetails.maintenance_amount}
                       </Typography>
-                      <Typography variant="body2">
-                        <strong>Penalty:</strong> ₹
-                        {recordDetails.penalty_amount}
-                      </Typography>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        Total Due: ₹{recordDetails.total_due}
-                      </Typography>
                     </Paper>
 
                     <Paper variant="outlined" sx={{ p: 2 }}>
@@ -325,29 +261,6 @@ export default function MemberMonthlyDues() {
                       {recordDetails.maintenance_paid_at && (
                         <Typography variant="caption" display="block" mt={0.5}>
                           {dayjs(recordDetails.maintenance_paid_at).format(
-                            "YYYY-MM-DD HH:mm"
-                          )}
-                        </Typography>
-                      )}
-
-                      <Stack
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
-                        mt={1}
-                      >
-                        <Typography variant="body2">Penalty Paid:</Typography>
-                        <Chip
-                          label={recordDetails.penalty_paid ? "Yes" : "No"}
-                          color={
-                            recordDetails.penalty_paid ? "success" : "error"
-                          }
-                          size="small"
-                        />
-                      </Stack>
-                      {recordDetails.penalty_paid_at && (
-                        <Typography variant="caption" display="block" mt={0.5}>
-                          {dayjs(recordDetails.penalty_paid_at).format(
                             "YYYY-MM-DD HH:mm"
                           )}
                         </Typography>

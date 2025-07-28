@@ -907,7 +907,7 @@ export const updateMonthlyDuesValidationController = async (
       );
     }
 
-    await updateMonthlyDues(reqBody, params, userId);
+    await updateMonthlyDues(params, userId);
 
     return generateResponseJSON(
       StatusCodes.OK,

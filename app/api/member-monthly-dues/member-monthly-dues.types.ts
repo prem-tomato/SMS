@@ -6,12 +6,8 @@ export type MemberMonthlyDues = {
   member_ids: string[];
   month_year: string;
   maintenance_amount: number;
-  penalty_amount: number;
-  total_due: number;
   maintenance_paid: boolean;
   maintenance_paid_at: string;
-  penalty_paid: boolean;
-  penalty_paid_at: string;
   created_at: string;
   created_by: string;
   updated_at: string;
@@ -27,12 +23,8 @@ export type GetMemberMonthlyDuesResponse = Pick<
   | "member_ids"
   | "month_year"
   | "maintenance_amount"
-  | "penalty_amount"
-  | "total_due"
   | "maintenance_paid"
   | "maintenance_paid_at"
-  | "penalty_paid"
-  | "penalty_paid_at"
 > & {
   society_name: string;
   building_name: string;
