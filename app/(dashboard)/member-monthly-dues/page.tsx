@@ -10,6 +10,7 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Box,
+  Chip,
   FormControl,
   IconButton,
   InputLabel,
@@ -118,36 +119,43 @@ export default function MemberMonthlyDues() {
     { field: "total_due", headerName: "Total Due", flex: 1 },
     {
       field: "maintenance_paid",
-      headerName: "Maintenance Paid",
+      headerName: "Maintenance",
       flex: 1,
       renderCell: ({ row }: { row: any }) => (
-        <span
-          style={{
-            color: row.maintenance_paid ? "#1e1ee4" : "#d32f2f",
-            fontSize: "0.875rem",
+        <Chip
+          label={row.maintenance_paid ? "Paid" : "Unpaid"}
+          sx={{
+            backgroundColor: row.maintenance_paid ? "#E6F4EA" : "#FDECEA",
+            color: row.maintenance_paid ? "#2E7D32" : "#C62828",
+            fontWeight: 500,
+            fontSize: "0.8rem",
+            borderRadius: "8px",
+            px: 1.5,
+            height: 28,
           }}
-        >
-          {row.maintenance_paid ? "Yes" : "No"}
-        </span>
+        />
       ),
     },
     {
       field: "penalty_paid",
-      headerName: "Penalty Paid",
+      headerName: "Penalty",
       flex: 1,
       renderCell: ({ row }: { row: any }) =>
         row.penalty_amount > 0 ? (
-          <span
-            style={{
-              color: row.penalty_paid ? "#1e1ee4" : "#d32f2f",
-              fontSize: "0.875rem",
+          <Chip
+            label={row.penalty_paid ? "Paid" : "Unpaid"}
+            sx={{
+              backgroundColor: row.penalty_paid ? "#E6F4EA" : "#FDECEA",
+              color: row.penalty_paid ? "#2E7D32" : "#C62828",
+              fontWeight: 500,
+              fontSize: "0.8rem",
+              borderRadius: "8px",
+              px: 1.5,
+              height: 28,
             }}
-          >
-            {row.penalty_paid ? "Yes" : "No"}
-          </span>
+          />
         ) : null,
     },
-
     {
       field: "actions",
       headerName: "Actions",
