@@ -25,7 +25,7 @@ export async function generateMonthlyDues() {
         m.building_id,
         m.flat_id,
         array_agg(m.id) AS member_ids,
-        '2025-09-01'::date as month_year,
+        date_trunc('month', CURRENT_DATE)::date as month_year,
         f.current_maintenance,
         COALESCE((
           SELECT SUM(p.amount)
@@ -43,7 +43,7 @@ export async function generateMonthlyDues() {
       GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
       HAVING NOT EXISTS (
         SELECT 1 FROM public.member_monthly_dues d
-        WHERE d.flat_id = m.flat_id AND d.month_year = '2025-09-01'::date
+        WHERE d.flat_id = m.flat_id AND d.month_year = date_trunc('month', CURRENT_DATE)::date
       );
     `;
 
