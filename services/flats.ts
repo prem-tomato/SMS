@@ -161,3 +161,25 @@ export async function getParticularFlat(
   if (!res.ok) throw new Error(json.message);
   return json;
 }
+
+export async function markFlatPenaltyPaid(
+  societyId: string,
+  buildingId: string,
+  flatId: string,
+  penaltyId: string
+): Promise<void> {
+  const token = getAccessToken();
+  const res = await fetch(
+    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}/penalty/${penaltyId}/mark-paid`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    }
+  );
+  const json = await res.json();
+  if (!res.ok)
+    throw new Error(json.message || "Failed to mark penalty as paid");
+}

@@ -32,5 +32,7 @@
     "NOT_ALLOWED_TO_VIEW_LOGINS": "not allowed to view logins",
     "FLAT_PENALTY_ADDED_SUCCESSFULLY": "flat penalty added successfully",
     "MONTHLY_DUES_UPDATED_SUCCESSFULLY": "monthly dues updated successfully",
-    "NOT_ALLOWED_TO_UPDATE_MONTHLY_DUES": "not allowed to update monthly dues"
+    "NOT_ALLOWED_TO_UPDATE_MONTHLY_DUES": "not allowed to update monthly dues",
+    "FLAT_PENALTY_NOT_FOUND": "flat penalty not found",
+    "FLAT_PENALTY_MARKED_AS_PAID": "flat penalty marked as paid"
 }

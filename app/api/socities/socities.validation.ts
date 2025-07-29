@@ -195,3 +195,12 @@ export const updateMonthlyDuesValidation = object({
     maintenance_paid: boolean(),
   }),
 });
+
+export const markFlatPenaltyPaidValidation = object({
+  params: object({
+    id: idValidation,
+    buildingId: idValidation,
+    flatId: idValidation,
+    penaltyId: idValidation,
+  }),
+});

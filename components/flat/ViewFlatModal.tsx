@@ -1,6 +1,6 @@
 "use client";
 
-import { getParticularFlat } from "@/services/flats";
+import { getParticularFlat, markFlatPenaltyPaid } from "@/services/flats";
 import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
@@ -264,7 +264,7 @@ export const ViewFlatModal = ({
               ) : (
                 <Table size="small">
                   <TableBody>
-                    {flat.penalties?.map((penalty: any) => (
+                    {flat.penalties.map((penalty: any) => (
                       <TableRow key={penalty.id}>
                         <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                           <Typography
@@ -280,26 +280,36 @@ export const ViewFlatModal = ({
                             {penalty.reason}
                           </Typography>
                         </TableCell>
+                        <TableCell sx={{ border: 0, py: 1 }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            onClick={async () => {
+                              try {
+                                await markFlatPenaltyPaid(
+                                  flat.society_id,
+                                  flat.building_id,
+                                  flat.id,
+                                  penalty.id
+                                );
+                                await refetch();
+                              } catch (error: any) {
+                                alert(
+                                  error.message ||
+                                    "Failed to mark penalty as paid"
+                                );
+                              }
+                            }}
+                          >
+                            Mark as Paid
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               )}
-            </Paper>
-
-            {/* Actions */}
-            <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
-              <Typography variant="subtitle1" fontWeight="600">
-                Action By
-                <Chip
-                  label={flat.action_by}
-                  size="small"
-                  color="primary"
-                  sx={{ fontWeight: 600, ml: 1 }}
-                >
-                  {flat.action_by}
-                </Chip>
-              </Typography>
             </Paper>
           </Box>
         ) : (

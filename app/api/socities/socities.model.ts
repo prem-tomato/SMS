@@ -19,11 +19,11 @@ import {
   ExpenseTrackingResponse,
   Flat,
   FlatOptions,
+  FlatPenalty,
   FlatView,
   NoticeResponse,
   Societies,
   SocietyOptions,
-  UpdateMonthlyDuesReqBody,
 } from "./socities.types";
 
 export const findSocityByName = async (
@@ -344,15 +344,16 @@ export const getFlats = async (params: {
         f.created_at,
         f.created_by,
         COALESCE(
-          json_agg(
-            json_build_object(
-              'id', fp.id,
-              'amount', fp.amount,
-              'reason', fp.reason
-            )
-          ) FILTER (WHERE fp.id IS NOT NULL),
-          '[]'
-        ) AS penalties,
+        json_agg(
+          json_build_object(
+            'id', fp.id,
+            'amount', fp.amount,
+            'reason', fp.reason,
+            'is_paid', fp.is_paid
+          )
+        ) FILTER (WHERE fp.id IS NOT NULL AND fp.is_paid = false),
+        '[]'
+      ) AS penalties,
           concat(u.first_name, ' ', u.last_name) AS action_by
       FROM flats f
       LEFT JOIN flat_penalties fp ON fp.flat_id = f.id
@@ -785,5 +786,55 @@ export const updateMonthlyDues = async (
     ]);
   } catch (error) {
     throw new Error(`Error updating monthly dues: ${error}`);
+  }
+};
+
+export const findFlatPenaltyById = async (
+  id: string
+): Promise<FlatPenalty | undefined> => {
+  try {
+    const queryText: string = `
+            SELECT * FROM flat_penalties
+            WHERE id = $1 AND is_paid = FALSE AND is_deleted = FALSE
+        `;
+
+    const res: QueryResult<FlatPenalty> = await query<FlatPenalty>(queryText, [
+      id,
+    ]);
+
+    return res.rows[0];
+  } catch (error) {
+    throw new Error(`Error finding flat penalty by ID: ${error}`);
+  }
+};
+
+export const markFlatPenaltyPaid = async (
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+    penaltyId: string;
+  },
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      UPDATE flat_penalties
+      SET is_paid = TRUE,
+        paid_at = NOW(),
+        updated_by = $1,
+        updated_at = NOW()
+      WHERE id = $2 AND society_id = $3 AND building_id = $4 AND flat_id = $5 AND is_paid = FALSE AND is_deleted = FALSE
+`;
+
+    await query(queryText, [
+      userId,
+      params.penaltyId,
+      params.id,
+      params.buildingId,
+      params.flatId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error marking flat penalty as paid: ${error}`);
   }
 };
