@@ -374,60 +374,52 @@ export const getFlats = async (params: {
         f.floor_number,
         f.is_occupied,
         b.name AS building_name,
-        societies.name AS society_name,
+        s.name AS society_name,
         f.square_foot,
         f.current_maintenance,
-        societies.id AS society_id,
+        s.id AS society_id,
         b.id AS building_id,
         f.created_at,
         f.created_by,
-        COALESCE(
-        json_agg(
-          json_build_object(
-            'id', fp.id,
-            'amount', fp.amount,
-            'reason', fp.reason,
-            'created_at', fp.created_at,
-           'action_by', concat(pu.first_name, ' ', pu.last_name)
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', fp.id,
+              'amount', fp.amount,
+              'reason', fp.reason,
+              'created_at', fp.created_at,
+              'action_by', CONCAT(pu.first_name, ' ', pu.last_name)
+            )
           )
-        ) FILTER (
-         WHERE fp.id IS NOT NULL AND fp.is_paid = false AND fp.is_deleted = false
-         ),
-        '[]'
-      ) AS penalties,
+          FROM flat_penalties fp
+          LEFT JOIN users pu ON pu.id = fp.created_by
+          WHERE fp.flat_id = f.id AND fp.is_paid = false AND fp.is_deleted = false
+        ) AS penalties,
 
-      COALESCE(
-        json_agg(
-          json_build_object(
-            'amount', fm.amount,
-            'reason', fm.reason,
-            'created_at', fm.created_at,
-            'action_by', concat(fmu.first_name, ' ', fmu.last_name)
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', fm.id,
+              'amount', fm.amount,
+              'reason', fm.reason,
+              'created_at', fm.created_at,
+              'action_by', CONCAT(fmu.first_name, ' ', fmu.last_name)
+            )
           )
-        ) FILTER (
-          WHERE fm.id IS NOT NULL AND fm.is_deleted = false
-        ),
-        '[]'
-      ) AS maintenances,
+          FROM flat_maintenances fm
+          LEFT JOIN users fmu ON fmu.id = fm.updated_by
+          WHERE fm.flat_id = f.id AND fm.is_deleted = false AND fm.amount_type IS NULL 
+        ) AS maintenances,
 
+        CONCAT(u.first_name, ' ', u.last_name) AS action_by
 
-          concat(u.first_name, ' ', u.last_name) AS action_by
       FROM flats f
-      LEFT JOIN flat_penalties fp ON fp.flat_id = f.id
       LEFT JOIN buildings b ON b.id = f.building_id
-      LEFT JOIN societies ON societies.id = f.society_id
+      LEFT JOIN societies s ON s.id = f.society_id
       LEFT JOIN users u ON u.id = f.created_by
-      LEFT JOIN users pu ON pu.id = fp.created_by  -- penalty created_by
-      LEFT JOIN flat_maintenances fm ON fm.flat_id = f.id
-      LEFT JOIN users fmu ON fmu.id = fm.updated_by
 
       WHERE f.society_id = $1 AND f.building_id = $2 AND f.id = $3
-      GROUP BY 
-        f.id, f.flat_number, f.floor_number, f.is_occupied, 
-        b.name, societies.name, f.square_foot, 
-        f.current_maintenance, 
-        societies.id, b.id, f.created_at, f.created_by,
-        u.first_name, u.last_name
+
     `;
 
     const res: QueryResult<FlatView> = await query<FlatView>(queryText, [

@@ -28,3 +28,15 @@ export const expenseType = {
   FIXED,
   MONTHLY,
 } as const;
+
+export const SETTLEMENT = "settlement";
+export const QUARTERLY = "quarterly";
+export const HALFYEARLY = "halfyearly";
+export const YEARLY = "yearly";
+
+export const flatMaintenanceType = {
+  SETTLEMENT,
+  QUARTERLY,
+  HALFYEARLY,
+  YEARLY,
+};

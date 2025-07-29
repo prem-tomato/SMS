@@ -2,6 +2,7 @@
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddFlatModal from "@/components/flat/FlatModel";
+import { ManagePendingMaintenanceModal } from "@/components/flat/ManagePendingMaintenanceModal";
 import { ViewFlatModal } from "@/components/flat/ViewFlatModal"; // Import the ViewFlatModal
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
@@ -41,6 +42,13 @@ export default function FlatsPage() {
   // Updated view dialog state to work with ViewFlatModal
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewFlatData, setViewFlatData] = useState<{
+    societyId: string;
+    buildingId: string;
+    flatId: string;
+  } | null>(null);
+
+  const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
+  const [maintenanceFlatData, setMaintenanceFlatData] = useState<{
     societyId: string;
     buildingId: string;
     flatId: string;
@@ -118,6 +126,17 @@ export default function FlatsPage() {
     setViewFlatData(null);
   };
 
+  const handleManageMaintenance = () => {
+    handleMenuClose();
+    if (!selectedFlat) return;
+    setMaintenanceFlatData({
+      societyId: selectedFlat.society_id,
+      buildingId: selectedFlat.building_id,
+      flatId: selectedFlat.id,
+    });
+    setMaintenanceModalOpen(true);
+  };
+
   const columns = useMemo(
     () => [
       { field: "flat_number", headerName: "Flat No", flex: 1 },
@@ -157,9 +176,12 @@ export default function FlatsPage() {
         headerName: "Actions",
         sortable: false,
         renderCell: (params: any) => (
-          <IconButton onClick={(e) => handleMenuOpen(e, params.row)}>
-            <MoreVertIcon />
-          </IconButton>
+          <>
+            {" "}
+            <IconButton onClick={(e) => handleMenuOpen(e, params.row)}>
+              <MoreVertIcon />
+            </IconButton>
+          </>
         ),
       },
     ],
@@ -202,6 +224,9 @@ export default function FlatsPage() {
       >
         <MenuItem onClick={handleViewFlat}>View</MenuItem>
         <MenuItem onClick={handleOpenPenaltyDialog}>Add Penalty</MenuItem>
+        <MenuItem onClick={handleManageMaintenance}>
+          Manage Maintenance
+        </MenuItem>
       </Menu>
 
       {/* Penalty Dialog */}
@@ -254,6 +279,15 @@ export default function FlatsPage() {
         open={viewDialogOpen}
         onClose={handleCloseViewModal}
         selectedFlat={viewFlatData}
+      />
+
+      <ManagePendingMaintenanceModal
+        open={maintenanceModalOpen}
+        onClose={() => {
+          setMaintenanceModalOpen(false);
+          setMaintenanceFlatData(null);
+        }}
+        selectedFlat={maintenanceFlatData}
       />
     </Box>
   );

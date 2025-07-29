@@ -35,5 +35,8 @@
     "NOT_ALLOWED_TO_UPDATE_MONTHLY_DUES": "not allowed to update monthly dues",
     "FLAT_PENALTY_NOT_FOUND": "flat penalty not found",
     "FLAT_PENALTY_MARKED_AS_PAID": "flat penalty marked as paid",
-    "FLAT_PENALTY_MARKED_AS_DELETED": "flat penalty marked as deleted"
+    "FLAT_PENALTY_MARKED_AS_DELETED": "flat penalty marked as deleted",
+    "FLAT_MAINTENANCE_UPDATED_SUCCESSFULLY": "flat maintenance updated successfully",
+    "FLAT_MAINTENANCE_NOT_FOUND": "flat maintenance not found",
+    "INVALID_AMOUNT_TYPE": "invalid amount type"
 }
