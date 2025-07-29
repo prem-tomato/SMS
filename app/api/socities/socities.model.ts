@@ -349,9 +349,12 @@ export const getFlats = async (params: {
             'id', fp.id,
             'amount', fp.amount,
             'reason', fp.reason,
-            'is_paid', fp.is_paid
+            'created_at', fp.created_at,
+           'action_by', concat(pu.first_name, ' ', pu.last_name)
           )
-        ) FILTER (WHERE fp.id IS NOT NULL AND fp.is_paid = false),
+        ) FILTER (
+         WHERE fp.id IS NOT NULL AND fp.is_paid = false AND fp.is_deleted = false
+         ),
         '[]'
       ) AS penalties,
           concat(u.first_name, ' ', u.last_name) AS action_by
@@ -360,6 +363,8 @@ export const getFlats = async (params: {
       LEFT JOIN buildings b ON b.id = f.building_id
       LEFT JOIN societies ON societies.id = f.society_id
       LEFT JOIN users u ON u.id = f.created_by
+      LEFT JOIN users pu ON pu.id = fp.created_by  -- penalty created_by
+
       WHERE f.society_id = $1 AND f.building_id = $2 AND f.id = $3
       GROUP BY 
         f.id, f.flat_number, f.floor_number, f.is_occupied, 
@@ -836,5 +841,37 @@ export const markFlatPenaltyPaid = async (
     ]);
   } catch (error) {
     throw new Error(`Error marking flat penalty as paid: ${error}`);
+  }
+};
+
+export const markFlatPenaltyDeleted = async (
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+    penaltyId: string;
+  },
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      UPDATE flat_penalties
+      SET is_deleted = TRUE,
+        deleted_at = NOW(),
+        updated_by = $1,
+        updated_at = NOW(),
+        deleted_by = $1
+      WHERE id = $2 AND society_id = $3 AND building_id = $4 AND flat_id = $5 AND is_deleted = FALSE AND is_paid = FALSE
+`;
+
+    await query(queryText, [
+      userId,
+      params.penaltyId,
+      params.id,
+      params.buildingId,
+      params.flatId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error marking flat penalty as deleted: ${error}`);
   }
 };

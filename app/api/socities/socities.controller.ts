@@ -30,6 +30,7 @@ import {
   listSocieties,
   listSocietiesOptions,
   listVacantFlats,
+  markFlatPenaltyDeleted,
   markFlatPenaltyPaid,
   toggleForIsOccupied,
   toggleNoticeStatus,
@@ -983,6 +984,71 @@ export const markFlatPenaltyPaidController = async (
     return generateResponseJSON(
       StatusCodes.OK,
       getMessage("FLAT_PENALTY_MARKED_AS_PAID")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in markFlatPenaltyPaidController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const deleteFlatPenaltyController = async (
+  request: Request,
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+    penaltyId: string;
+  }
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(params.id);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const building: Building | undefined = await findBuildingById(
+      params.buildingId
+    );
+    if (!building) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("BUILDING_NOT_FOUND")
+      );
+    }
+
+    const flat: Flat | undefined = await findFlatById(params.flatId);
+    if (!flat) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_NOT_FOUND")
+      );
+    }
+
+    const penalty: FlatPenalty | undefined = await findFlatPenaltyById(
+      params.penaltyId
+    );
+    if (!penalty) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_PENALTY_NOT_FOUND")
+      );
+    }
+
+    await markFlatPenaltyDeleted(params, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("FLAT_PENALTY_MARKED_AS_DELETED")
     );
   } catch (error: any) {
     socitiesLogger.error("Error in markFlatPenaltyPaidController:", error);

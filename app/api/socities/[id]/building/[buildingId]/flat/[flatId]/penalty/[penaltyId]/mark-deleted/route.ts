@@ -1,4 +1,4 @@
-import { markFlatPenaltyPaidController } from "@/app/api/socities/socities.controller";
+import { deleteFlatPenaltyController } from "@/app/api/socities/socities.controller";
 import socitiesLogger from "@/app/api/socities/socities.logger";
 import { markFlatPenaltyPaidValidation } from "@/app/api/socities/socities.validation";
 import type { Response } from "@/db/utils/response-generator";
@@ -20,13 +20,13 @@ export const PATCH = async (
   }
 ): Promise<NextResponse> => {
   socitiesLogger.info(
-    "PATCH api/socities/[id]/building/[buildingId]/flat/[flatId]/penalty/[penaltyId]/mark-paid"
+    "PATCH api/socities/[id]/building/[buildingId]/flat/[flatId]/penalty/[penaltyId]/mark-deleted"
   );
   socitiesLogger.debug(
     `updating flats penalties in building ${params.buildingId}, society ${params.id} and flat ${params.flatId} mark as paid`
   );
 
-  const { response } = await validationMiddleware(
+  const { reqBody, response } = await validationMiddleware(
     request,
     markFlatPenaltyPaidValidation,
     params
@@ -42,7 +42,7 @@ export const PATCH = async (
 
   // Step 4: If validation, authentication, and permission check succeed, process the request
   const { status, ...responseData }: Response<void> =
-    await markFlatPenaltyPaidController(request, params);
+    await deleteFlatPenaltyController(request, params);
 
   // Return the response with the appropriate status code
   return NextResponse.json(responseData, { status });

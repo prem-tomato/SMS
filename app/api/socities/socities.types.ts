@@ -223,6 +223,8 @@ export type FlatView = Flat & {
     id: string;
     amount: number;
     reason: string;
+    created_at: string;
+    action_by: string;
   }[];
   building_name: string;
   society_name: string;

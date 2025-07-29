@@ -1,6 +1,13 @@
 "use client";
 
-import { getParticularFlat, markFlatPenaltyPaid } from "@/services/flats";
+import {
+  getParticularFlat,
+  markFlatPenaltyDeleted,
+  markFlatPenaltyPaid,
+} from "@/services/flats";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+
 import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
@@ -17,10 +24,12 @@ import {
   TableBody,
   TableCell,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import dayjs from "dayjs";
+import React, { useEffect, useState } from "react";
 
 interface ViewFlatModalProps {
   open: boolean;
@@ -50,11 +59,17 @@ export const ViewFlatModal = ({
     enabled,
   });
 
-  useEffect(() => {
-    if (enabled) refetch();
-  }, [enabled, refetch]);
+  // Preserve the flat data even when modal is closing
+  const [preservedFlat, setPreservedFlat] = useState(null);
+  
+  useEffect(() => { // Preserve the flat data
+    if (data?.data) {
+      setPreservedFlat(data.data);
+    }
+  }, [data?.data]);
 
-  const flat = data?.data;
+  // Use preserved data if available, otherwise use current data
+  const flat = preservedFlat || data?.data;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -71,6 +86,12 @@ export const ViewFlatModal = ({
       onClose={onClose}
       fullWidth
       maxWidth="md"
+      TransitionProps={{
+        timeout: {
+          enter: 200,
+          exit: 150, // Faster exit, smooth enter
+        },
+      }}
       PaperProps={{
         sx: {
           borderRadius: 1,
@@ -90,7 +111,7 @@ export const ViewFlatModal = ({
       </DialogTitle>
 
       <DialogContent sx={{ pt: 2 }}>
-        {isLoading ? (
+        {isLoading && (
           <Box
             display="flex"
             justifyContent="center"
@@ -99,11 +120,9 @@ export const ViewFlatModal = ({
           >
             <CircularProgress size={40} />
           </Box>
-        ) : error ? (
-          <Box textAlign="center" py={4}>
-            <Typography color="error">Failed to load flat details</Typography>
-          </Box>
-        ) : flat ? (
+        )}
+        
+        {flat && (
           <Box>
             {/* Basic Info */}
             <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
@@ -266,6 +285,7 @@ export const ViewFlatModal = ({
                   <TableBody>
                     {flat.penalties.map((penalty: any) => (
                       <TableRow key={penalty.id}>
+                        {/* Amount */}
                         <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                           <Typography
                             variant="body2"
@@ -275,35 +295,79 @@ export const ViewFlatModal = ({
                             {formatCurrency(penalty.amount)}
                           </Typography>
                         </TableCell>
+
+                        {/* Reason + Metadata */}
                         <TableCell sx={{ border: 0, py: 1 }}>
                           <Typography variant="body2" color="text.secondary">
                             {penalty.reason}
                           </Typography>
                         </TableCell>
+
+                        {/* Created At */}
                         <TableCell sx={{ border: 0, py: 1 }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="primary"
-                            onClick={async () => {
-                              try {
-                                await markFlatPenaltyPaid(
-                                  flat.society_id,
-                                  flat.building_id,
-                                  flat.id,
-                                  penalty.id
-                                );
-                                await refetch();
-                              } catch (error: any) {
-                                alert(
-                                  error.message ||
-                                    "Failed to mark penalty as paid"
-                                );
-                              }
-                            }}
-                          >
-                            Mark as Paid
-                          </Button>
+                          <Typography variant="body2" color="text.secondary">
+                            {dayjs(penalty.created_at).format("DD-MM-YYYY")}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Action By */}
+                        <TableCell sx={{ border: 0, py: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {penalty.action_by}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Action Buttons */}
+                        <TableCell sx={{ border: 0, py: 1 }}>
+                          <Tooltip title="Mark as Paid">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={async () => {
+                                try {
+                                  await markFlatPenaltyPaid(
+                                    flat.society_id,
+                                    flat.building_id,
+                                    flat.id,
+                                    penalty.id
+                                  );
+                                  await refetch();
+                                } catch (error: any) {
+                                  alert(
+                                    error.message ||
+                                      "Failed to mark penalty as paid"
+                                  );
+                                }
+                              }}
+                            >
+                              <CheckCircleOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Mark as Deleted">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={async () => {
+                                try {
+                                  await markFlatPenaltyDeleted(
+                                    flat.society_id,
+                                    flat.building_id,
+                                    flat.id,
+                                    penalty.id
+                                  );
+                                  await refetch();
+                                } catch (error: any) {
+                                  alert(
+                                    error.message ||
+                                      "Failed to mark penalty as deleted"
+                                  );
+                                }
+                              }}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -312,15 +376,21 @@ export const ViewFlatModal = ({
               )}
             </Paper>
           </Box>
-        ) : (
-          <Box textAlign="center" py={4}>
-            <Typography color="text.secondary">No data found</Typography>
-          </Box>
         )}
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} variant="contained" size="medium">
+        <Button
+          onClick={onClose}
+          variant="contained"
+          size="medium"
+          sx={{
+            backgroundColor: "#1e1ee4",
+            "&:hover": {
+              backgroundColor: "#1717c9",
+            },
+          }}
+        >
           Close
         </Button>
       </DialogActions>
