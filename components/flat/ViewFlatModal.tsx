@@ -242,15 +242,15 @@ export const ViewFlatModal = ({
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
                 Pending Maintenance
               </Typography>
-              {!flat.pending_maintenance ||
-              flat.pending_maintenance.length === 0 ? (
+              {!flat.maintenances ||
+              flat.maintenances.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
                   No pending maintenance
                 </Typography>
               ) : (
                 <Table size="small">
                   <TableBody>
-                    {flat.pending_maintenance?.map(
+                    {flat.maintenances?.map(
                       (item: any, index: number) => (
                         <TableRow key={index}>
                           <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
@@ -263,6 +263,20 @@ export const ViewFlatModal = ({
                               {item.reason}
                             </Typography>
                           </TableCell>
+
+                        {/* Created At */}
+                        <TableCell sx={{ border: 0, py: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {dayjs(item.created_at).format("DD-MM-YYYY")}
+                          </Typography>
+                        </TableCell>
+
+                              {/* Reason + Metadata */}
+                        <TableCell sx={{ border: 0, py: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {item.action_by}
+                          </Typography>
+                        </TableCell>
                         </TableRow>
                       )
                     )}

@@ -1,5 +1,5 @@
 import { addRoleType, expenseType, memberType } from "@/db/utils/enums/enum";
-import z, { array, boolean, enum as enum_, number, object, string } from "zod";
+import { array, boolean, enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
   body: object({
@@ -82,14 +82,12 @@ export const addFlatValidation = object({
     square_foot: number()
       .int("Square foot must be an integer")
       .min(1, "Square foot must be at least 1"),
-    pending_maintenance: z
-      .array(
-        z.object({
-          amount: z.number().optional(),
-          reason: z.string().optional(),
-        })
-      )
-      .optional(),
+    pending_maintenance: array(
+      object({
+        amount: number().optional(),
+        reason: string().optional(),
+      }).optional()
+    ).optional(),
     current_maintenance: number()
       .min(0, "Current maintenance must be greater than or equal to 0")
       .max(

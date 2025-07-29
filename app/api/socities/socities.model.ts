@@ -204,7 +204,7 @@ export const findBuildingById = async (
 };
 
 export const addFlat = async (
-  reqBody: AddFlatReqBody,
+  reqBody: Omit<AddFlatReqBody, "pending_maintenance">,
   buildingId: string,
   societyId: string,
   userId: string
@@ -218,10 +218,9 @@ export const addFlat = async (
         floor_number, 
         created_by, 
         square_foot, 
-        pending_maintenance, 
         current_maintenance
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
 
@@ -232,7 +231,6 @@ export const addFlat = async (
       reqBody.floor_number,
       userId,
       reqBody.square_foot,
-      JSON.stringify(reqBody.pending_maintenance),
       reqBody.current_maintenance,
     ]);
 
@@ -240,6 +238,47 @@ export const addFlat = async (
   } catch (error) {
     throw new Error(`Error adding flat to building: ${error}`);
   }
+};
+
+export const addFlatMaintenance = async (
+  items: { amount: number; reason: string }[],
+  params: { id: string; buildingId: string },
+  flatId: string,
+  createdBy: string
+): Promise<void> => {
+  if (!items.length) return;
+
+  const queryText = `
+    INSERT INTO flat_maintenances (
+      society_id,
+      building_id,
+      flat_id,
+      amount,
+      reason,
+      created_by,
+      created_at,
+      updated_by,
+      updated_at
+    )
+    VALUES ${items
+      .map(
+        (_, idx) =>
+          `($1, $2, $3, $${idx * 2 + 4}, $${idx * 2 + 5}, $${
+            items.length * 2 + 4
+          }, NOW(), $${items.length * 2 + 4}, NOW())`
+      )
+      .join(", ")}
+  `;
+
+  const values = [
+    params.id, // $1
+    params.buildingId, // $2
+    flatId, // $3
+    ...items.flatMap((item) => [item.amount ?? 0, item.reason ?? ""]),
+    createdBy,
+  ];
+
+  await query(queryText, values);
 };
 
 export const findFlatById = async (id: string): Promise<Flat | undefined> => {
@@ -337,7 +376,6 @@ export const getFlats = async (params: {
         b.name AS building_name,
         societies.name AS society_name,
         f.square_foot,
-        f.pending_maintenance,
         f.current_maintenance,
         societies.id AS society_id,
         b.id AS building_id,
@@ -357,6 +395,22 @@ export const getFlats = async (params: {
          ),
         '[]'
       ) AS penalties,
+
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'amount', fm.amount,
+            'reason', fm.reason,
+            'created_at', fm.created_at,
+            'action_by', concat(fmu.first_name, ' ', fmu.last_name)
+          )
+        ) FILTER (
+          WHERE fm.id IS NOT NULL AND fm.is_deleted = false
+        ),
+        '[]'
+      ) AS maintenances,
+
+
           concat(u.first_name, ' ', u.last_name) AS action_by
       FROM flats f
       LEFT JOIN flat_penalties fp ON fp.flat_id = f.id
@@ -364,12 +418,14 @@ export const getFlats = async (params: {
       LEFT JOIN societies ON societies.id = f.society_id
       LEFT JOIN users u ON u.id = f.created_by
       LEFT JOIN users pu ON pu.id = fp.created_by  -- penalty created_by
+      LEFT JOIN flat_maintenances fm ON fm.flat_id = f.id
+      LEFT JOIN users fmu ON fmu.id = fm.updated_by
 
       WHERE f.society_id = $1 AND f.building_id = $2 AND f.id = $3
       GROUP BY 
         f.id, f.flat_number, f.floor_number, f.is_occupied, 
         b.name, societies.name, f.square_foot, 
-        f.pending_maintenance, f.current_maintenance, 
+        f.current_maintenance, 
         societies.id, b.id, f.created_at, f.created_by,
         u.first_name, u.last_name
     `;

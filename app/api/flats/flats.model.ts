@@ -13,7 +13,6 @@ export const listAllFlats = async (): Promise<GetAllFlats[]> => {
                 societies.name as society_name,
                 buildings.name as building_name,
                 flats.square_foot,
-                flats.pending_maintenance,
                 flats.current_maintenance,
                 societies.id as society_id,
                 buildings.id as building_id
@@ -45,7 +44,6 @@ export const listAllFlatsBySociety = async (
                 societies.name as society_name,
                 buildings.name as building_name,
                 flats.square_foot,
-                flats.pending_maintenance,
                 flats.current_maintenance,
                 societies.id as society_id,
                 buildings.id as building_id

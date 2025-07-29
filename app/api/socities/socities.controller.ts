@@ -1,3 +1,9 @@
+import {
+  commitTransaction,
+  rollbackTransaction,
+  startTransaction,
+  Transaction,
+} from "@/db/configs/acid";
 import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import { StatusCodes } from "http-status-codes";
@@ -7,6 +13,7 @@ import {
   addBuilding,
   addExpenseTracking,
   addFlat,
+  addFlatMaintenance,
   addFlatPenalty,
   addMember,
   addSocieties,
@@ -260,12 +267,17 @@ export const addFlatController = async (
     buildingId: string;
   }
 ): Promise<Response<FlatResponse>> => {
+  const transaction: Transaction = await startTransaction();
+  const { client } = transaction;
   try {
+    const { pending_maintenance, ...restPayload } = reqBody;
+
     const userId: string = request.headers.get("userId")!;
 
     // Check if the society exists
     const society: Societies | undefined = await findSocietyById(params.id);
     if (!society) {
+      await rollbackTransaction(transaction);
       return generateResponseJSON(
         StatusCodes.NOT_FOUND,
         getMessage("SOCIETY_NOT_FOUND")
@@ -277,6 +289,7 @@ export const addFlatController = async (
       params.buildingId
     );
     if (!building) {
+      await rollbackTransaction(transaction);
       return generateResponseJSON(
         StatusCodes.NOT_FOUND,
         getMessage("BUILDING_NOT_FOUND")
@@ -284,13 +297,28 @@ export const addFlatController = async (
     }
 
     if (reqBody.floor_number > building.total_floors) {
+      await rollbackTransaction(transaction);
       return generateResponseJSON(
         StatusCodes.BAD_REQUEST,
         `Floor number ${reqBody.floor_number} is greater than total floors ${building.total_floors}`
       );
     }
 
-    const flat = await addFlat(reqBody, params.buildingId, params.id, userId);
+    const flat = await addFlat(
+      restPayload,
+      params.buildingId,
+      params.id,
+      userId
+    );
+
+    if (pending_maintenance) {
+      await addFlatMaintenance(
+        pending_maintenance as { amount: number; reason: string }[],
+        params,
+        flat.id,
+        userId
+      );
+    }
 
     const responseData = {
       society_name: society.name,
@@ -299,6 +327,8 @@ export const addFlatController = async (
       floor_number: flat.floor_number,
     };
 
+    await commitTransaction(transaction);
+
     return generateResponseJSON(
       StatusCodes.CREATED,
       getMessage("FLAT_CREATED_SUCCESSFULLY"),
@@ -306,6 +336,8 @@ export const addFlatController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in addFlatController:", error);
+
+    await rollbackTransaction(transaction);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
