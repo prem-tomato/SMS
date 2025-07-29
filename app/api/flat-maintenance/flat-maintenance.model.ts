@@ -94,19 +94,27 @@ export const addHalfYearlyFlatMaintenance = async (
   createdBy: string
 ): Promise<void> => {
   try {
-    const queryText: string = `
-            INSERT INTO flat_maintenance_monthly (
-                maintenance_id, month, amount, created_by
-            )
-            VALUES ${months
-              .map(
-                (month, index) =>
-                  `('${flatMaintenanceId}', ${month.month}, ${month.amount}, ${createdBy})`
-              )
-              .join(", ")}
-        `;
+    const values: any[] = [];
+    const valueClauses: string[] = [];
 
-    await queryWithClient(client, queryText);
+    months.forEach((m, i) => {
+      const baseIndex = i * 4;
+      valueClauses.push(
+        `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${
+          baseIndex + 4
+        })`
+      );
+      values.push(flatMaintenanceId, m.month, m.amount, createdBy);
+    });
+
+    const queryText: string = `
+      INSERT INTO flat_maintenance_monthly (
+        maintenance_id, month, amount, created_by
+      )
+      VALUES ${valueClauses.join(", ")}
+    `;
+
+    await queryWithClient(client, queryText, values);
   } catch (error) {
     throw new Error(`Error adding half yearly flat maintenance: ${error}`);
   }

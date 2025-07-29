@@ -23,6 +23,7 @@ export type FlatMaintenanceSettlement = {
   maintenance_id: string;
   settlement_amount: number;
   created_at: string;
+  created_by: string;
 };
 
 export type FlatMaintenanceMonthly = {
@@ -31,6 +32,7 @@ export type FlatMaintenanceMonthly = {
   month: number;
   amount: number;
   created_at: string;
+  created_by: string;
 };
 
 export type ManageFLatMaintenance = z.infer<

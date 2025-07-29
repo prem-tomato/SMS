@@ -584,4 +584,57 @@ add column is_paid boolean default false
 ALTER TABLE flat_penalties
 ADD COLUMN paid_at timestamptz;
 
+-- 29-7-25 
 
+monthly penalty in flat view and maintenance also
+
+add bulk mark as paid 
+
+fix pending maintenance flow and add expense tracking monthly
+
+-- managing pending maintenance flow
+
+CREATE TYPE flat_maintenance_type AS ENUM (
+  'settlement',
+  'quarterly',
+  'halfyearly',
+  'yearly'
+);
+
+
+CREATE TABLE flat_maintenances (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  society_id UUID REFERENCES societies(id) REFERENCES societies(id),
+  building_id UUID REFERENCES buildings(id) REFERENCES buildings(id),
+  flat_id UUID REFERENCES flats(id) REFERENCES flats(id),
+  
+  amount NUMERIC(10,2) NOT NULL,
+  reason TEXT NOT NULL,
+  amount_type flat_maintenance_type NULL,
+  
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID REFERENCES users(id),
+  deleted_at TIMESTAMPTZ,
+  deleted_by UUID REFERENCES users(id)
+);
+
+CREATE TABLE flat_maintenance_settlements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  maintenance_id UUID REFERENCES flat_maintenances(id),
+  settlement_amount NUMERIC(10,2) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID REFERENCES users(id)
+);
+
+CREATE TABLE flat_maintenance_monthly (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  maintenance_id UUID REFERENCES flat_maintenances(id),
+  month INTEGER NOT NULL CHECK (month BETWEEN 1 AND 12),
+  amount NUMERIC(10,2) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID REFERENCES users(id),
+  UNIQUE (maintenance_id, month)
+);

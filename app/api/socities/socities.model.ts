@@ -21,6 +21,7 @@ import {
   FlatOptions,
   FlatPenalty,
   FlatView,
+  MaintenanceView,
   NoticeResponse,
   Societies,
   SocietyOptions,
@@ -921,5 +922,82 @@ export const markFlatPenaltyDeleted = async (
     ]);
   } catch (error) {
     throw new Error(`Error marking flat penalty as deleted: ${error}`);
+  }
+};
+
+export const getFlatMaintenanceDetails = async (
+  societyId: string,
+  buildingId: string,
+  flatId: string
+): Promise<MaintenanceView[]> => {
+  try {
+    const queryText: string = `
+      SELECT
+        fm.id AS maintenance_id,
+        fm.society_id,
+        fm.building_id,
+        fm.flat_id,
+        fm.amount_type,
+        fm.amount AS maintenance_amount,
+        fm.reason,
+        fm.created_at,
+        fm.updated_at,
+        fm.created_by,
+
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', fms.id,
+              'settlement_amount', fms.settlement_amount,
+              'created_at', fms.created_at,
+              'created_by', fms.created_by
+            )
+          ) FILTER (WHERE fms.id IS NOT NULL), 
+          '[]'::json
+        ) AS settlements,
+
+        COALESCE(
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', fmm.id,
+              'month', fmm.month,
+              'amount', fmm.amount,
+              'created_at', fmm.created_at
+            )
+          ) FILTER (WHERE fmm.id IS NOT NULL), 
+          '[]'::json
+        ) AS monthly_maintenance
+
+      FROM flat_maintenances fm
+      LEFT JOIN flat_maintenance_settlements fms 
+        ON fms.maintenance_id = fm.id
+      LEFT JOIN flat_maintenance_monthly fmm 
+        ON fmm.maintenance_id = fm.id
+      WHERE fm.society_id = $1
+        AND fm.building_id = $2
+        AND fm.flat_id = $3
+        AND fm.is_deleted = false
+      GROUP BY 
+        fm.id, 
+        fm.society_id, 
+        fm.building_id, 
+        fm.flat_id, 
+        fm.amount_type, 
+        fm.amount, 
+        fm.reason,
+        fm.created_at,
+        fm.updated_at,
+        fm.created_by
+      ORDER BY fm.created_at DESC
+    `;
+
+    const res: QueryResult<MaintenanceView> = await query<MaintenanceView>(
+      queryText,
+      [societyId, buildingId, flatId]
+    );
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting flat maintenance details: ${error}`);
   }
 };

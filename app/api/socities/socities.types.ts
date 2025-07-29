@@ -2,6 +2,11 @@ import { expenseType } from "@/db/utils/enums/enum";
 import z from "zod";
 import { User } from "../auth/auth.types";
 import {
+  FlatMaintenance,
+  FlatMaintenanceMonthly,
+  FlatMaintenanceSettlement,
+} from "../flat-maintenance/flat-maintenance.types";
+import {
   addAdminValidation,
   addBuildingValidation,
   addEndDateValidation,
@@ -234,3 +239,19 @@ export type FlatView = Flat & {
 export type UpdateMonthlyDuesReqBody = z.infer<
   typeof updateMonthlyDuesValidation.shape.body
 >;
+
+export type MaintenanceView = Pick<
+  FlatMaintenance,
+  | "id"
+  | "society_id"
+  | "building_id"
+  | "flat_id"
+  | "amount_type"
+  | "amount"
+  | "reason"
+>[] &
+  Pick<
+    FlatMaintenanceSettlement,
+    "id" | "maintenance_id" | "settlement_amount"
+  >[] &
+  Pick<FlatMaintenanceMonthly, "id" | "maintenance_id" | "month" | "amount">[];

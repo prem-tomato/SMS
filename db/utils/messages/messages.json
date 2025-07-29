@@ -38,5 +38,6 @@
     "FLAT_PENALTY_MARKED_AS_DELETED": "flat penalty marked as deleted",
     "FLAT_MAINTENANCE_UPDATED_SUCCESSFULLY": "flat maintenance updated successfully",
     "FLAT_MAINTENANCE_NOT_FOUND": "flat maintenance not found",
-    "INVALID_AMOUNT_TYPE": "invalid amount type"
+    "INVALID_AMOUNT_TYPE": "invalid amount type",
+    "FLAT_MAINTENANCE_VIEWED_SUCCESSFULLY": "flat maintenance viewed successfully"
 }

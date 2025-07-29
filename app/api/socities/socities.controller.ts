@@ -30,6 +30,7 @@ import {
   getBuildings,
   getBuildingsBySociety,
   getExpenseTracking,
+  getFlatMaintenanceDetails,
   getFlats,
   getNotices,
   getSocieties,
@@ -66,6 +67,7 @@ import {
   FlatPenalty,
   FlatResponse,
   FlatView,
+  MaintenanceView,
   MemberResponse,
   NoticeResponse,
   Societies,
@@ -1084,6 +1086,60 @@ export const deleteFlatPenaltyController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in markFlatPenaltyPaidController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getManageMaintenanceController = async (params: {
+  id: string;
+  buildingId: string;
+  flatId: string;
+}): Promise<Response<MaintenanceView>> => {
+  try {
+    const society: Societies | undefined = await findSocietyById(params.id);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const building: Building | undefined = await findBuildingById(
+      params.buildingId
+    );
+    if (!building) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("BUILDING_NOT_FOUND")
+      );
+    }
+
+    const flat: Flat | undefined = await findFlatById(params.flatId);
+    if (!flat) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_NOT_FOUND")
+      );
+    }
+
+    const maintenanceView: MaintenanceView = await getFlatMaintenanceDetails(
+      society.id,
+      building.id,
+      flat.id
+    );
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("FLAT_MAINTENANCE_VIEWED_SUCCESSFULLY"),
+      maintenanceView
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getManageMaintenanceController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
