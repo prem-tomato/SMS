@@ -165,7 +165,7 @@ export default function AddFlatModal({
       current_maintenance: number;
     }) => createFlat(societyId, buildingId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["flats", societyId] });
+      queryClient.invalidateQueries({ queryKey: ["flats"] });
       reset();
       setBuildingId("");
       setBackendError(null);

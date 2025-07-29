@@ -190,12 +190,14 @@ export default function MemberMonthlyDues() {
             </Tooltip>
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
               <MenuItem onClick={handleView}>View Record</MenuItem>
-              <MenuItem
-                disabled={isPending}
-                onClick={() => handleUpdate({ maintenance_paid: true })}
-              >
-                Mark Maintenance Paid
-              </MenuItem>
+              {row.maintenance_paid ? null : (
+                <MenuItem
+                  disabled={isPending}
+                  onClick={() => handleUpdate({ maintenance_paid: true })}
+                >
+                  Mark Maintenance Paid
+                </MenuItem>
+              )}
             </Menu>
 
             {/* Dialog for Record View */}
