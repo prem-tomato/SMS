@@ -108,9 +108,11 @@ export function ViewMaintenanceModal({
             {Array.isArray(data?.data) &&
               data.data.map((item: any) => (
                 <Box key={item.maintenance_id}>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    Type: {item.amount_type.toUpperCase()}
-                  </Typography>
+                  {item.amount_type && (
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      Type: {item.amount_type.toUpperCase()}
+                    </Typography>
+                  )}
                   <Typography>
                     Amount: ₹
                     {Number(item.maintenance_amount).toLocaleString("en-IN")}
@@ -251,7 +253,7 @@ export function ViewMaintenanceModal({
                                   size="small"
                                 />
                                 {!m.paid && (
-                                  <Button
+                                  <Button 
                                     size="small"
                                     variant="outlined"
                                     onClick={() =>
