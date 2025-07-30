@@ -36,6 +36,8 @@ export const createExpenseTracking = async (
     expense_type: string;
     expense_reason: string;
     expense_amount: number;
+    expense_month: number;
+    expense_year: number;
   }
 ) => {
   const token = getAccessToken();

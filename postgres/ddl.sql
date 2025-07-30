@@ -648,3 +648,7 @@ add column paid_at TIMESTAMPTZ
 alter table flat_maintenance_settlements 
 add column is_paid boolean default false,
 add column paid_at TIMESTAMPTZ
+
+ALTER TABLE public.expense_tracking
+ADD COLUMN expense_month smallint NOT NULL CHECK (expense_month BETWEEN 1 AND 12),
+ADD COLUMN expense_year smallint NOT NULL CHECK (expense_year >= 2000);

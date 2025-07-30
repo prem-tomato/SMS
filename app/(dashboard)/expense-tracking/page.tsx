@@ -31,10 +31,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-// ------------------------
-// 🔎 Schemas
-// ------------------------
-
+// 🔎 Validation schema
 const inputSchema = z.object({
   society_id: z.string().min(1, "Society is required"),
   expense_type: z.string().min(1, "Expense type is required"),
@@ -42,17 +39,20 @@ const inputSchema = z.object({
   expense_amount: z
     .string()
     .min(1, "Amount is required")
-    .refine(
-      (val) => !isNaN(Number(val)) && Number(val) > 0,
-      "Amount must be a valid number greater than 0"
-    ),
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Amount must be a valid number greater than 0"),
+  expense_month: z.string().min(1, "Month is required"),
+  expense_year: z.string().min(4, "Year is required"),
 });
 
 type FormInputValues = z.infer<typeof inputSchema>;
 
-// ------------------------
-// 🧠 Component
-// ------------------------
+// 🔧 Utility
+const formatMonthYear = (value: string) => {
+  const [month, year] = value.split("-");
+  return `${new Date(Number(year), Number(month) - 1).toLocaleString("default", {
+    month: "long",
+  })} ${year}`;
+};
 
 export default function ExpenseTrackingPage() {
   const queryClient = useQueryClient();
@@ -61,17 +61,18 @@ export default function ExpenseTrackingPage() {
   const [role, setRole] = useState<string | null>(null);
   const [adminSocietyId, setAdminSocietyId] = useState<string | null>(null);
 
+  const currentMonthYear = `${new Date().getMonth() + 1}-${new Date().getFullYear()}`;
+  const [selectedMonthYear, setSelectedMonthYear] = useState<string>(currentMonthYear);
+
   useEffect(() => {
-    const userRole = getUserRole();
-    const society = getSocietyIdFromLocalStorage();
-    setRole(userRole);
-    setAdminSocietyId(society);
+    setRole(getUserRole());
+    setAdminSocietyId(getSocietyIdFromLocalStorage());
   }, []);
 
   const { data: societies = [], isLoading: loadingSocieties } = useQuery({
     queryKey: ["societies"],
     queryFn: fetchSocietyOptions,
-    enabled: role === "super_admin", // Only fetch societies for super_admin
+    enabled: role === "super_admin",
   });
 
   const { data: expenses = [], isLoading } = useQuery({
@@ -97,15 +98,24 @@ export default function ExpenseTrackingPage() {
       expense_type: "",
       expense_reason: "",
       expense_amount: "",
+      expense_month: `${new Date().getMonth() + 1}`,
+      expense_year: `${new Date().getFullYear()}`,
     },
   });
 
   const mutation = useMutation({
-    mutationFn: ({ society_id, expense_amount, ...payload }: FormInputValues) =>
+    mutationFn: ({
+      society_id,
+      expense_amount,
+      expense_month,
+      expense_year,
+      ...payload
+    }: FormInputValues) =>
       createExpenseTracking(society_id, {
-        expense_type: payload.expense_type,
-        expense_reason: payload.expense_reason,
-        expense_amount: Number(expense_amount), // Transform string to number here
+        ...payload,
+        expense_amount: Number(expense_amount),
+        expense_month: Number(expense_month),
+        expense_year: Number(expense_year),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
@@ -119,25 +129,29 @@ export default function ExpenseTrackingPage() {
   };
 
   const handleOpen = () => {
-    if (role === "admin" && adminSocietyId) {
-      // For admin, auto-select their society
-      reset({
-        society_id: adminSocietyId,
-        expense_type: "",
-        expense_reason: "",
-        expense_amount: "",
-      });
-    } else {
-      // For super_admin, reset with empty society_id to show dropdown
-      reset({
-        society_id: "",
-        expense_type: "",
-        expense_reason: "",
-        expense_amount: "",
-      });
-    }
+    reset({
+      society_id: role === "admin" ? adminSocietyId || "" : "",
+      expense_type: "",
+      expense_reason: "",
+      expense_amount: "",
+      expense_month: `${new Date().getMonth() + 1}`,
+      expense_year: `${new Date().getFullYear()}`,
+    });
     setOpen(true);
   };
+
+  const monthYearOptions = useMemo(() => {
+    const unique = new Set(
+      (expenses || []).map((e: any) => `${e.expense_month}-${e.expense_year}`)
+    );
+    return Array.from(unique);
+  }, [expenses]);
+
+  const filteredExpenses = useMemo(() => {
+    return expenses?.filter(
+      (e: any) => `${e.expense_month}-${e.expense_year}` === selectedMonthYear
+    );
+  }, [expenses, selectedMonthYear]);
 
   const columns = useMemo(
     () => [
@@ -147,6 +161,8 @@ export default function ExpenseTrackingPage() {
       ...(role === "super_admin"
         ? [{ field: "society_name", headerName: "Society", flex: 1 }]
         : []),
+      { field: "expense_month", headerName: "Month", flex: 1 },
+      { field: "expense_year", headerName: "Year", flex: 1 },
       {
         field: "action_by",
         headerName: "Action By",
@@ -166,44 +182,47 @@ export default function ExpenseTrackingPage() {
 
   return (
     <Box height="calc(100vh - 180px)">
-      {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-          sx={{
-            borderRadius: 1,
-            border: "1px solid #1e1ee4",
-            color: "#1e1ee4",
-          }}
-        >
-          Add Expense
-        </Button>
+      {/* Header with Filter & Add */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box display="flex" gap={2} alignItems="center">
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={handleOpen}
+            sx={{ borderRadius: 1, border: "1px solid #1e1ee4", color: "#1e1ee4" }}
+          >
+            Add Expense
+          </Button>
+
+          <FormControl size="small">
+            <InputLabel>Filter Month</InputLabel>
+            <Select
+              value={selectedMonthYear}
+              label="Filter Month"
+              onChange={(e) => setSelectedMonthYear(e.target.value)}
+              sx={{ minWidth: 150 }}
+            >
+              {monthYearOptions.map((opt) => (
+                <MenuItem key={opt} value={opt}>
+                  {formatMonthYear(opt)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
       {/* Data Grid */}
       <CommonDataGrid
-        rows={expenses}
+        rows={filteredExpenses || []}
         columns={columns}
         loading={isLoading}
         height="calc(100vh - 180px)"
         pageSize={20}
       />
 
-      {/* Add Dialog */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
+      {/* Dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 2 } }}>
         <DialogTitle>
           <Typography variant="h6" fontWeight="bold">
             Add New Expense
@@ -214,17 +233,13 @@ export default function ExpenseTrackingPage() {
         </DialogTitle>
 
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent
-            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
-          >
-            {/* Society Field */}
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {role === "admin" ? (
               <Box>
                 <Typography variant="subtitle2">Society</Typography>
                 <Chip
                   label={
-                    societies.find((s: any) => s.id === adminSocietyId)?.name ||
-                    "Selected Society"
+                    societies.find((s: any) => s.id === adminSocietyId)?.name || "Selected Society"
                   }
                   color="primary"
                   sx={{ mt: 1 }}
@@ -237,20 +252,7 @@ export default function ExpenseTrackingPage() {
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.society_id}>
                     <InputLabel>Society</InputLabel>
-                    <Select
-                      {...field}
-                      label="Society"
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            "& .MuiMenuItem-root": {
-                              fontSize: "0.875rem",
-                            },
-                          },
-                        },
-                      }}
-                    >
+                    <Select {...field} label="Society">
                       {loadingSocieties ? (
                         <MenuItem disabled>Loading...</MenuItem>
                       ) : (
@@ -271,27 +273,46 @@ export default function ExpenseTrackingPage() {
               />
             ) : null}
 
-            {/* Expense Type */}
+            {/* Month */}
+            <Controller
+              name="expense_month"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Month"
+                  type="number"
+                  error={!!errors.expense_month}
+                  helperText={errors.expense_month?.message}
+                  fullWidth
+                />
+              )}
+            />
+
+            {/* Year */}
+            <Controller
+              name="expense_year"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Year"
+                  type="number"
+                  error={!!errors.expense_year}
+                  helperText={errors.expense_year?.message}
+                  fullWidth
+                />
+              )}
+            />
+
+            {/* Type */}
             <Controller
               name="expense_type"
               control={control}
               render={({ field }) => (
                 <FormControl fullWidth error={!!errors.expense_type}>
                   <InputLabel>Expense Type</InputLabel>
-                  <Select
-                    {...field}
-                    label="Expense Type"
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          maxHeight: 300,
-                          "& .MuiMenuItem-root": {
-                            fontSize: "0.875rem",
-                          },
-                        },
-                      },
-                    }}
-                  >
+                  <Select {...field} label="Expense Type">
                     <MenuItem value="fixed">Fixed</MenuItem>
                     <MenuItem value="monthly">Monthly</MenuItem>
                   </Select>
@@ -304,7 +325,7 @@ export default function ExpenseTrackingPage() {
               )}
             />
 
-            {/* Expense Reason */}
+            {/* Reason */}
             <Controller
               name="expense_reason"
               control={control}
@@ -320,7 +341,7 @@ export default function ExpenseTrackingPage() {
               )}
             />
 
-            {/* Expense Amount */}
+            {/* Amount */}
             <Controller
               name="expense_amount"
               control={control}
@@ -339,18 +360,10 @@ export default function ExpenseTrackingPage() {
           </DialogContent>
 
           <DialogActions sx={{ px: 3, pb: 3 }}>
-            <Button
-              onClick={() => setOpen(false)}
-              disabled={mutation.isPending}
-            >
+            <Button onClick={() => setOpen(false)} disabled={mutation.isPending}>
               Cancel
             </Button>
-            <CommonButton
-              type="submit"
-              variant="contained"
-              loading={mutation.isPending}
-              sx={{ bgcolor: "#1e1ee4" }}
-            >
+            <CommonButton type="submit" variant="contained" loading={mutation.isPending} sx={{ bgcolor: "#1e1ee4" }}>
               Save Expense
             </CommonButton>
           </DialogActions>

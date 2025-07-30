@@ -731,15 +731,27 @@ export const addExpenseTracking = async (
 ): Promise<void> => {
   try {
     const queryText: string = `
-      INSERT INTO expense_tracking
-      (expense_type, expense_amount, expense_reason, society_id, created_by, created_at, updated_by, updated_at)
-      VALUES ($1, $2, $3, $4, $5, NOW(), $5, NOW())
+      INSERT INTO expense_tracking (
+        expense_type,
+        expense_amount,
+        expense_reason,
+        expense_month,
+        expense_year,
+        society_id,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $7, NOW())
     `;
 
     await query(queryText, [
       reqBody.expense_type,
       reqBody.expense_amount,
       reqBody.expense_reason,
+      reqBody.expense_month,
+      reqBody.expense_year,
       societyId,
       userId,
     ]);
@@ -766,6 +778,8 @@ export const getExpenseTracking = async (
         et.expense_amount,
         et.expense_reason,
         s.name AS society_name,
+        et.expense_month,
+        et.expense_year,
         concat(u.first_name, ' ', u.last_name) AS action_by
       FROM expense_tracking et
       LEFT JOIN societies s ON s.id = et.society_id

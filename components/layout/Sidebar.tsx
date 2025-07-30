@@ -155,17 +155,13 @@ export default function Sidebar() {
             component="a"
             sx={{
               borderRadius: 1,
-              border: isActive
-                ? "2px solid #1e1ee4"
-                : "1px solid #e0e0e0",
+              border: isActive ? "2px solid #1e1ee4" : "1px solid #e0e0e0",
               bgcolor: isActive ? "white" : "transparent",
               color: "black",
               mb: 1,
               "&:hover": {
                 borderColor: "#1e1ee4",
-                bgcolor: isActive
-                  ? "white"
-                  : "rgba(30, 30, 228, 0.04)",
+                bgcolor: isActive ? "white" : "rgba(30, 30, 228, 0.04)",
               },
             }}
           >
@@ -217,12 +213,7 @@ export default function Sidebar() {
         >
           <ApartmentOutlined sx={{ color: "white", fontSize: 20 }} />
         </Box>
-        <Typography
-          variant="h6"
-          fontWeight="bold"
-          fontSize="18px"
-          color="#333"
-        >
+        <Typography variant="h6" fontWeight="bold" fontSize="18px" color="#333">
           SocietyManager
         </Typography>
       </Box>
@@ -253,7 +244,7 @@ export default function Sidebar() {
                 primary="Miscellaneous"
                 primaryTypographyProps={{
                   fontSize: "12px",
-                  fontWeight: 600,
+                  fontWeight: openMisc ? 700 : 500,
                   textTransform: "uppercase",
                 }}
               />

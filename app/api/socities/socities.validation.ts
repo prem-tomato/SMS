@@ -164,6 +164,10 @@ export const addExpenseTrackingValidation = object({
     expense_amount: number()
       .min(0, "Expense amount must be greater than or equal to 0")
       .max(100000000, "Expense amount must be less than or equal to 100000000"),
+    expense_month: number().min(1, "Invalid month").max(12, "Invalid month"),
+    expense_year: number()
+      .min(2000, "Invalid year")
+      .max(new Date().getFullYear() + 5, "Year too far in future"),
   }),
 });
 
