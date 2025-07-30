@@ -4,6 +4,7 @@ import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddFlatModal from "@/components/flat/FlatModel";
 import { ManagePendingMaintenanceModal } from "@/components/flat/ManagePendingMaintenanceModal";
 import { ViewFlatModal } from "@/components/flat/ViewFlatModal"; // Import the ViewFlatModal
+import { ViewMaintenanceModal } from "@/components/flat/ViewMaintenanceModal";
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
   addFlatPenalty,
@@ -49,6 +50,13 @@ export default function FlatsPage() {
 
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false);
   const [maintenanceFlatData, setMaintenanceFlatData] = useState<{
+    societyId: string;
+    buildingId: string;
+    flatId: string;
+  } | null>(null);
+
+  const [viewMaintenanceOpen, setViewMaintenanceOpen] = useState(false);
+  const [viewMaintenanceData, setViewMaintenanceData] = useState<{
     societyId: string;
     buildingId: string;
     flatId: string;
@@ -135,6 +143,17 @@ export default function FlatsPage() {
       flatId: selectedFlat.id,
     });
     setMaintenanceModalOpen(true);
+  };
+
+  const handleViewMaintenance = () => {
+    handleMenuClose();
+    if (!selectedFlat) return;
+    setViewMaintenanceData({
+      societyId: selectedFlat.society_id,
+      buildingId: selectedFlat.building_id,
+      flatId: selectedFlat.id,
+    });
+    setViewMaintenanceOpen(true);
   };
 
   const columns = useMemo(
@@ -227,6 +246,7 @@ export default function FlatsPage() {
         <MenuItem onClick={handleManageMaintenance}>
           Manage Maintenance
         </MenuItem>
+        <MenuItem onClick={handleViewMaintenance}>View Maintenance</MenuItem>
       </Menu>
 
       {/* Penalty Dialog */}
@@ -288,6 +308,15 @@ export default function FlatsPage() {
           setMaintenanceFlatData(null);
         }}
         selectedFlat={maintenanceFlatData}
+      />
+
+      <ViewMaintenanceModal
+        open={viewMaintenanceOpen}
+        onClose={() => {
+          setViewMaintenanceOpen(false);
+          setViewMaintenanceData(null);
+        }}
+        selectedFlat={viewMaintenanceData}
       />
     </Box>
   );

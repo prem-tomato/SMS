@@ -1,6 +1,10 @@
 import { query, queryWithClient } from "@/db/database-connect";
 import { PoolClient, QueryResult } from "pg";
-import { FlatMaintenance } from "./flat-maintenance.types";
+import {
+  FlatMaintenance,
+  FlatMaintenanceMonthly,
+  FlatMaintenanceSettlement,
+} from "./flat-maintenance.types";
 
 export const findFlatMaintenanceById = async (
   id: string
@@ -150,5 +154,77 @@ export const addYearlyFlatMaintenance = async (
     await queryWithClient(client, queryText);
   } catch (error) {
     throw new Error(`Error adding yearly flat maintenance: ${error}`);
+  }
+};
+
+export const findMonthlyMaintenanceById = async (
+  id: string
+): Promise<FlatMaintenanceMonthly | undefined> => {
+  try {
+    const queryText: string = `
+            SELECT * FROM flat_maintenance_monthly
+            WHERE id = $1
+        `;
+
+    const res: QueryResult<FlatMaintenanceMonthly> =
+      await query<FlatMaintenanceMonthly>(queryText, [id]);
+
+    return res.rows[0];
+  } catch (error) {
+    throw new Error(`Error finding monthly maintenance by ID: ${error}`);
+  }
+};
+
+export const markMonthlyMaintenanceAsPaid = async (
+  monthlyMaintenanceId: string,
+  flatMaintenanceId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+            UPDATE flat_maintenance_monthly
+            SET is_paid = TRUE,
+                paid_at = NOW()
+            WHERE id = $1 AND maintenance_id = $2
+        `;
+
+    await query(queryText, [monthlyMaintenanceId, flatMaintenanceId]);
+  } catch (error) {
+    throw new Error(`Error marking monthly maintenance as paid: ${error}`);
+  }
+};
+
+export const findFlatMaintenanceSettlementById = async (
+  id: string
+): Promise<FlatMaintenanceSettlement | undefined> => {
+  try {
+    const queryText: string = `
+            SELECT * FROM flat_maintenance_settlements
+            WHERE id = $1
+        `;
+
+    const res: QueryResult<FlatMaintenanceSettlement> =
+      await query<FlatMaintenanceSettlement>(queryText, [id]);
+
+    return res.rows[0];
+  } catch (error) {
+    throw new Error(`Error finding settlement by ID: ${error}`);
+  }
+};
+
+export const markSettlementAsPaid = async (
+  settlementId: string,
+  flatMaintenanceId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+            UPDATE flat_maintenance_settlements
+            SET is_paid = TRUE,
+                paid_at = NOW()
+            WHERE id = $1 AND maintenance_id = $2
+        `;
+
+    await query(queryText, [settlementId, flatMaintenanceId]);
+  } catch (error) {
+    throw new Error(`Error marking settlement as paid: ${error}`);
   }
 };

@@ -950,7 +950,8 @@ export const getFlatMaintenanceDetails = async (
               'id', fms.id,
               'settlement_amount', fms.settlement_amount,
               'created_at', fms.created_at,
-              'created_by', fms.created_by
+              'is_paid', fms.is_paid,
+              'paid_at', fms.paid_at
             )
           ) FILTER (WHERE fms.id IS NOT NULL), 
           '[]'::json
@@ -962,7 +963,9 @@ export const getFlatMaintenanceDetails = async (
               'id', fmm.id,
               'month', fmm.month,
               'amount', fmm.amount,
-              'created_at', fmm.created_at
+              'created_at', fmm.created_at,
+              'paid', fmm.is_paid,
+              'paid_at', fmm.paid_at
             )
           ) FILTER (WHERE fmm.id IS NOT NULL), 
           '[]'::json

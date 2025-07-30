@@ -1099,7 +1099,7 @@ export const getManageMaintenanceController = async (params: {
   id: string;
   buildingId: string;
   flatId: string;
-}): Promise<Response<MaintenanceView>> => {
+}): Promise<Response<MaintenanceView[]>> => {
   try {
     const society: Societies | undefined = await findSocietyById(params.id);
     if (!society) {
@@ -1127,7 +1127,7 @@ export const getManageMaintenanceController = async (params: {
       );
     }
 
-    const maintenanceView: MaintenanceView = await getFlatMaintenanceDetails(
+    const maintenanceView: MaintenanceView[] = await getFlatMaintenanceDetails(
       society.id,
       building.id,
       flat.id

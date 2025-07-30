@@ -20,10 +20,16 @@ import {
   addQuaterlyFlatMaintenance,
   addYearlyFlatMaintenance,
   findFlatMaintenanceById,
+  findFlatMaintenanceSettlementById,
+  findMonthlyMaintenanceById,
   markAmountTypeInFlats,
+  markMonthlyMaintenanceAsPaid,
+  markSettlementAsPaid,
 } from "./flat-maintenance.model";
 import {
   FlatMaintenance,
+  FlatMaintenanceMonthly,
+  FlatMaintenanceSettlement,
   ManageFLatMaintenance,
 } from "./flat-maintenance.types";
 
@@ -127,6 +133,89 @@ export const manageFlatMaintenanceController = async (
 
     await rollbackTransaction(transaction);
 
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const updateMonthlyMaintenanceController = async (
+  request: Request,
+  flatMaintenanceId: string,
+  monthlyMaintenanceId: string
+): Promise<Response<void>> => {
+  try {
+    const flatMaintenance: FlatMaintenance | undefined =
+      await findFlatMaintenanceById(flatMaintenanceId);
+    if (!flatMaintenance) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_MAINTENANCE_NOT_FOUND")
+      );
+    }
+
+    const monthlyMaintenance: FlatMaintenanceMonthly | undefined =
+      await findMonthlyMaintenanceById(monthlyMaintenanceId);
+    if (!monthlyMaintenance) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("MONTHLY_MAINTENANCE_NOT_FOUND")
+      );
+    }
+
+    await markMonthlyMaintenanceAsPaid(monthlyMaintenanceId, flatMaintenanceId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("MONTHLY_MAINTENANCE_UPDATED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    flatMaintenanceLogger.error(
+      "Error in updateMonthlyMaintenanceController:",
+      error
+    );
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const updateSettlementController = async (
+  request: Request,
+  flatMaintenanceId: string,
+  settlementId: string
+): Promise<Response<void>> => {
+  try {
+    const flatMaintenance: FlatMaintenance | undefined =
+      await findFlatMaintenanceById(flatMaintenanceId);
+    if (!flatMaintenance) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_MAINTENANCE_NOT_FOUND")
+      );
+    }
+
+    const settlement: FlatMaintenanceSettlement | undefined =
+      await findFlatMaintenanceSettlementById(settlementId);
+    if (!settlement) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SETTLEMENT_NOT_FOUND")
+      );
+    }
+
+    await markSettlementAsPaid(settlementId, flatMaintenanceId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("SETTLEMENT_UPDATED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    flatMaintenanceLogger.error("Error in updateSettlementController:", error);
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,

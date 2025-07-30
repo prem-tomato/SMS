@@ -638,3 +638,13 @@ CREATE TABLE flat_maintenance_monthly (
   created_by UUID REFERENCES users(id),
   UNIQUE (maintenance_id, month)
 );
+
+
+alter table flat_maintenance_monthly 
+add column is_paid boolean default false,
+add column paid_at TIMESTAMPTZ
+
+
+alter table flat_maintenance_settlements 
+add column is_paid boolean default false,
+add column paid_at TIMESTAMPTZ

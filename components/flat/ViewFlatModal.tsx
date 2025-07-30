@@ -237,54 +237,6 @@ export const ViewFlatModal = ({
               </Table>
             </Paper>
 
-            {/* Pending Maintenance */}
-            <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-              <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
-                Pending Maintenance
-              </Typography>
-              {!flat.maintenances ||
-              flat.maintenances.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  No pending maintenance
-                </Typography>
-              ) : (
-                <Table size="small">
-                  <TableBody>
-                    {flat.maintenances?.map(
-                      (item: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
-                            <Typography variant="body2" fontWeight="600">
-                              {formatCurrency(item.amount)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell sx={{ border: 0, py: 1 }}>
-                            <Typography variant="body2" color="text.secondary">
-                              {item.reason}
-                            </Typography>
-                          </TableCell>
-
-                        {/* Created At */}
-                        <TableCell sx={{ border: 0, py: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            {dayjs(item.created_at).format("DD-MM-YYYY")}
-                          </Typography>
-                        </TableCell>
-
-                              {/* Reason + Metadata */}
-                        <TableCell sx={{ border: 0, py: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            {item.action_by}
-                          </Typography>
-                        </TableCell>
-                        </TableRow>
-                      )
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </Paper>
-
             {/* Penalties */}
             <Paper variant="outlined" sx={{ p: 2 }}>
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>

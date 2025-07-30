@@ -22,7 +22,7 @@ export const GET = async (
   if (authResult instanceof Response) return authResult;
 
   // Step 3: If validation, authentication, and permission check succeed, process the request
-  const { status, ...responseData }: Response<MaintenanceView> =
+  const { status, ...responseData }: Response<MaintenanceView[]> =
     await getManageMaintenanceController(params);
 
   // Return the response with the appropriate status code

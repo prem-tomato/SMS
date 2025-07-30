@@ -39,5 +39,9 @@
     "FLAT_MAINTENANCE_UPDATED_SUCCESSFULLY": "flat maintenance updated successfully",
     "FLAT_MAINTENANCE_NOT_FOUND": "flat maintenance not found",
     "INVALID_AMOUNT_TYPE": "invalid amount type",
-    "FLAT_MAINTENANCE_VIEWED_SUCCESSFULLY": "flat maintenance viewed successfully"
+    "FLAT_MAINTENANCE_VIEWED_SUCCESSFULLY": "flat maintenance viewed successfully",
+    "MONTHLY_MAINTENANCE_UPDATED_SUCCESSFULLY": "monthly maintenance updated successfully",
+    "MONTHLY_MAINTENANCE_NOT_FOUND": "monthly maintenance not found",
+    "SETTLEMENT_UPDATED_SUCCESSFULLY": "settlement updated successfully",
+    "SETTLEMENT_NOT_FOUND": "settlement not found"
 }

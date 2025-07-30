@@ -43,3 +43,17 @@ export const manageFlatMaintenanceValidation = object({
   }),
   body: baseSchema.and(specificSchema),
 });
+
+export const updateMonthlyMaintenanceValidation = object({
+  params: object({
+    flatMaintenanceId: string().uuid(),
+    monthlyMaintenanceId: string().uuid(),
+  }),
+});
+
+export const updateSettlementValidation = object({
+  params: object({
+    flatMaintenanceId: string().uuid(),
+    settlementId: string().uuid(),
+  }),
+});
