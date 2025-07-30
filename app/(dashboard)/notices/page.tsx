@@ -27,8 +27,11 @@ export default function NoticesPage() {
     const storedSocietyId = getSocietyIdFromLocalStorage();
     setRole(storedRole);
 
-    if (storedRole === "admin" && storedSocietyId) {
-      setSocietyId(storedSocietyId);
+    if (
+      storedRole === "admin" ||
+      (storedRole === "member" && storedSocietyId)
+    ) {
+      setSocietyId(storedSocietyId!);
     }
   }, []);
 
@@ -170,32 +173,36 @@ export default function NoticesPage() {
         ? [{ field: "society_name", headerName: "Society", flex: 1 }]
         : []),
 
-      {
-        field: "actions",
-        headerName: "Actions",
-        flex: 1,
-        renderCell: (params: any) => {
-          const currentSocietyId = params.row.society_id; // ✅ Always fetch from row
-          if (!currentSocietyId) return null;
+      ...(role !== "member"
+        ? [
+            {
+              field: "actions",
+              headerName: "Actions",
+              flex: 1,
+              renderCell: (params: any) => {
+                const currentSocietyId = params.row.society_id; // ✅ Always fetch from row
+                if (!currentSocietyId) return null;
 
-          return (
-            <Button
-              size="small"
-              variant="outlined"
-              disabled={toggling}
-              onClick={() =>
-                toggleStatus({
-                  societyId: currentSocietyId,
-                  noticeId: params.row.id,
-                })
-              }
-              sx={{ textTransform: "none", fontSize: "0.75rem" }}
-            >
-              {params.row.status === "open" ? "Close" : "Re-Open"}
-            </Button>
-          );
-        },
-      },
+                return (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={toggling}
+                    onClick={() =>
+                      toggleStatus({
+                        societyId: currentSocietyId,
+                        noticeId: params.row.id,
+                      })
+                    }
+                    sx={{ textTransform: "none", fontSize: "0.75rem" }}
+                  >
+                    {params.row.status === "open" ? "Close" : "Re-Open"}
+                  </Button>
+                );
+              },
+            },
+          ]
+        : []),
     ];
   }, [toggling, toggleStatus, role]);
 

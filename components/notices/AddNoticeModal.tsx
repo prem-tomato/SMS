@@ -1,5 +1,6 @@
 "use client";
 
+import { getUserRole } from "@/lib/auth";
 import { createNotice } from "@/services/notices";
 import { fetchSocietyOptions } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +24,6 @@ import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import CommonButton from "../common/CommonButton";
-import { getUserRole } from "@/lib/auth";
 
 const schema = z.object({
   title: z.string().min(1, "Title required"),
@@ -75,7 +75,7 @@ export default function AddNoticeModal({
 
   // Auto set society_id for admins
   useEffect(() => {
-    if (role === "admin" && adminSocietyId) {
+    if (role === "admin" || (role === "member" && adminSocietyId)) {
       setValue("society_id", adminSocietyId);
     }
   }, [role, adminSocietyId, setValue]);
@@ -115,7 +115,7 @@ export default function AddNoticeModal({
           sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
         >
           {/* Society Dropdown for Super Admins */}
-          {role === "admin" && adminSocietyId && (
+          {role !== "super_admin" && adminSocietyId && (
             <Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 Society
