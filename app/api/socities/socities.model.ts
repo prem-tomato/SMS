@@ -8,6 +8,7 @@ import {
   AddExpenseTrackingReqBody,
   AddflatPenaltyReqBody,
   AddFlatReqBody,
+  AddIncomeTrackingReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
   AddSocietyReqBody,
@@ -21,6 +22,7 @@ import {
   FlatOptions,
   FlatPenalty,
   FlatView,
+  IncomeTrackingResponse,
   MaintenanceView,
   NoticeResponse,
   Societies,
@@ -760,6 +762,42 @@ export const addExpenseTracking = async (
   }
 };
 
+export const addIncomeTracking = async (
+  reqBody: AddIncomeTrackingReqBody,
+  societyId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      INSERT INTO income_tracking (
+        income_type,
+        income_amount,
+        income_reason,
+        income_month,
+        income_year,
+        society_id,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $7, NOW())
+    `;
+
+    await query(queryText, [
+      reqBody.income_type,
+      reqBody.income_amount,
+      reqBody.income_reason,
+      reqBody.income_month,
+      reqBody.income_year,
+      societyId,
+      userId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error adding income tracking: ${error}`);
+  }
+};
+
 export const getExpenseTracking = async (
   societyId?: string
 ): Promise<ExpenseTrackingResponse[]> => {
@@ -789,6 +827,42 @@ export const getExpenseTracking = async (
 
     const res: QueryResult<ExpenseTrackingResponse> =
       await query<ExpenseTrackingResponse>(queryText, values);
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting expense tracking: ${error}`);
+  }
+};
+
+export const getIncomeTracking = async (
+  societyId?: string
+): Promise<IncomeTrackingResponse[]> => {
+  try {
+    const values: any[] = [];
+    let whereClause: string = "";
+    if (societyId) {
+      values.push(societyId);
+      whereClause = `WHERE et.society_id = $1`;
+    }
+
+    const queryText: string = `
+      SELECT 
+        et.id,
+        et.income_type,
+        et.income_amount,
+        et.income_reason,
+        s.name AS society_name,
+        et.income_month,
+        et.income_year,
+        concat(u.first_name, ' ', u.last_name) AS action_by
+      FROM income_tracking et
+      LEFT JOIN societies s ON s.id = et.society_id
+      LEFT JOIN users u ON u.id = et.updated_by
+      ${whereClause}
+    `;
+
+    const res: QueryResult<IncomeTrackingResponse> =
+      await query<IncomeTrackingResponse>(queryText, values);
 
     return res.rows;
   } catch (error) {

@@ -171,6 +171,25 @@ export const addExpenseTrackingValidation = object({
   }),
 });
 
+export const addIncomeTrackingValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+  body: object({
+    income_type: enum_(expenseType),
+    income_reason: string()
+      .min(1, "Income reason is required")
+      .max(255, "Income reason must be less than 255 characters"),
+    income_amount: number()
+      .min(0, "Income amount must be greater than or equal to 0")
+      .max(100000000, "Income amount must be less than or equal to 100000000"),
+    income_month: number().min(1, "Invalid month").max(12, "Invalid month"),
+    income_year: number()
+      .min(2000, "Invalid year")
+      .max(new Date().getFullYear() + 5, "Year too far in future"),
+  }),
+});
+
 export const flatPenaltyValidation = object({
   params: object({
     id: idValidation,

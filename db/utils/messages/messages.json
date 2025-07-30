@@ -44,5 +44,6 @@
     "MONTHLY_MAINTENANCE_NOT_FOUND": "monthly maintenance not found",
     "SETTLEMENT_UPDATED_SUCCESSFULLY": "settlement updated successfully",
     "SETTLEMENT_NOT_FOUND": "settlement not found",
-    "BULK_MONETIZE_SUCCESSFULLY": "bulk monetize successfully"
+    "BULK_MONETIZE_SUCCESSFULLY": "bulk monetize successfully",
+    "INCOME_TRACKING_ADDED_SUCCESSFULLY": "income tracking added successfully"
 }

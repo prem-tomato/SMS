@@ -14,6 +14,8 @@ import {
   PeopleOutlined,
 } from "@mui/icons-material";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import {
   Box,
   Collapse,
@@ -34,6 +36,7 @@ export default function Sidebar() {
   const [role, setRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [openMisc, setOpenMisc] = useState(false);
+  const [openTransactions, setOpenTransactions] = useState(false);
 
   useEffect(() => {
     const fetchRole = async () => {
@@ -105,11 +108,6 @@ export default function Sidebar() {
       path: "/assign-flats",
     },
     {
-      label: "Expense Tracking",
-      icon: <AccountBalanceOutlinedIcon />,
-      path: "/expense-tracking",
-    },
-    {
       label: "Dues",
       icon: <Money />,
       path: "/member-monthly-dues",
@@ -126,6 +124,19 @@ export default function Sidebar() {
       label: "Login History",
       icon: <LoginOutlined />,
       path: "/login-history",
+    },
+  ];
+
+  const transactionItems = [
+    {
+      label: "Expense",
+      icon: <MoneyOffIcon />,
+      path: "/expense-tracking",
+    },
+    {
+      label: "Income",
+      icon: <AttachMoneyIcon />,
+      path: "/income-tracking",
     },
   ];
 
@@ -221,6 +232,41 @@ export default function Sidebar() {
       {/* Main nav items */}
       <List sx={{ flex: 1 }}>
         {navItems.map(renderNavItem)}
+        {/* Transactions Dropdown */}
+        {(role === "super_admin" || role === "admin") && (
+          <>
+            <ListItemButton
+              onClick={() => setOpenTransactions(!openTransactions)}
+              sx={{
+                borderRadius: 1,
+                border: "1px solid #e0e0e0",
+                mb: 1,
+                "&:hover": {
+                  borderColor: "#1e1ee4",
+                  bgcolor: "rgba(30, 30, 228, 0.04)",
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: "#1e1ee4", minWidth: 40 }}>
+                <Money />
+              </ListItemIcon>
+              <ListItemText
+                primary="Transactions"
+                primaryTypographyProps={{
+                  fontSize: "12px",
+                  fontWeight: openTransactions ? 700 : 500,
+                  textTransform: "uppercase",
+                }}
+              />
+              {openTransactions ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+            <Collapse in={openTransactions} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding sx={{ pl: 3 }}>
+                {transactionItems.map(renderNavItem)}
+              </List>
+            </Collapse>
+          </>
+        )}
 
         {/* Miscellaneous Dropdown */}
         {(role === "super_admin" || role === "admin") && (

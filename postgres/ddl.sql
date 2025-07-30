@@ -652,3 +652,27 @@ add column paid_at TIMESTAMPTZ
 ALTER TABLE public.expense_tracking
 ADD COLUMN expense_month smallint NOT NULL CHECK (expense_month BETWEEN 1 AND 12),
 ADD COLUMN expense_year smallint NOT NULL CHECK (expense_year >= 2000);
+
+CREATE TABLE public.income_tracking (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	society_id uuid NOT NULL,
+	income_type public."expense_type_enum" NOT NULL,
+	income_reason text NOT NULL,
+	income_amount numeric(10, 2) NOT NULL,
+	is_deleted bool DEFAULT false NOT NULL,
+	created_by uuid NOT NULL,
+	created_at timestamptz DEFAULT now() NOT NULL,
+	updated_by uuid NOT NULL,
+	updated_at timestamptz DEFAULT now() NOT NULL,
+	deleted_by uuid NULL,
+	deleted_at timestamptz NULL,
+	CONSTRAINT income_tracking_pkey PRIMARY KEY (id),
+	CONSTRAINT income_tracking_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id),
+	CONSTRAINT income_tracking_deleted_by_fkey FOREIGN KEY (deleted_by) REFERENCES public.users(id),
+	CONSTRAINT income_tracking_society_id_fkey FOREIGN KEY (society_id) REFERENCES public.societies(id),
+	CONSTRAINT income_tracking_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id)
+);
+
+ALTER TABLE public.income_tracking
+ADD COLUMN income_month smallint NOT NULL CHECK (income_month BETWEEN 1 AND 12),
+ADD COLUMN income_year smallint NOT NULL CHECK (income_year >= 2000);

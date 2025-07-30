@@ -12,6 +12,7 @@ import {
   addEndDateValidation,
   addExpenseTrackingValidation,
   addFlatValidation,
+  addIncomeTrackingValidation,
   addMemberValidation,
   addSocietyValidation,
   assignMemberValidation,
@@ -191,13 +192,40 @@ export type ExpenseTracking = {
   deleted_at: string;
 };
 
+export type IncomeTracking = {
+  id: string;
+  society_id: string;
+  income_type: typeof expenseType.FIXED | typeof expenseType.MONTHLY;
+  income_reason: string;
+  income_amount: number;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_by: string;
+  updated_at: string;
+  deleted_by: string;
+  deleted_at: string;
+};
+
 export type AddExpenseTrackingReqBody = z.infer<
   typeof addExpenseTrackingValidation.shape.body
+>;
+
+export type AddIncomeTrackingReqBody = z.infer<
+  typeof addIncomeTrackingValidation.shape.body
 >;
 
 export type ExpenseTrackingResponse = {
   data: Pick<ExpenseTracking, "id" | "expense_type"> &
     Partial<Pick<ExpenseTracking, "expense_reason" | "expense_amount">> & {
+      society_name: string;
+      action_by: string;
+    };
+};
+
+export type IncomeTrackingResponse = {
+  data: Pick<IncomeTracking, "id" | "income_type"> &
+    Partial<Pick<IncomeTracking, "income_reason" | "income_amount">> & {
       society_name: string;
       action_by: string;
     };

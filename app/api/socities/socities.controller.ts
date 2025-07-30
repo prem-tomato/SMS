@@ -15,6 +15,7 @@ import {
   addFlat,
   addFlatMaintenance,
   addFlatPenalty,
+  addIncomeTracking,
   addMember,
   addSocieties,
   assignMembersToFlat,
@@ -32,6 +33,7 @@ import {
   getExpenseTracking,
   getFlatMaintenanceDetails,
   getFlats,
+  getIncomeTracking,
   getNotices,
   getSocieties,
   listFlats,
@@ -52,6 +54,7 @@ import {
   AddExpenseTrackingReqBody,
   AddflatPenaltyReqBody,
   AddFlatReqBody,
+  AddIncomeTrackingReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
   AddSocietyReqBody,
@@ -67,6 +70,7 @@ import {
   FlatPenalty,
   FlatResponse,
   FlatView,
+  IncomeTrackingResponse,
   MaintenanceView,
   MemberResponse,
   NoticeResponse,
@@ -813,6 +817,39 @@ export const addExpenseTrackingController = async (
   }
 };
 
+export const addIncomeTrackingController = async (
+  request: Request,
+  reqBody: AddIncomeTrackingReqBody,
+  societyId: string
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    await addIncomeTracking(reqBody, societyId, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("INCOME_TRACKING_ADDED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in addExpenseTrackingController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
 export const getExpenseTrackingController = async (
   societyId: string
 ): Promise<Response<ExpenseTrackingResponse[]>> => {
@@ -826,6 +863,28 @@ export const getExpenseTrackingController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in getExpenseTrackingController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getIncomeTrackingController = async (
+  societyId: string
+): Promise<Response<IncomeTrackingResponse[]>> => {
+  try {
+    const incomeTrackings = await getIncomeTracking(societyId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      incomeTrackings
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getIncomeTrackingController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

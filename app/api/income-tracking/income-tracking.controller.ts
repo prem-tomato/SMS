@@ -1,23 +1,23 @@
 import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import { StatusCodes } from "http-status-codes";
-import { getExpenseTracking } from "../socities/socities.model";
-import { ExpenseTrackingResponse } from "../socities/socities.types";
-import expenseLogger from "./expense.logger";
+import { getIncomeTracking } from "../socities/socities.model";
+import { IncomeTrackingResponse } from "../socities/socities.types";
+import incomeLogger from "./income-tracking.logger";
 
-export const getAllExpenseTrackingController = async (): Promise<
-  Response<ExpenseTrackingResponse[]>
+export const getAllIncomeTrackingController = async (): Promise<
+  Response<IncomeTrackingResponse[]>
 > => {
   try {
-    const expenseTrackings = await getExpenseTracking();
+    const incomeTrackings = await getIncomeTracking();
 
     return generateResponseJSON(
       StatusCodes.OK,
       getMessage("LIST_SUCCESSFULL"),
-      expenseTrackings
+      incomeTrackings
     );
   } catch (error: any) {
-    expenseLogger.error("Error in getExpenseTrackingController:", error);
+    incomeLogger.error("Error in getIncomeTrackingController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
