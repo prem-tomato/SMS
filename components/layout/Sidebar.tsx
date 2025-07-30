@@ -10,12 +10,15 @@ import {
   FaceOutlined,
   HouseOutlined,
   LoginOutlined,
-  Money,
   PeopleOutlined,
 } from "@mui/icons-material";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import StorageOutlinedIcon from "@mui/icons-material/StorageOutlined";
+
 import {
   Box,
   Collapse,
@@ -109,7 +112,7 @@ export default function Sidebar() {
     },
     {
       label: "Dues",
-      icon: <Money />,
+      icon: <MoreHorizIcon />,
       path: "/member-monthly-dues",
     },
   ];
@@ -248,7 +251,7 @@ export default function Sidebar() {
               }}
             >
               <ListItemIcon sx={{ color: "#1e1ee4", minWidth: 40 }}>
-                <Money />
+                <MonetizationOnOutlinedIcon />
               </ListItemIcon>
               <ListItemText
                 primary="Transactions"
@@ -284,7 +287,7 @@ export default function Sidebar() {
               }}
             >
               <ListItemIcon sx={{ color: "#1e1ee4", minWidth: 40 }}>
-                <CampaignOutlined />
+                <StorageOutlinedIcon />
               </ListItemIcon>
               <ListItemText
                 primary="Miscellaneous"
