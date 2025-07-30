@@ -79,3 +79,18 @@ export const getMemberMonthlyDueRecord = async (recordId: string) => {
   if (!response.ok) throw new Error(json.message || "Failed to fetch dues");
   return json.data;
 };
+
+export const bulkMonetize = async (ids: string[]) => {
+  const token = getAccessToken();
+  const response = await fetch("/api/member-monthly-dues/bulk-monetize", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ ids }),
+  });
+
+  const json = await response.json();
+  if (!response.ok) throw new Error(json.message || "Failed to fetch dues");
+  return json.data;
+};

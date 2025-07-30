@@ -83,13 +83,16 @@ export const ManagePendingMaintenanceModal = ({
   });
 
   // Helper function to show toast
-  const showToast = (message: string, severity: ToastState["severity"] = "info") => {
+  const showToast = (
+    message: string,
+    severity: ToastState["severity"] = "info"
+  ) => {
     setToast({ open: true, message, severity });
   };
 
   // Helper function to close toast
   const handleCloseToast = () => {
-    setToast(prev => ({ ...prev, open: false }));
+    setToast((prev) => ({ ...prev, open: false }));
   };
 
   // Fetch flat data - simplified to match ViewFlatModal pattern
@@ -124,10 +127,13 @@ export const ManagePendingMaintenanceModal = ({
   // Auto-distribute amount when maintenance record is selected and amount type changes
   useEffect(() => {
     if (selectedMaintenanceId && amountType !== "settlement") {
-      const selectedMaintenance = maintenances.find(m => m.id === selectedMaintenanceId);
+      const selectedMaintenance = maintenances.find(
+        (m) => m.id === selectedMaintenanceId
+      );
       if (selectedMaintenance) {
         const totalAmount = selectedMaintenance.amount;
-        const monthCount = amountType === "quarterly" ? 3 : amountType === "halfyearly" ? 6 : 12;
+        const monthCount =
+          amountType === "quarterly" ? 3 : amountType === "halfyearly" ? 6 : 12;
         const amountPerMonth = Math.floor(totalAmount / monthCount);
         const remainder = totalAmount % monthCount;
 
@@ -150,9 +156,11 @@ export const ManagePendingMaintenanceModal = ({
       showToast("Please select a maintenance record to manage.", "warning");
       return;
     }
-    
+
     // Auto-populate settlement amount when a maintenance record is selected
-    const selectedMaintenance = maintenances.find(m => m.id === selectedMaintenanceId);
+    const selectedMaintenance = maintenances.find(
+      (m) => m.id === selectedMaintenanceId
+    );
     if (selectedMaintenance && amountType === "settlement") {
       setSettlementAmount(selectedMaintenance.amount.toString());
     }
@@ -182,7 +190,10 @@ export const ManagePendingMaintenanceModal = ({
         .filter((item) => item.amount > 0);
 
       if (filled.length !== requiredCount) {
-        showToast(`Please provide valid amounts for all ${requiredCount} months.`, "error");
+        showToast(
+          `Please provide valid amounts for all ${requiredCount} months.`,
+          "error"
+        );
         return;
       }
 
@@ -194,7 +205,7 @@ export const ManagePendingMaintenanceModal = ({
 
     try {
       await manageFlatMaintenance(selectedMaintenanceId, payload);
-      
+
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({
         queryKey: ["particular-flat", selectedFlat.flatId],
@@ -202,17 +213,19 @@ export const ManagePendingMaintenanceModal = ({
       queryClient.invalidateQueries({
         queryKey: ["flats", selectedFlat.societyId],
       });
-      
+
       showToast("Maintenance updated successfully!", "success");
-      
+
       // Close modal after a short delay to show the success message
       setTimeout(() => {
         onClose();
       }, 1500);
-      
     } catch (err: any) {
       console.error("Error updating maintenance:", err);
-      showToast(`Error: ${err?.message || "Failed to update maintenance"}`, "error");
+      showToast(
+        `Error: ${err?.message || "Failed to update maintenance"}`,
+        "error"
+      );
     }
   };
 
@@ -271,7 +284,19 @@ export const ManagePendingMaintenanceModal = ({
           </Alert>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Close</Button>
+          <Button
+            onClick={onClose}
+            variant="contained"
+            size="medium"
+            sx={{
+              backgroundColor: "#1e1ee4",
+              "&:hover": {
+                backgroundColor: "#1717c9",
+              },
+            }}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     );
@@ -317,14 +342,19 @@ export const ManagePendingMaintenanceModal = ({
                     <ListItemText
                       primary={
                         <Box>
-                          <strong>₹{(record.amount || 0).toLocaleString()}</strong> -{" "}
-                          {record.reason || "No reason provided"}
+                          <strong>
+                            ₹{(record.amount || 0).toLocaleString()}
+                          </strong>{" "}
+                          - {record.reason || "No reason provided"}
                         </Box>
                       }
                       secondary={
                         <>
-                          ID: {record.id?.slice(0, 8) || "N/A"}... | By: {record.action_by || "Unknown"}{" "}
-                          | {record.created_at ? new Date(record.created_at).toLocaleDateString() : "N/A"}
+                          ID: {record.id?.slice(0, 8) || "N/A"}... | By:{" "}
+                          {record.action_by || "Unknown"} |{" "}
+                          {record.created_at
+                            ? new Date(record.created_at).toLocaleDateString()
+                            : "N/A"}
                         </>
                       }
                     />
@@ -336,9 +366,16 @@ export const ManagePendingMaintenanceModal = ({
             /* Step 2: Edit Maintenance Type */
             <>
               <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-                Editing Maintenance ID: <strong>{selectedMaintenanceId.slice(0, 8)}...</strong>
+                Editing Maintenance ID:{" "}
+                <strong>{selectedMaintenanceId.slice(0, 8)}...</strong>
                 <br />
-                Original Amount: <strong>₹{maintenances.find(m => m.id === selectedMaintenanceId)?.amount.toLocaleString()}</strong>
+                Original Amount:{" "}
+                <strong>
+                  ₹
+                  {maintenances
+                    .find((m) => m.id === selectedMaintenanceId)
+                    ?.amount.toLocaleString()}
+                </strong>
               </Typography>
 
               {/* Amount Type Selection */}
@@ -391,16 +428,32 @@ export const ManagePendingMaintenanceModal = ({
                       : 12}{" "}
                     Months
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Total: ₹{monthlyAmounts
-                      .slice(0, amountType === "quarterly" ? 3 : amountType === "halfyearly" ? 6 : 12)
-                      .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Total: ₹
+                    {monthlyAmounts
+                      .slice(
+                        0,
+                        amountType === "quarterly"
+                          ? 3
+                          : amountType === "halfyearly"
+                          ? 6
+                          : 12
+                      )
+                      .reduce(
+                        (sum, item) => sum + (Number(item.amount) || 0),
+                        0
+                      )
                       .toLocaleString()}
                   </Typography>
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(120px, 1fr))",
                       gap: 1,
                     }}
                   >
@@ -440,7 +493,19 @@ export const ManagePendingMaintenanceModal = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button
+            onClick={onClose}
+            variant="contained"
+            size="medium"
+            sx={{
+              backgroundColor: "#1e1ee4",
+              "&:hover": {
+                backgroundColor: "#1717c9",
+              },
+            }}
+          >
+            Cancel
+          </Button>
 
           {/* Conditional Button */}
           {!selectedMaintenanceId ? (
@@ -469,9 +534,13 @@ export const ManagePendingMaintenanceModal = ({
         open={toast.open}
         autoHideDuration={4000}
         onClose={handleCloseToast}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseToast} severity={toast.severity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseToast}
+          severity={toast.severity}
+          sx={{ width: "100%" }}
+        >
           {toast.message}
         </Alert>
       </Snackbar>

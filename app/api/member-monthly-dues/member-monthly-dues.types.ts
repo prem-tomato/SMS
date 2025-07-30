@@ -1,3 +1,6 @@
+import z from "zod";
+import { bulkMonetizeValidation } from "./member-monthly-dues.validation";
+
 export type MemberMonthlyDues = {
   id: string;
   society_id: string;
@@ -33,3 +36,7 @@ export type GetMemberMonthlyDuesResponse = Pick<
   action_by: string;
   action_at: string;
 };
+
+export type BulkMonetizeReqBody = z.infer<
+  typeof bulkMonetizeValidation.shape.body
+>;

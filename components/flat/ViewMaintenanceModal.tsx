@@ -253,7 +253,7 @@ export function ViewMaintenanceModal({
                                   size="small"
                                 />
                                 {!m.paid && (
-                                  <Button 
+                                  <Button
                                     size="small"
                                     variant="outlined"
                                     onClick={() =>
@@ -282,7 +282,19 @@ export function ViewMaintenanceModal({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button
+          onClick={onClose}
+          variant="contained"
+          size="medium"
+          sx={{
+            backgroundColor: "#1e1ee4",
+            "&:hover": {
+              backgroundColor: "#1717c9",
+            },
+          }}
+        >
+          Close
+        </Button>
       </DialogActions>
     </Dialog>
   );

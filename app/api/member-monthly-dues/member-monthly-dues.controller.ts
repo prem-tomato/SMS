@@ -3,10 +3,14 @@ import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import { StatusCodes } from "http-status-codes";
 import memberMonthlyDuesLogger from "./member-monthly-dues.logger";
 import {
+  bulkMonetize,
   getRecordMemberMonthlyDues,
   listMemberMonthlyDues,
 } from "./member-monthly-dues.model";
-import { GetMemberMonthlyDuesResponse } from "./member-monthly-dues.types";
+import {
+  BulkMonetizeReqBody,
+  GetMemberMonthlyDuesResponse,
+} from "./member-monthly-dues.types";
 
 export const getMemberMonthlyDuesController = async (
   request: Request,
@@ -57,6 +61,30 @@ export const getMemberMonthlyDues = async (
     );
   } catch (error: any) {
     memberMonthlyDuesLogger.error("Error in getMemberMonthlyDues:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const bulkMonetizeController = async (
+  request: Request,
+  reqBody: BulkMonetizeReqBody
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    await bulkMonetize(reqBody, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("BULK_MONETIZE_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    memberMonthlyDuesLogger.error("Error in bulkMonetizeController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

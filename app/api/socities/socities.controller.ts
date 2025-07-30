@@ -72,7 +72,6 @@ import {
   NoticeResponse,
   Societies,
   SocietyOptions,
-  UpdateMonthlyDuesReqBody,
 } from "./socities.types";
 
 export const addSocietyController = async (
@@ -896,7 +895,6 @@ export const addFlatPenaltyController = async (
 
 export const updateMonthlyDuesValidationController = async (
   request: Request,
-  reqBody: UpdateMonthlyDuesReqBody,
   params: {
     id: string;
     buildingId: string;

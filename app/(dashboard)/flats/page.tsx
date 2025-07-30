@@ -241,12 +241,12 @@ export default function FlatsPage() {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleViewFlat}>View</MenuItem>
+        <MenuItem onClick={handleViewFlat}>Flat Overview</MenuItem>
         <MenuItem onClick={handleOpenPenaltyDialog}>Add Penalty</MenuItem>
         <MenuItem onClick={handleManageMaintenance}>
-          Manage Maintenance
+          Maintenance Settings
         </MenuItem>
-        <MenuItem onClick={handleViewMaintenance}>View Maintenance</MenuItem>
+        <MenuItem onClick={handleViewMaintenance}>Maintenance Overview</MenuItem>
       </Menu>
 
       {/* Penalty Dialog */}

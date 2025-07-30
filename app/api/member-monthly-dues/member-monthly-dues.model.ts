@@ -1,6 +1,9 @@
 import { query } from "@/db/database-connect";
 import { QueryResult } from "pg";
-import { GetMemberMonthlyDuesResponse } from "./member-monthly-dues.types";
+import {
+  BulkMonetizeReqBody,
+  GetMemberMonthlyDuesResponse,
+} from "./member-monthly-dues.types";
 
 export const listMemberMonthlyDues = async (
   monthYear: string,
@@ -123,5 +126,26 @@ export const getRecordMemberMonthlyDues = async (
     return result.rows[0];
   } catch (error) {
     throw new Error(`Error in listMemberMonthlyDues: ${error}`);
+  }
+};
+
+export const bulkMonetize = async (
+  reqBody: BulkMonetizeReqBody,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText = `
+      UPDATE member_monthly_maintenance_dues
+      SET 
+        maintenance_paid = TRUE,
+        maintenance_paid_at = NOW(),
+        updated_by = $1,
+        updated_at = NOW()
+      WHERE id = ANY($2)
+    `;
+
+    await query(queryText, [userId, reqBody.ids]);
+  } catch (error) {
+    throw new Error(`Error bulk monetizing flat: ${error}`);
   }
 };

@@ -32,7 +32,7 @@ export const PATCH = async (
   if (authResult instanceof Response) return authResult;
 
   const { status, ...responseData }: Response<void> =
-    await updateMonthlyDuesValidationController(request, reqBody, params);
+    await updateMonthlyDuesValidationController(request, params);
 
   // Return the response with the appropriate status code
   return NextResponse.json(responseData, { status });
