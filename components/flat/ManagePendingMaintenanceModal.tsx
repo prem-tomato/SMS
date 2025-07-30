@@ -15,6 +15,7 @@ import {
   ListItemText,
   Radio,
   RadioGroup,
+  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
@@ -47,6 +48,12 @@ interface Props {
   } | null;
 }
 
+interface ToastState {
+  open: boolean;
+  message: string;
+  severity: "success" | "error" | "warning" | "info";
+}
+
 const monthsList = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
 
 export const ManagePendingMaintenanceModal = ({
@@ -67,6 +74,23 @@ export const ManagePendingMaintenanceModal = ({
   >("settlement");
   const [settlementAmount, setSettlementAmount] = useState<string>("");
   const [monthlyAmounts, setMonthlyAmounts] = useState<MonthAmount[]>([]);
+
+  // Toast state
+  const [toast, setToast] = useState<ToastState>({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
+  // Helper function to show toast
+  const showToast = (message: string, severity: ToastState["severity"] = "info") => {
+    setToast({ open: true, message, severity });
+  };
+
+  // Helper function to close toast
+  const handleCloseToast = () => {
+    setToast(prev => ({ ...prev, open: false }));
+  };
 
   // Fetch flat data - simplified to match ViewFlatModal pattern
   const enabled = open && !!selectedFlat;
@@ -92,6 +116,8 @@ export const ManagePendingMaintenanceModal = ({
       setAmountType("settlement");
       setSettlementAmount("");
       setMonthlyAmounts(monthsList.map((month) => ({ month, amount: 0 })));
+      // Close any existing toast when modal opens
+      setToast({ open: false, message: "", severity: "info" });
     }
   }, [open]);
 
@@ -121,7 +147,7 @@ export const ManagePendingMaintenanceModal = ({
 
   const handleConfirmSelection = () => {
     if (!selectedMaintenanceId) {
-      alert("Please select a maintenance record to manage.");
+      showToast("Please select a maintenance record to manage.", "warning");
       return;
     }
     
@@ -140,7 +166,7 @@ export const ManagePendingMaintenanceModal = ({
     if (amountType === "settlement") {
       const amount = Number(settlementAmount);
       if (isNaN(amount) || amount <= 0) {
-        alert("Please enter a valid settlement amount.");
+        showToast("Please enter a valid settlement amount.", "error");
         return;
       }
       payload = {
@@ -156,7 +182,7 @@ export const ManagePendingMaintenanceModal = ({
         .filter((item) => item.amount > 0);
 
       if (filled.length !== requiredCount) {
-        alert(`Please provide valid amounts for all ${requiredCount} months.`);
+        showToast(`Please provide valid amounts for all ${requiredCount} months.`, "error");
         return;
       }
 
@@ -168,7 +194,6 @@ export const ManagePendingMaintenanceModal = ({
 
     try {
       await manageFlatMaintenance(selectedMaintenanceId, payload);
-      alert("Maintenance updated successfully!");
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({
@@ -178,10 +203,16 @@ export const ManagePendingMaintenanceModal = ({
         queryKey: ["flats", selectedFlat.societyId],
       });
       
-      onClose();
+      showToast("Maintenance updated successfully!", "success");
+      
+      // Close modal after a short delay to show the success message
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+      
     } catch (err: any) {
       console.error("Error updating maintenance:", err);
-      alert(`Error: ${err?.message || "Failed to update maintenance"}`);
+      showToast(`Error: ${err?.message || "Failed to update maintenance"}`, "error");
     }
   };
 
@@ -248,188 +279,202 @@ export const ManagePendingMaintenanceModal = ({
 
   // Main modal content
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Manage Pending Maintenance</DialogTitle>
-      <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Flat: <strong>{data.data.flat_number || "N/A"}</strong> | Building:{" "}
-          <strong>{data.data.building_name || "N/A"}</strong>
-        </Typography>
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Manage Pending Maintenance</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Flat: <strong>{data.data.flat_number || "N/A"}</strong> | Building:{" "}
+            <strong>{data.data.building_name || "N/A"}</strong>
+          </Typography>
 
-        {/* Step 1: Select Maintenance Record */}
-        {!selectedMaintenanceId ? (
-          <>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Select Maintenance Record
-            </Typography>
-            <List
-              sx={{
-                maxHeight: 300,
-                overflow: "auto",
-                border: "1px solid #e0e0e0",
-                borderRadius: 1,
-              }}
-            >
-              {maintenances.map((record) => (
-                <ListItem
-                  key={record.id}
-                  secondaryAction={
-                    <Radio
-                      checked={selectedMaintenanceId === record.id}
-                      onChange={() => setSelectedMaintenanceId(record.id)}
-                    />
-                  }
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => setSelectedMaintenanceId(record.id)}
-                >
-                  <ListItemText
-                    primary={
-                      <Box>
-                        <strong>₹{(record.amount || 0).toLocaleString()}</strong> -{" "}
-                        {record.reason || "No reason provided"}
-                      </Box>
-                    }
-                    secondary={
-                      <>
-                        ID: {record.id?.slice(0, 8) || "N/A"}... | By: {record.action_by || "Unknown"}{" "}
-                        | {record.created_at ? new Date(record.created_at).toLocaleDateString() : "N/A"}
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </>
-        ) : (
-          /* Step 2: Edit Maintenance Type */
-          <>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-              Editing Maintenance ID: <strong>{selectedMaintenanceId.slice(0, 8)}...</strong>
-              <br />
-              Original Amount: <strong>₹{maintenances.find(m => m.id === selectedMaintenanceId)?.amount.toLocaleString()}</strong>
-            </Typography>
-
-            {/* Amount Type Selection */}
-            <RadioGroup
-              row
-              value={amountType}
-              onChange={(e) => setAmountType(e.target.value as any)}
-              sx={{ mb: 3 }}
-            >
-              <FormControlLabel
-                value="settlement"
-                control={<Radio />}
-                label="Settlement"
-              />
-              <FormControlLabel
-                value="quarterly"
-                control={<Radio />}
-                label="Quarterly"
-              />
-              <FormControlLabel
-                value="halfyearly"
-                control={<Radio />}
-                label="Half-Yearly"
-              />
-              <FormControlLabel
-                value="yearly"
-                control={<Radio />}
-                label="Yearly"
-              />
-            </RadioGroup>
-
-            {amountType === "settlement" ? (
-              <TextField
-                label="Settlement Amount"
-                type="number"
-                fullWidth
-                value={settlementAmount}
-                onChange={(e) => setSettlementAmount(e.target.value)}
-                placeholder="e.g. 2500"
-                InputProps={{ inputProps: { min: 0 } }}
-              />
-            ) : (
-              <Box>
-                <Typography variant="body1" fontWeight="500" sx={{ mb: 1 }}>
-                  Enter Amounts for{" "}
-                  {amountType === "quarterly"
-                    ? 3
-                    : amountType === "halfyearly"
-                    ? 6
-                    : 12}{" "}
-                  Months
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Total: ₹{monthlyAmounts
-                    .slice(0, amountType === "quarterly" ? 3 : amountType === "halfyearly" ? 6 : 12)
-                    .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-                    .toLocaleString()}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-                    gap: 1,
-                  }}
-                >
-                  {monthlyAmounts
-                    .slice(
-                      0,
-                      amountType === "quarterly"
-                        ? 3
-                        : amountType === "halfyearly"
-                        ? 6
-                        : 12
-                    )
-                    .map((item) => (
-                      <TextField
-                        key={item.month}
-                        label={`Month ${item.month}`}
-                        type="number"
-                        size="small"
-                        value={item.amount || ""}
-                        onChange={(e) => {
-                          const newVal = Number(e.target.value);
-                          setMonthlyAmounts((prev) =>
-                            prev.map((m) =>
-                              m.month === item.month
-                                ? { ...m, amount: isNaN(newVal) ? 0 : newVal }
-                                : m
-                            )
-                          );
-                        }}
-                        InputProps={{ inputProps: { min: 0 } }}
+          {/* Step 1: Select Maintenance Record */}
+          {!selectedMaintenanceId ? (
+            <>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                Select Maintenance Record
+              </Typography>
+              <List
+                sx={{
+                  maxHeight: 300,
+                  overflow: "auto",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 1,
+                }}
+              >
+                {maintenances.map((record) => (
+                  <ListItem
+                    key={record.id}
+                    secondaryAction={
+                      <Radio
+                        checked={selectedMaintenanceId === record.id}
+                        onChange={() => setSelectedMaintenanceId(record.id)}
                       />
-                    ))}
-                </Box>
-              </Box>
-            )}
-          </>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+                    }
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => setSelectedMaintenanceId(record.id)}
+                  >
+                    <ListItemText
+                      primary={
+                        <Box>
+                          <strong>₹{(record.amount || 0).toLocaleString()}</strong> -{" "}
+                          {record.reason || "No reason provided"}
+                        </Box>
+                      }
+                      secondary={
+                        <>
+                          ID: {record.id?.slice(0, 8) || "N/A"}... | By: {record.action_by || "Unknown"}{" "}
+                          | {record.created_at ? new Date(record.created_at).toLocaleDateString() : "N/A"}
+                        </>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </>
+          ) : (
+            /* Step 2: Edit Maintenance Type */
+            <>
+              <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
+                Editing Maintenance ID: <strong>{selectedMaintenanceId.slice(0, 8)}...</strong>
+                <br />
+                Original Amount: <strong>₹{maintenances.find(m => m.id === selectedMaintenanceId)?.amount.toLocaleString()}</strong>
+              </Typography>
 
-        {/* Conditional Button */}
-        {!selectedMaintenanceId ? (
-          <Button
-            variant="contained"
-            onClick={handleConfirmSelection}
-            disabled={!selectedMaintenanceId}
-            sx={{ bgcolor: "#1e1ee4" }}
-          >
-            Next
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            onClick={handleConfirmUpdate}
-            sx={{ bgcolor: "#1e1ee4" }}
-          >
-            Update Maintenance
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
+              {/* Amount Type Selection */}
+              <RadioGroup
+                row
+                value={amountType}
+                onChange={(e) => setAmountType(e.target.value as any)}
+                sx={{ mb: 3 }}
+              >
+                <FormControlLabel
+                  value="settlement"
+                  control={<Radio />}
+                  label="Settlement"
+                />
+                <FormControlLabel
+                  value="quarterly"
+                  control={<Radio />}
+                  label="Quarterly"
+                />
+                <FormControlLabel
+                  value="halfyearly"
+                  control={<Radio />}
+                  label="Half-Yearly"
+                />
+                <FormControlLabel
+                  value="yearly"
+                  control={<Radio />}
+                  label="Yearly"
+                />
+              </RadioGroup>
+
+              {amountType === "settlement" ? (
+                <TextField
+                  label="Settlement Amount"
+                  type="number"
+                  fullWidth
+                  value={settlementAmount}
+                  onChange={(e) => setSettlementAmount(e.target.value)}
+                  placeholder="e.g. 2500"
+                  InputProps={{ inputProps: { min: 0 } }}
+                />
+              ) : (
+                <Box>
+                  <Typography variant="body1" fontWeight="500" sx={{ mb: 1 }}>
+                    Enter Amounts for{" "}
+                    {amountType === "quarterly"
+                      ? 3
+                      : amountType === "halfyearly"
+                      ? 6
+                      : 12}{" "}
+                    Months
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Total: ₹{monthlyAmounts
+                      .slice(0, amountType === "quarterly" ? 3 : amountType === "halfyearly" ? 6 : 12)
+                      .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+                      .toLocaleString()}
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                      gap: 1,
+                    }}
+                  >
+                    {monthlyAmounts
+                      .slice(
+                        0,
+                        amountType === "quarterly"
+                          ? 3
+                          : amountType === "halfyearly"
+                          ? 6
+                          : 12
+                      )
+                      .map((item) => (
+                        <TextField
+                          key={item.month}
+                          label={`Month ${item.month}`}
+                          type="number"
+                          size="small"
+                          value={item.amount || ""}
+                          onChange={(e) => {
+                            const newVal = Number(e.target.value);
+                            setMonthlyAmounts((prev) =>
+                              prev.map((m) =>
+                                m.month === item.month
+                                  ? { ...m, amount: isNaN(newVal) ? 0 : newVal }
+                                  : m
+                              )
+                            );
+                          }}
+                          InputProps={{ inputProps: { min: 0 } }}
+                        />
+                      ))}
+                  </Box>
+                </Box>
+              )}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+
+          {/* Conditional Button */}
+          {!selectedMaintenanceId ? (
+            <Button
+              variant="contained"
+              onClick={handleConfirmSelection}
+              disabled={!selectedMaintenanceId}
+              sx={{ bgcolor: "#1e1ee4" }}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleConfirmUpdate}
+              sx={{ bgcolor: "#1e1ee4" }}
+            >
+              Update Maintenance
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseToast} severity={toast.severity} sx={{ width: '100%' }}>
+          {toast.message}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
