@@ -8,6 +8,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Cell,
 } from "recharts";
 import { FinalBalanceData } from "../typesOfDash";
 
@@ -21,7 +22,7 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
     {
       name: "Total Expense",
       value: Math.abs(data.total_expense || 0),
-      color: "#ef4444",
+      color: "#ef4444", // Red
     },
     {
       name: "Collected Amount",
@@ -31,17 +32,17 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
           data.total_income +
           data.total_penalties_paid_current_month || 0
       ),
-      color: "#f59e0b",
+      color: "#f59e0b", // Amber
     },
     {
       name: "Opening Balance",
       value: Math.abs(data.society_balance || 0),
-      color: "#10b981",
+      color: "#10b981", // Emerald
     },
     {
       name: "Available Balance",
       value: Math.abs(data.final_balance || 0),
-      color: "#3b82f6",
+      color: "#3b82f6", // Blue
     },
   ];
 
@@ -121,7 +122,11 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
 
           {/* Custom tooltip for all bars */}
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
