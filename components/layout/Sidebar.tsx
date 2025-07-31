@@ -1,6 +1,6 @@
 "use client";
 
-import { getUserRole } from "@/lib/auth";
+import { getSocietyTypeFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
   ApartmentOutlined,
   CampaignOutlined,
@@ -40,12 +40,15 @@ export default function Sidebar() {
   const [isLoading, setIsLoading] = useState(true);
   const [openMisc, setOpenMisc] = useState(false);
   const [openTransactions, setOpenTransactions] = useState(false);
+  const [societyType, setSocietyType] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRole = async () => {
       try {
         const userRole = await getUserRole();
+        const societyType = await getSocietyTypeFromLocalStorage();
         setRole(userRole);
+        setSocietyType(societyType);
       } catch (error) {
         console.error("Failed to get user role:", error);
         setRole(null);
@@ -96,22 +99,22 @@ export default function Sidebar() {
       path: "/buildings",
     },
     {
-      label: "Flats",
+      label: societyType === "commercial" ? "Shops" : "Flats",
       icon: <PeopleOutlined />,
       path: "/flats",
     },
     {
-      label: "Add Member",
+      label: societyType === "commercial" ? "Add Shop Owner" : "Add Member",
       icon: <FaceOutlined />,
       path: "/add-member",
     },
     {
-      label: "Assign Flat",
+      label: societyType === "commercial" ? "Assign Shop" : "Assign Flat",
       icon: <HouseOutlined />,
       path: "/assign-flats",
     },
     {
-      label: "Dues",
+      label: "Maintenance Dues",
       icon: <MoreHorizIcon />,
       path: "/member-monthly-dues",
     },

@@ -1,7 +1,10 @@
 "use client";
 
 import CommonButton from "@/components/common/CommonButton";
-import { getSocietyIdFromLocalStorage } from "@/lib/auth";
+import {
+  getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
+} from "@/lib/auth";
 import { fetchBuildingsBySociety } from "@/services/building";
 import { createFlat } from "@/services/flats";
 import { fetchSocietyOptions } from "@/services/societies";
@@ -97,6 +100,7 @@ export default function AddFlatModal({
   const [societyId, setSocietyId] = useState(adminSocietyId || "");
   const [buildingId, setBuildingId] = useState("");
   const [backendError, setBackendError] = useState<string | null>(null);
+  const [societyType, setSocietyType] = useState<string | null>(null);
 
   // Fetch societies for super_admin
   const { data: societies = [], isLoading: societiesLoading } = useQuery<
@@ -259,8 +263,10 @@ export default function AddFlatModal({
 
       if (role === "admin") {
         const storedId = adminSocietyId || getSocietyIdFromLocalStorage();
+        const storedType = getSocietyTypeFromLocalStorage();
         if (storedId) {
           setSocietyId(storedId);
+          setSocietyType(storedType);
         }
       } else if (role === "super_admin") {
         setSocietyId("");
@@ -314,10 +320,11 @@ export default function AddFlatModal({
     >
       <DialogTitle sx={{ pb: 2 }}>
         <Typography variant="h6" fontWeight="bold">
-          Add New Flat
+          {societyType === "commercial" ? "Add New Shop" : "Add New Flat"}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Fill in the flat details below
+          Fill in the {societyType === "commercial" ? "shop" : "flat"} details
+          below
         </Typography>
       </DialogTitle>
 
@@ -425,7 +432,7 @@ export default function AddFlatModal({
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Flat Number"
+                label={societyType === "commercial" ? "Shop No" : "Flat No"}
                 placeholder="e.g., 101"
                 error={!!errors.flat_number}
                 helperText={errors.flat_number?.message}
@@ -450,7 +457,7 @@ export default function AddFlatModal({
               return (
                 <TextField
                   {...field}
-                  label="Floor Number"
+                  label={societyType === "commercial" ? "Shop Floor" : "Floor No"}
                   placeholder={
                     maxFloors ? `e.g., 1 (max: ${maxFloors})` : "e.g., 1"
                   }

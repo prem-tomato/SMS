@@ -1,4 +1,9 @@
-import { addRoleType, expenseType, memberType } from "@/db/utils/enums/enum";
+import {
+  addRoleType,
+  expenseType,
+  memberType,
+  societyType,
+} from "@/db/utils/enums/enum";
 import { array, boolean, enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
@@ -21,6 +26,7 @@ export const addSocietyValidation = object({
     opening_balance: number()
       .min(0, "Opening balance must be greater than or equal to 0")
       .max(1000000, "Opening balance must be less than or equal to 1000000"),
+    society_type: enum_(societyType),
   }),
 });
 

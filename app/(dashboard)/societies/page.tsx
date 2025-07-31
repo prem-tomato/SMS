@@ -2,6 +2,7 @@
 
 import CommonButton from "@/components/common/CommonButton";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
+import { societyType } from "@/db/utils/enums/enum";
 import { getUserRole } from "@/lib/auth";
 import {
   createSociety,
@@ -75,6 +76,7 @@ const inputSchema = z.object({
     .refine((phone) => isValidPhoneNumber(phone), {
       message: "Please enter a valid phone number",
     }),
+  society_type: z.enum(societyType),
 });
 
 // Output schema with transformed types
@@ -131,6 +133,7 @@ export default function SocietiesPage() {
     defaultValues: {
       country: "India",
       opening_balance: "0",
+      society_type: undefined,
     },
   });
 
@@ -150,6 +153,7 @@ export default function SocietiesPage() {
           state: data.state,
           country: data.country,
           opening_balance: data.opening_balance, // Fixed: Include opening_balance
+          society_type: data.society_type,
         };
 
         createdSociety = await createSociety(societyData);
@@ -244,6 +248,7 @@ export default function SocietiesPage() {
 
   const columns = [
     { field: "name", headerName: "Society", flex: 1 },
+    { field: "society_type", headerName: "Type", flex: 1 },
     { field: "address", headerName: "Address", flex: 1 },
     { field: "city", headerName: "City", flex: 1 },
     { field: "state", headerName: "State", flex: 1 },
@@ -528,6 +533,31 @@ export default function SocietiesPage() {
                   )}
                 </FormControl>
               </Box>
+
+              <FormControl
+                fullWidth
+                error={!!errors.society_type}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+              >
+                <InputLabel>Society Type</InputLabel>
+                <Controller
+                  name="society_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select {...field} label="Society Type">
+                      {Object.entries(societyType).map(([key, value]) => (
+                        <MenuItem key={key} value={value}>
+                          {value.charAt(0).toUpperCase() +
+                            value.slice(1).replace(/_/g, " ")}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors.society_type && (
+                  <FormHelperText>{errors.society_type.message}</FormHelperText>
+                )}
+              </FormControl>
 
               <Divider />
 

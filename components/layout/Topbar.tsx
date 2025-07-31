@@ -4,6 +4,7 @@ import {
   getAccessToken,
   removeAccessToken,
   removeSocietyId,
+  removeSocietyType,
   removeUserRole,
 } from "@/lib/auth";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
@@ -20,7 +21,6 @@ import {
   Skeleton,
   Toolbar,
   Typography,
-  IconButton,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -56,7 +56,7 @@ export default function Topbar() {
         }
 
         const res = await response.json();
-        
+
         if (res.data) {
           setUser(res.data);
           setError(null);
@@ -91,6 +91,7 @@ export default function Topbar() {
       removeAccessToken();
       removeUserRole();
       removeSocietyId();
+      removeSocietyType();
       router.push("/auth/login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -138,7 +139,12 @@ export default function Topbar() {
             <Skeleton variant="circular" width={32} height={32} />
             <Box>
               <Skeleton variant="text" width={120} height={20} />
-              <Skeleton variant="rectangular" width={60} height={18} sx={{ borderRadius: 1 }} />
+              <Skeleton
+                variant="rectangular"
+                width={60}
+                height={18}
+                sx={{ borderRadius: 1 }}
+              />
             </Box>
             <Skeleton variant="circular" width={16} height={16} />
           </Box>
@@ -188,7 +194,7 @@ export default function Topbar() {
           height: 64,
         }}
       >
-        <Toolbar 
+        <Toolbar
           sx={{ justifyContent: "space-between", height: "100%" }}
           role="banner"
         >
@@ -217,7 +223,7 @@ export default function Topbar() {
               aria-haspopup="true"
               aria-expanded={Boolean(anchorEl)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === "Enter" || e.key === " ") {
                   handleMenuOpen(e as any);
                 }
               }}
@@ -252,13 +258,15 @@ export default function Topbar() {
                   }}
                 />
               </Box>
-              <KeyboardArrowDownIcon 
-                sx={{ 
-                  color: "#666", 
+              <KeyboardArrowDownIcon
+                sx={{
+                  color: "#666",
                   fontSize: 16,
-                  transform: Boolean(anchorEl) ? "rotate(180deg)" : "rotate(0deg)",
+                  transform: Boolean(anchorEl)
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
                   transition: "transform 0.2s ease-in-out",
-                }} 
+                }}
               />
             </Box>
           </Box>
@@ -278,20 +286,20 @@ export default function Topbar() {
           vertical: "top",
           horizontal: "right",
         }}
-        sx={{ 
+        sx={{
           mt: 1,
           "& .MuiPaper-root": {
             minWidth: 180,
             borderRadius: 2,
             boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
-          }
+          },
         }}
         MenuListProps={{
           role: "menu",
           "aria-label": "User account menu",
         }}
       >
-        <MenuItem 
+        <MenuItem
           onClick={handleProfile}
           role="menuitem"
           sx={{
@@ -311,7 +319,7 @@ export default function Topbar() {
           </Typography>
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem 
+        <MenuItem
           onClick={handleLogout}
           role="menuitem"
           sx={{

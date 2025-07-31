@@ -40,3 +40,11 @@ export const flatMaintenanceType = {
   HALFYEARLY,
   YEARLY,
 };
+
+export const RESIDENTIAL = "residential";
+export const COMMERCIAL = "commercial";
+
+export const societyType = {
+  RESIDENTIAL,
+  COMMERCIAL,
+};

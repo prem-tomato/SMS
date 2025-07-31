@@ -13,6 +13,7 @@ export type LoginJwtPayload = DefaultJwtPayload & {
   timezone: string;
   role: string;
   societyId: string;
+  societyType: string;
 };
 
 const JWT_SECRET = config.JWT_SECRET!;
@@ -38,10 +39,13 @@ export async function authMiddleware(request: NextRequest) {
       JWT_SECRET
     );
 
+    console.log("payload", payload);
+
     // Set user info in the headers after successful verification
     request.headers.set("userId", payload.userId);
     request.headers.set("role", payload.role);
     request.headers.set("societyId", payload.societyId);
+    request.headers.set("societyType", payload.societyType);
     return request;
   } catch (error: any) {
     // Return an error response if token verification fails

@@ -676,3 +676,9 @@ CREATE TABLE public.income_tracking (
 ALTER TABLE public.income_tracking
 ADD COLUMN income_month smallint NOT NULL CHECK (income_month BETWEEN 1 AND 12),
 ADD COLUMN income_year smallint NOT NULL CHECK (income_year >= 2000);
+
+
+create type society_type as enum ('residential', 'commercial')
+
+alter table societies 
+add column society_type society_type 

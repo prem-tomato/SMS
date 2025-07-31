@@ -51,6 +51,7 @@ type AssignMemberModalProps = {
   onClose: () => void;
   role: string;
   adminSocietyId?: string;
+  societyType?: string;
 };
 
 export default function AssignMemberModal({
@@ -58,6 +59,7 @@ export default function AssignMemberModal({
   onClose,
   role,
   adminSocietyId,
+  societyType,
 }: AssignMemberModalProps) {
   const qc = useQueryClient();
   const isSuperAdmin = role === "super_admin";
@@ -115,11 +117,6 @@ export default function AssignMemberModal({
     queryFn: () => fetchVacantUsersBySociety(societyId!),
     enabled: !!societyId,
   });
-
-  // Get society name for admin
-  const adminSocietyName =
-    societies.find((s: any) => s.id === adminSocietyId)?.name ??
-    (lsSoc ? "Loading..." : "Not found");
 
   const mut = useMutation({
     mutationFn: (data: FormValues) => {
@@ -185,11 +182,12 @@ export default function AssignMemberModal({
     >
       <DialogTitle sx={{ pb: 2 }}>
         <Typography variant="h6" fontWeight="bold">
-          Assign Members
+          {societyType === "commercial" ? "Assign Owner to Shop" : "Assign Resident to Flat"}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Select {isSuperAdmin ? "society, building, flat" : "building, flat"}{" "}
-          and members with their move-in date
+          {societyType === "commercial"
+            ? "Select Building, Shop and Owners."
+            : "Select society, building, flat and members."}
         </Typography>
       </DialogTitle>
 
@@ -310,10 +308,12 @@ export default function AssignMemberModal({
                 disabled={!buildingId}
                 error={!!errors.flat_id}
               >
-                <InputLabel>Flat</InputLabel>
+                <InputLabel>
+                  {societyType === "commercial" ? "Shop" : "Flat"}
+                </InputLabel>
                 <Select
                   {...field}
-                  label="Flat"
+                  label={societyType === "commercial" ? "Shop" : "Flat"}
                   sx={{ borderRadius: 2 }}
                   MenuProps={{
                     PaperProps: {
@@ -351,12 +351,19 @@ export default function AssignMemberModal({
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.user_id}>
-                <InputLabel>Members</InputLabel>
+                <InputLabel>
+                  {societyType === "commercial" ? "Owners" : "Residents"}
+                </InputLabel>
                 <Select
                   {...field}
                   multiple
                   input={
-                    <OutlinedInput label="Members" sx={{ borderRadius: 2 }} />
+                    <OutlinedInput
+                      label={
+                        societyType === "commercial" ? "Owners" : "Residents"
+                      }
+                      sx={{ borderRadius: 2 }}
+                    />
                   }
                   renderValue={(selected) => (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
@@ -432,7 +439,9 @@ export default function AssignMemberModal({
             loading={mut.isPending}
             sx={{ bgcolor: "#1e1ee4" }}
           >
-            Assign Members
+            {societyType === "commercial"
+              ? "Assign Owner to Shop"
+              : "Assign Resident to Flat"}
           </CommonButton>
         </DialogActions>
       </Box>

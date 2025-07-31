@@ -35,3 +35,17 @@ export const getSocietyIdFromLocalStorage = () => {
 export const removeSocietyId = () => {
   localStorage.removeItem("society_id");
 };
+
+export const saveSocietyType = (societyType: string | undefined) => {
+  if (societyType) {
+    localStorage.setItem("society_type", societyType);
+  }
+};
+
+export const getSocietyTypeFromLocalStorage = () => {
+  return localStorage.getItem("society_type");
+};
+
+export const removeSocietyType = () => {
+  localStorage.removeItem("society_type");
+};

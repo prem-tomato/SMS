@@ -20,6 +20,7 @@ import {
 import {
   getAccessToken,
   getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
   getUserRole,
 } from "@/lib/auth";
 import { Box } from "@mui/material";
@@ -49,11 +50,14 @@ export default function Dashboard() {
     useState<SocietySpecificData | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [societyType, setSocietyType] = useState<string | null>(null);
 
   // API Functions (keeping the same logic)
   async function fetchGeneralData() {
     const userRole = getUserRole();
     setRole(userRole);
+    const societyType = getSocietyTypeFromLocalStorage();
+    setSocietyType(societyType);
     const headers = {
       Authorization: `Bearer ${getAccessToken()}`,
     };
@@ -198,8 +202,38 @@ export default function Dashboard() {
         />
 
         {role !== "super_admin" && (
-          <div className="mb-8">
-            <SocietyTitle selectedSocietyName={selectedSocietyName} role={role} />
+          <div className="relative mb-8 flex flex-col items-center text-center group">
+            {/* Subtle background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-transparent rounded-2xl blur-xl scale-110 opacity-60"></div>
+
+            {/* Main content container */}
+            <div className="relative space-y-4">
+              {/* Society Title */}
+              <div>
+                <SocietyTitle
+                  selectedSocietyName={selectedSocietyName}
+                  role={role}
+                />
+              </div>
+
+              {/* Modern chip with glass morphism effect */}
+              <div className="inline-flex items-center">
+                <div className="relative overflow-hidden">
+                  <div
+                    className=" px-4 py-1.5 rounded-full text-xs font-medium tracking-wider uppercase
+                    backdrop-blur-sm border transition-all duration-300 bg-blue-50/80 border-blue-200/60 text-blue-700 hover:bg-blue-100/80 hover:border-blue-300/80"
+                  >
+                    {/* Icon indicator */}
+                    <span className="inline-flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                      {societyType === "commercial"
+                        ? "Commercial"
+                        : "residential"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -261,7 +295,11 @@ export default function Dashboard() {
             // Show society-specific data when a society is selected or for non-super admin
             <>
               {/* Stats Section */}
-              <div className={"grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"}>
+              <div
+                className={
+                  "grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                }
+              >
                 {role && (
                   <SimpleStatsCard
                     label="Buildings"

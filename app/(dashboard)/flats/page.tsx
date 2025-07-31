@@ -5,7 +5,11 @@ import AddFlatModal from "@/components/flat/FlatModel";
 import { ManagePendingMaintenanceModal } from "@/components/flat/ManagePendingMaintenanceModal";
 import { ViewFlatModal } from "@/components/flat/ViewFlatModal"; // Import the ViewFlatModal
 import { ViewMaintenanceModal } from "@/components/flat/ViewMaintenanceModal";
-import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
+import {
+  getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
+  getUserRole,
+} from "@/lib/auth";
 import {
   addFlatPenalty,
   listAllFlats,
@@ -39,6 +43,7 @@ export default function FlatsPage() {
   const [penaltyDialogOpen, setPenaltyDialogOpen] = useState(false);
   const [penaltyAmount, setPenaltyAmount] = useState("");
   const [penaltyReason, setPenaltyReason] = useState("");
+  const [societyType, setSocietyType] = useState<string | null>(null);
 
   // Updated view dialog state to work with ViewFlatModal
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -67,8 +72,12 @@ export default function FlatsPage() {
   useEffect(() => {
     const userRole = getUserRole();
     const storedSocietyId = getSocietyIdFromLocalStorage();
+    const storedSocietyType = getSocietyTypeFromLocalStorage();
     setRole(userRole!);
-    if (userRole === "admin") setSocietyId(storedSocietyId!);
+    if (userRole === "admin") {
+      setSocietyId(storedSocietyId!);
+      setSocietyType(storedSocietyType!);
+    }
   }, []);
 
   const { data: flats = [], isLoading } = useQuery({
@@ -158,7 +167,11 @@ export default function FlatsPage() {
 
   const columns = useMemo(
     () => [
-      { field: "flat_number", headerName: "Flat No", flex: 1 },
+      {
+        field: "flat_number",
+        headerName: societyType === "commercial" ? "Shop No" : "Flat No",
+        flex: 1,
+      },
       { field: "floor_number", headerName: "Floor", flex: 1 },
       {
         field: "is_occupied",
@@ -216,7 +229,7 @@ export default function FlatsPage() {
           startIcon={<AddIcon />}
           sx={{ borderRadius: 1, borderColor: "#1e1ee4", color: "#1e1ee4" }}
         >
-          Add Flat
+          {societyType === "commercial" ? "Add Shop" : "Add Flat"}
         </Button>
       </Box>
 
@@ -246,7 +259,9 @@ export default function FlatsPage() {
         <MenuItem onClick={handleManageMaintenance}>
           Maintenance Settings
         </MenuItem>
-        <MenuItem onClick={handleViewMaintenance}>Maintenance Overview</MenuItem>
+        <MenuItem onClick={handleViewMaintenance}>
+          Maintenance Overview
+        </MenuItem>
       </Menu>
 
       {/* Penalty Dialog */}

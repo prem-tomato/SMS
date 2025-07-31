@@ -1,7 +1,7 @@
 "use client";
 
 import { GetMemberMonthlyDuesResponse } from "@/app/api/member-monthly-dues/member-monthly-dues.types";
-import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
+import { getSocietyIdFromLocalStorage, getSocietyTypeFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
   bulkMonetize,
   getMemberMonthlyDueRecord,
@@ -62,6 +62,7 @@ export default function MemberMonthlyDues() {
   const [orderBy, setOrderBy] = useState<string>("society_name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [showFilters, setShowFilters] = useState(true);
+  const [societyType, setSocietyType] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     society: "",
     building: "",
@@ -82,8 +83,10 @@ export default function MemberMonthlyDues() {
   useEffect(() => {
     const userRole = getUserRole();
     const society = getSocietyIdFromLocalStorage();
+    const societyType = getSocietyTypeFromLocalStorage();
     setRole(userRole!);
     setAdminSocietyId(society!);
+    setSocietyType(societyType);
   }, []);
 
   const { mutateAsync: updateDues, isPending } = useMutation({
@@ -381,7 +384,9 @@ export default function MemberMonthlyDues() {
                     <strong>Building:</strong> {recordDetails.building_name}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Flat:</strong> {recordDetails.flat_number}
+                    <strong>
+                      {societyType === "commercial" ? "Shop:" : "Flat:"}:
+                      </strong> {recordDetails.flat_number}
                   </Typography>
                   <Typography variant="body2">
                     <strong>Month:</strong>{" "}
@@ -545,7 +550,7 @@ export default function MemberMonthlyDues() {
 
               <TextField
                 size="small"
-                label="Flat"
+                label={societyType === "commercial" ? "Shop" : "Flat"}
                 value={filters.flat}
                 onChange={(e) => handleFilterChange("flat", e.target.value)}
                 sx={{
@@ -559,7 +564,7 @@ export default function MemberMonthlyDues() {
 
               <TextField
                 size="small"
-                label="Member"
+                label={societyType === "commercial" ? "Owner" : "Resident"}
                 value={filters.member}
                 onChange={(e) => handleFilterChange("member", e.target.value)}
                 sx={{
@@ -723,7 +728,7 @@ export default function MemberMonthlyDues() {
                     direction={orderBy === "flat_number" ? order : "asc"}
                     onClick={() => handleSort("flat_number")}
                   >
-                    Flat Number
+                    {societyType === "commercial" ? "Shop No" : "Flat No"}
                   </TableSortLabel>
                 </TableCell>
                 <TableCell

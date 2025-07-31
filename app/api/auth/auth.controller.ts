@@ -67,7 +67,10 @@ export const loginController = async (
       userId: user.id,
       role: user.role,
       societyId: user?.society_id,
+      societyType: society?.society_type
     };
+
+    console.log("tokenPayload", tokenPayload);
 
     const accessToken: string = authorizeServices.createToken(
       tokenPayload,
@@ -109,6 +112,7 @@ export const loginController = async (
       access_token: accessToken,
       role: user.role,
       societyId: user.society_id,
+      societyType: society?.society_type,
       user: {
         id: user.id,
         first_name: user.first_name,

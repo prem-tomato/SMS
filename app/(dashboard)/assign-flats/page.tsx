@@ -2,7 +2,11 @@
 
 import AssignMemberModal from "@/components/assignMember/AssignMemberModal";
 import CommonDataGrid from "@/components/common/CommonDataGrid";
-import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
+import {
+  getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
+  getUserRole,
+} from "@/lib/auth";
 import {
   assignMemberListForAdmin,
   assignMemberListForSuperAdmin,
@@ -17,6 +21,7 @@ export default function AssignFlatsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [role, setRole] = useState<string>("");
   const [adminSocietyId, setAdminSocietyId] = useState<string>("");
+  const [societyType, setSocietyType] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -40,13 +45,13 @@ export default function AssignFlatsPage() {
     () => [
       {
         field: "member_name",
-        headerName: "Member",
+        headerName: societyType === "commercial" ? "Owner" : "Resident",
         flex: 2,
       },
 
       {
         field: "flat_number",
-        headerName: "Flat No",
+        headerName: societyType === "commercial" ? "Shop" : "Flat",
         flex: 1,
         renderCell: (params: any) => (
           <Chip label={`Flat ${params.value}`} color="primary" size="small" />
@@ -92,8 +97,10 @@ export default function AssignFlatsPage() {
     // Get society ID from localStorage for admin
     if (userRole === "admin") {
       const storedSocietyId = getSocietyIdFromLocalStorage(); // Adjust this key as needed
+      const storedSocietyType = getSocietyTypeFromLocalStorage();
       if (storedSocietyId) {
         setAdminSocietyId(storedSocietyId);
+        setSocietyType(storedSocietyType);
       }
     }
   }, []);
@@ -125,7 +132,7 @@ export default function AssignFlatsPage() {
             color: "#1e1ee4",
           }}
         >
-          Assign Members
+          {societyType === "commercial" ? "Assign Shop" : "Assign Flat"}
         </Button>
       </Box>
 
@@ -146,6 +153,7 @@ export default function AssignFlatsPage() {
         }}
         role={role}
         adminSocietyId={adminSocietyId}
+        societyType={societyType!}
       />
     </Box>
   );

@@ -1,6 +1,11 @@
 "use client";
 
-import { saveAccessToken, saveSocietyId, saveUserRole } from "@/lib/auth";
+import {
+  saveAccessToken,
+  saveSocietyId,
+  saveSocietyType,
+  saveUserRole,
+} from "@/lib/auth";
 import { loginUser } from "@/services/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,12 +22,13 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { access_token, role, societyId } = await loginUser({
+      const { access_token, role, societyId, societyType } = await loginUser({
         login_key: Number(login_key),
       });
       saveUserRole(role);
       saveSocietyId(societyId);
       saveAccessToken(access_token);
+      saveSocietyType(societyType);
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Login failed, please try again.");

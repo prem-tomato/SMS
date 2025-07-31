@@ -1,4 +1,4 @@
-import { expenseType } from "@/db/utils/enums/enum";
+import { expenseType, societyType } from "@/db/utils/enums/enum";
 import z from "zod";
 import { User } from "../auth/auth.types";
 import {
@@ -30,6 +30,7 @@ export type Societies = {
   country: string;
   end_date: Date;
   opening_balance: number;
+  society_type: (typeof societyType)[keyof typeof societyType];
   created_by: string;
   created_at: string;
 };
