@@ -104,7 +104,7 @@ export default function Sidebar() {
       path: "/flats",
     },
     {
-      label: societyType === "commercial" ? "Add Shop Owner" : "Add Member",
+      label: societyType === "commercial" ? "Add Shop Owner" : "Add Resident",
       icon: <FaceOutlined />,
       path: "/add-member",
     },

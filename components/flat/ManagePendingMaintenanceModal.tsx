@@ -46,6 +46,7 @@ interface Props {
     buildingId: string;
     flatId: string;
   } | null;
+  societyType: string | null;
 }
 
 interface ToastState {
@@ -60,6 +61,7 @@ export const ManagePendingMaintenanceModal = ({
   open,
   onClose,
   selectedFlat,
+  societyType,
 }: Props) => {
   const queryClient = useQueryClient();
 
@@ -246,7 +248,10 @@ export const ManagePendingMaintenanceModal = ({
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogTitle>Error</DialogTitle>
         <DialogContent>
-          <Alert severity="error">Failed to load flat details.</Alert>
+          <Alert severity="error">
+            Failed to load {societyType === "residential" ? "Resident" : "Shop"}{" "}
+            maintenance records.
+          </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Close</Button>
@@ -262,7 +267,8 @@ export const ManagePendingMaintenanceModal = ({
         <DialogTitle>No Data</DialogTitle>
         <DialogContent>
           <Alert severity="warning">
-            No flat data available. Please try again.
+            No {societyType === "residential" ? "Resident" : "Shop"} data
+            available. Please try again.
           </Alert>
         </DialogContent>
         <DialogActions>
@@ -279,8 +285,9 @@ export const ManagePendingMaintenanceModal = ({
         <DialogTitle>No Maintenance Records</DialogTitle>
         <DialogContent>
           <Alert severity="info">
-            No maintenance records found for this flat. Cannot manage pending
-            maintenance.
+            No maintenance records found for this{" "}
+            {societyType === "residential" ? "Resident" : "Shop"}. Cannot manage
+            pending maintenance.
           </Alert>
         </DialogContent>
         <DialogActions>
@@ -309,7 +316,8 @@ export const ManagePendingMaintenanceModal = ({
         <DialogTitle>Manage Pending Maintenance</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Flat: <strong>{data.data.flat_number || "N/A"}</strong> | Building:{" "}
+            {societyType === "residential" ? "Flat" : "Shop"}:{" "}
+            <strong>{data.data.flat_number || "N/A"}</strong> | Building:{" "}
             <strong>{data.data.building_name || "N/A"}</strong>
           </Typography>
 
@@ -493,19 +501,7 @@ export const ManagePendingMaintenanceModal = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={onClose}
-            variant="contained"
-            size="medium"
-            sx={{
-              backgroundColor: "#1e1ee4",
-              "&:hover": {
-                backgroundColor: "#1717c9",
-              },
-            }}
-          >
-            Cancel
-          </Button>
+          <Button onClick={onClose}>Cancel</Button>
 
           {/* Conditional Button */}
           {!selectedMaintenanceId ? (

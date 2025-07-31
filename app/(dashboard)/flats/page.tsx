@@ -254,7 +254,7 @@ export default function FlatsPage() {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleViewFlat}>Flat Overview</MenuItem>
+        <MenuItem onClick={handleViewFlat}>{societyType === "commercial" ? "View Shop" : "View Flat"}</MenuItem>
         <MenuItem onClick={handleOpenPenaltyDialog}>Add Penalty</MenuItem>
         <MenuItem onClick={handleManageMaintenance}>
           Maintenance Settings
@@ -314,6 +314,7 @@ export default function FlatsPage() {
         open={viewDialogOpen}
         onClose={handleCloseViewModal}
         selectedFlat={viewFlatData}
+        societyType={societyType}
       />
 
       <ManagePendingMaintenanceModal
@@ -323,6 +324,7 @@ export default function FlatsPage() {
           setMaintenanceFlatData(null);
         }}
         selectedFlat={maintenanceFlatData}
+        societyType={societyType}
       />
 
       <ViewMaintenanceModal

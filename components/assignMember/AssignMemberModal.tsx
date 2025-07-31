@@ -440,8 +440,8 @@ export default function AssignMemberModal({
             sx={{ bgcolor: "#1e1ee4" }}
           >
             {societyType === "commercial"
-              ? "Assign Owner to Shop"
-              : "Assign Resident to Flat"}
+              ? "Assign Shop to Owner"
+              : "Assign Flat to Resident"}
           </CommonButton>
         </DialogActions>
       </Box>

@@ -2,7 +2,11 @@
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddUserModal from "@/components/user/AddUserModal";
-import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
+import {
+  getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
+  getUserRole,
+} from "@/lib/auth";
 import { fetchAllUsers, fetchUsersBySociety } from "@/services/user";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button } from "@mui/material";
@@ -13,10 +17,13 @@ export default function UsersPage() {
   const [role, setRole] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [selectedSociety, setSelectedSociety] = useState<string>("");
+  const [societyType, setSocietyType] = useState<string | null>(null);
 
   useEffect(() => {
     const role = getUserRole();
+    const societyType = getSocietyTypeFromLocalStorage();
     setRole(role!);
+    setSocietyType(societyType);
 
     if (role === "admin") {
       const societyId = getSocietyIdFromLocalStorage();
@@ -59,7 +66,7 @@ export default function UsersPage() {
             color: "#1e1ee4",
           }}
         >
-          Add Member
+          Add {societyType === "residential" ? "Resident" : "Shop Owner"}
         </Button>
       </Box>
 
@@ -75,6 +82,7 @@ export default function UsersPage() {
         open={open}
         onClose={() => setOpen(false)}
         societyId={selectedSociety}
+        societyType={societyType}
       />
     </Box>
   );

@@ -58,10 +58,12 @@ export default function AddUserModal({
   open,
   onClose,
   societyId,
+  societyType,
 }: {
   open: boolean;
   onClose: () => void;
   societyId?: string;
+  societyType: string | null;
 }) {
   const queryClient = useQueryClient();
   const [country, setCountry] = useState<CountryCode>("IN");
@@ -164,10 +166,10 @@ export default function AddUserModal({
       >
         <DialogTitle>
           <Typography variant="h6" fontWeight="bold">
-            Add New Member
+            Add {societyType === "residential" ? "Resident" : "Shop Owner"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Enter member details below
+            Enter details below
           </Typography>
         </DialogTitle>
 
@@ -340,7 +342,7 @@ export default function AddUserModal({
               loading={mutation.isPending}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Save Member
+              Save {societyType === "residential" ? "Resident" : "Shop Owner"}
             </CommonButton>
           </DialogActions>
         </Box>

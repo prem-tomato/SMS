@@ -29,7 +29,7 @@ import {
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ViewFlatModalProps {
   open: boolean;
@@ -39,12 +39,14 @@ interface ViewFlatModalProps {
     buildingId: string;
     flatId: string;
   } | null;
+  societyType: string | null;
 }
 
 export const ViewFlatModal = ({
   open,
   onClose,
   selectedFlat,
+  societyType,
 }: ViewFlatModalProps) => {
   const enabled = open && !!selectedFlat;
 
@@ -61,8 +63,9 @@ export const ViewFlatModal = ({
 
   // Preserve the flat data even when modal is closing
   const [preservedFlat, setPreservedFlat] = useState(null);
-  
-  useEffect(() => { // Preserve the flat data
+
+  useEffect(() => {
+    // Preserve the flat data
     if (data?.data) {
       setPreservedFlat(data.data);
     }
@@ -102,7 +105,7 @@ export const ViewFlatModal = ({
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="h6" fontWeight="600" color="text.primary">
-            Flat Details
+            {societyType === "residential" ? "Resident Detail" : "Shop Detail"}
           </Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
@@ -121,7 +124,7 @@ export const ViewFlatModal = ({
             <CircularProgress size={40} />
           </Box>
         )}
-        
+
         {flat && (
           <Box>
             {/* Basic Info */}
@@ -134,7 +137,7 @@ export const ViewFlatModal = ({
                   <TableRow>
                     <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Flat Number
+                        {societyType === "residential" ? "Flat Number" : "Shop Number"}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ border: 0, py: 1 }}>
