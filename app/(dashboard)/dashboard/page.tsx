@@ -351,7 +351,11 @@ export default function Dashboard() {
                     <FinancialCard
                       title="Collected Amount"
                       value={Math.abs(
-                        displayData.final_balance.total_maintenance || 0
+                        displayData.final_balance.regular_maintenance_amount +
+                          displayData.final_balance.total_income +
+                          displayData.final_balance.pending_collected_maintenances +
+                          displayData.final_balance
+                            .total_penalties_paid_current_month || 0
                       )}
                       color="amber"
                     />

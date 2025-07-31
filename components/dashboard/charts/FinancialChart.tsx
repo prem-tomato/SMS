@@ -25,7 +25,7 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
     },
     {
       name: "Collected Amount",
-      value: Math.abs(data.total_maintenance || 0),
+      value: Math.abs(data.regular_maintenance_amount || 0),
       color: "#f59e0b",
     },
     {
@@ -49,20 +49,33 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
           <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg min-w-[250px]">
             <p className="font-medium text-gray-800 mb-2">{label}</p>
             <div className="space-y-1">
-              <p className="text-sm text-blue-600">
-                Amount: ₹{Math.abs(data.total_maintenance || 0).toLocaleString("en-IN")}
-              </p>
               <p className="text-sm text-orange-600">
-                Penalties: ₹{Math.abs(data.total_penalties || 0).toLocaleString("en-IN")}
+                Penalties: ₹
+                {Math.abs(
+                  data.total_penalties_paid_current_month || 0
+                ).toLocaleString("en-IN")}
               </p>
               <p className="text-sm text-amber-600">
-                Maintenance Amount: ₹{Math.abs(data.raw_maintenance_amount || 0).toLocaleString("en-IN")}
+                Maintenance Amount: ₹
+                {Math.abs(data.regular_maintenance_amount || 0).toLocaleString(
+                  "en-IN"
+                )}
+              </p>
+              <p className="text-sm text-red-600">
+                Pending Collected Maintenances: ₹
+                {Math.abs(
+                  data.pending_collected_maintenances || 0
+                ).toLocaleString("en-IN")}
+              </p>
+              <p className="text-sm text-green-600">
+                Income Collected: ₹
+                {Math.abs(data.total_income || 0).toLocaleString("en-IN")}
               </p>
             </div>
           </div>
         );
       }
-      
+
       // For other bars, show standard tooltip
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
@@ -100,14 +113,10 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
             tick={{ fontSize: 12 }}
             tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
           />
-          
+
           {/* Custom tooltip for all bars */}
           <Tooltip content={<CustomTooltip />} />
-          <Bar 
-            dataKey="value" 
-            fill="#3b82f6" 
-            radius={[4, 4, 0, 0]} 
-          />
+          <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

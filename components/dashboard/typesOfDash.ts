@@ -36,10 +36,14 @@ export interface FinalBalanceData {
   society_name: string
   society_balance: number
   total_expense: number
-  total_maintenance: number
+  total_income: number
+  // total_maintenance: number
+  regular_maintenance_amount: number
+  pending_collected_maintenances: number
+  total_penalties_paid_current_month: number
   final_balance: number
-  raw_maintenance_amount: number
-  total_penalties: number
+  // raw_maintenance_amount: number
+  // total_penalties: number
 }
 
 export interface SocietySpecificData {
