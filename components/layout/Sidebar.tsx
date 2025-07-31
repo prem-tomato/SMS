@@ -257,7 +257,7 @@ export default function Sidebar() {
                 <MonetizationOnOutlinedIcon />
               </ListItemIcon>
               <ListItemText
-                primary="Transactions"
+                primary="Finances"
                 primaryTypographyProps={{
                   fontSize: "12px",
                   fontWeight: openTransactions ? 700 : 500,
