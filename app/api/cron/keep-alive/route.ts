@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateMonthlyDues } from "@/lib/cron/generateMonthlyDues";
 
-export async function GET() {
+export async function POST() {
   console.log(
     "🕒 Cron fired at:",
     new Date().toLocaleString("en-IN", { timeZone: "Asia/Singapore" })

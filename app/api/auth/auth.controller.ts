@@ -70,8 +70,6 @@ export const loginController = async (
       societyType: society?.society_type
     };
 
-    console.log("tokenPayload", tokenPayload);
-
     const accessToken: string = authorizeServices.createToken(
       tokenPayload,
       JWT_SECRET,

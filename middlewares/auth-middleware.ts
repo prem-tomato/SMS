@@ -39,8 +39,6 @@ export async function authMiddleware(request: NextRequest) {
       JWT_SECRET
     );
 
-    console.log("payload", payload);
-
     // Set user info in the headers after successful verification
     request.headers.set("userId", payload.userId);
     request.headers.set("role", payload.role);
