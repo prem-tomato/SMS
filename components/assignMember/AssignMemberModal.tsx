@@ -182,7 +182,7 @@ export default function AssignMemberModal({
     >
       <DialogTitle sx={{ pb: 2 }}>
         <Typography variant="h6" fontWeight="bold">
-          {societyType === "commercial" ? "Assign Owner to Shop" : "Assign Resident to Flat"}
+          {societyType === "commercial" ? "Assign Shop to Owner" : "Assign Flat to Resident"}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {societyType === "commercial"
