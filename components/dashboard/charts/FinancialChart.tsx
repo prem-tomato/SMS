@@ -25,7 +25,12 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
     },
     {
       name: "Collected Amount",
-      value: Math.abs(data.regular_maintenance_amount || 0),
+      value: Math.abs(
+        data.regular_maintenance_amount +
+          data.pending_collected_maintenances +
+          data.total_income +
+          data.total_penalties_paid_current_month || 0
+      ),
       color: "#f59e0b",
     },
     {
