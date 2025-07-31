@@ -33,11 +33,15 @@ import { array, object, string, z } from "zod";
 
 const schema = z.object({
   flat_number: z.string().min(1, "Flat number is required"),
-  floor_number: z.string().refine((val) => !isNaN(Number(val)), {
-    message: "Invalid floor number",
-  }),
+  floor_number: z
+    .string()
+    .min(1, "Floor number is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Floor number must be a valid number",
+    }),
   square_foot: z
     .string()
+    .min(1, "Square foot is required")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Square foot must be a positive number",
     }),
@@ -67,9 +71,12 @@ const schema = z.object({
       reason: string().optional(),
     })
   ).optional(),
-  current_maintenance: z.string().refine((val) => !isNaN(Number(val)), {
-    message: "Current maintenance must be a number",
-  }),
+  current_maintenance: z
+    .string()
+    .min(1, "Current maintenance is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Current maintenance must be a valid number",
+    }),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -165,7 +172,7 @@ export default function AddFlatModal({
       flat_number: string;
       floor_number: number;
       square_foot: number;
-      pending_maintenance: { amount: number; reason: string }[];
+      pending_maintenance?: { amount: number; reason: string }[];
       current_maintenance: number;
     }) => createFlat(societyId, buildingId, data),
     onSuccess: () => {
@@ -234,19 +241,38 @@ export default function AddFlatModal({
     if (hasErrors) return;
 
     setBackendError(null);
-    mutation.mutate({
-      flat_number: data.flat_number,
-      floor_number: Number(data.floor_number) || 0,
-      square_foot: Number(data.square_foot) || 0,
-      pending_maintenance: (data.pending_maintenance ?? []).map((item) => ({
+
+    // Filter out empty pending maintenance entries
+    const filteredPendingMaintenance = (data.pending_maintenance ?? [])
+      .map((item) => ({
         amount:
           typeof item.amount === "string"
             ? Number(item.amount) || 0
             : item.amount ?? 0,
         reason: item.reason ?? "",
-      })),
+      }))
+      .filter((item) => item.amount > 0 || item.reason.trim() !== "");
+
+    // Prepare the payload
+    const payload: {
+      flat_number: string;
+      floor_number: number;
+      square_foot: number;
+      pending_maintenance?: { amount: number; reason: string }[];
+      current_maintenance: number;
+    } = {
+      flat_number: data.flat_number,
+      floor_number: Number(data.floor_number) || 0,
+      square_foot: Number(data.square_foot) || 0,
       current_maintenance: Number(data.current_maintenance) || 0,
-    });
+    };
+
+    // Only add pending_maintenance if there are valid entries
+    if (filteredPendingMaintenance.length > 0) {
+      payload.pending_maintenance = filteredPendingMaintenance;
+    }
+
+    mutation.mutate(payload);
   };
 
   // Reset form and state when modal opens
@@ -405,6 +431,7 @@ export default function AddFlatModal({
                 setBuildingId(e.target.value);
                 setBackendError(null);
               }}
+              required
               MenuProps={{
                 PaperProps: {
                   sx: {
@@ -437,6 +464,7 @@ export default function AddFlatModal({
                 error={!!errors.flat_number}
                 helperText={errors.flat_number?.message}
                 fullWidth
+                required
                 sx={{
                   "& .MuiOutlinedInput-root": { borderRadius: 2 },
                 }}
@@ -470,6 +498,7 @@ export default function AddFlatModal({
                       : "")
                   }
                   fullWidth
+                  required
                   inputProps={{
                     min: 0,
                     max: maxFloors || undefined,
@@ -495,6 +524,11 @@ export default function AddFlatModal({
                 helperText={errors.square_foot?.message}
                 fullWidth
                 type="number"
+                required
+                inputProps={{ min: 1 }}
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
               />
             )}
           />
@@ -593,6 +627,11 @@ export default function AddFlatModal({
                 helperText={errors.current_maintenance?.message}
                 fullWidth
                 type="number"
+                required
+                inputProps={{ min: 0 }}
+                sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: 2 },
+                }}
               />
             )}
           />
