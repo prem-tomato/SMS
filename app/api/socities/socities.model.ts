@@ -442,7 +442,9 @@ export const getFlats = async (params: {
 export const listSocieties = async (): Promise<Societies[]> => {
   try {
     const queryText: string = `
-      SELECT * FROM societies
+      SELECT *,
+            (end_date IS NULL OR end_date >= CURRENT_DATE) AS is_active
+      FROM societies;
     `;
 
     const res: QueryResult<Societies> = await query<Societies>(queryText);

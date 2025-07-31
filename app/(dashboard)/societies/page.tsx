@@ -252,7 +252,6 @@ export default function SocietiesPage() {
     { field: "address", headerName: "Address", flex: 1 },
     { field: "city", headerName: "City", flex: 1 },
     { field: "state", headerName: "State", flex: 1 },
-    { field: "country", headerName: "Country", flex: 1 },
     {
       field: "end_date",
       headerName: "End Date",
@@ -272,6 +271,39 @@ export default function SocietiesPage() {
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         });
+      },
+    },
+    {
+      field: "is_active",
+      headerName: "Status",
+      flex: 1,
+      renderCell: (params: any) => {
+        const isActive = params.value;
+
+        return (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              fontSize: "0.875rem",
+              color: isActive ? "#10b981" : "#ef4444",
+              fontWeight: 500,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                backgroundColor: isActive ? "#10b981" : "#ef4444",
+                transition: "background-color 0.2s",
+              }}
+            />
+            <span>{isActive ? "Active" : "Inactive"}</span>
+          </div>
+        );
       },
     },
     ...(role === "super_admin"

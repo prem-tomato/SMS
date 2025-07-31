@@ -33,6 +33,7 @@ export type Societies = {
   society_type: (typeof societyType)[keyof typeof societyType];
   created_by: string;
   created_at: string;
+  is_active: boolean;
 };
 
 export type Building = {
