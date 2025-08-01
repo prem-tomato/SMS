@@ -444,7 +444,8 @@ export const listSocieties = async (): Promise<Societies[]> => {
     const queryText: string = `
       SELECT *,
             (end_date IS NULL OR end_date >= CURRENT_DATE) AS is_active
-      FROM societies;
+      FROM societies
+      WHERE is_deleted = false
     `;
 
     const res: QueryResult<Societies> = await query<Societies>(queryText);
@@ -1093,5 +1094,45 @@ export const getFlatMaintenanceDetails = async (
     return res.rows;
   } catch (error) {
     throw new Error(`Error getting flat maintenance details: ${error}`);
+  }
+};
+
+export const softDeleteSociety = async (
+  societyId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      UPDATE societies
+      SET is_deleted = TRUE,
+        deleted_at = NOW(),
+        deleted_by = $2,
+        updated_at = NOW(),
+        updated_by = $2
+      WHERE id = $1
+    `;
+
+    await query(queryText, [societyId, userId]);
+  } catch (error) {
+    throw new Error(`Error soft deleting society: ${error}`);
+  }
+};
+
+export const checkSocietyInBuilding = async (
+  societyId: string
+): Promise<string | undefined> => {
+  try {
+    const queryText: string = `
+      SELECT id FROM buildings
+      WHERE society_id = $1
+    `;
+
+    const res: QueryResult<{ id: string | undefined }> = await query<{
+      id: string | undefined;
+    }>(queryText, [societyId]);
+
+    return res.rows[0]?.id;
+  } catch (error) {
+    throw new Error(`Error soft deleting society: ${error}`);
   }
 };

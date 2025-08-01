@@ -87,3 +87,17 @@ export const deleteSociety = async (id: string): Promise<void> => {
   if (!res.ok) throw new Error("Failed to delete society");
   return res.json();
 };
+
+export const softDeleteSociety = async (societyId: string): Promise<void> => {
+  const token = getAccessToken();
+
+  const res = await fetch(`/api/socities/${societyId}/delete-society`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to soft delete society");
+  return res.json();
+};

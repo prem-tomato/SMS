@@ -45,5 +45,6 @@
     "SETTLEMENT_UPDATED_SUCCESSFULLY": "settlement updated successfully",
     "SETTLEMENT_NOT_FOUND": "settlement not found",
     "BULK_MONETIZE_SUCCESSFULLY": "bulk monetize successfully",
-    "INCOME_TRACKING_ADDED_SUCCESSFULLY": "income tracking added successfully"
+    "INCOME_TRACKING_ADDED_SUCCESSFULLY": "income tracking added successfully",
+    "SOCIETY_ALREADY_IN_USE": "Society already in use"
 }

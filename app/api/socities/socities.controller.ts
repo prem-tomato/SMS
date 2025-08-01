@@ -20,6 +20,7 @@ import {
   addSocieties,
   assignMembersToFlat,
   checkLoginKeyUnique,
+  checkSocietyInBuilding,
   createNotice,
   deleteSocietyModel,
   findBuildingById,
@@ -42,6 +43,7 @@ import {
   listVacantFlats,
   markFlatPenaltyDeleted,
   markFlatPenaltyPaid,
+  softDeleteSociety,
   toggleForIsOccupied,
   toggleNoticeStatus,
   updateEndDate,
@@ -1197,6 +1199,46 @@ export const getManageMaintenanceController = async (params: {
     );
   } catch (error: any) {
     socitiesLogger.error("Error in getManageMaintenanceController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const softDeleteSocietyController = async (
+  request: Request,
+  societyId: string
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const checkInBuilding = await checkSocietyInBuilding(societyId);
+    if (checkInBuilding) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_ALREADY_IN_USE")
+      );
+    }
+
+    await softDeleteSociety(societyId, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("SOCIETY_DELETED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in softDeleteSocietyController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

@@ -682,3 +682,17 @@ create type society_type as enum ('residential', 'commercial')
 
 alter table societies 
 add column society_type society_type 
+
+alter TABLE societies
+ADD COLUMN  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN  updated_at TIMESTAMPTZ DEFAULT now(),
+ADD COLUMN  updated_by UUID REFERENCES users(id),
+ADD COLUMN  deleted_at TIMESTAMPTZ,
+ADD COLUMN  deleted_by UUID REFERENCES users(id)
+
+alter TABLE notices
+ADD COLUMN  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN  updated_at TIMESTAMPTZ DEFAULT now(),
+ADD COLUMN  updated_by UUID REFERENCES users(id),
+ADD COLUMN  deleted_at TIMESTAMPTZ,
+ADD COLUMN  deleted_by UUID REFERENCES users(id)

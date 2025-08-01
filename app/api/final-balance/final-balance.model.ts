@@ -116,9 +116,6 @@ LEFT JOIN (
   GROUP BY society_id
 ) AS regular_maintenance ON regular_maintenance.society_id = s.id
 -- Pending/Collected Maintenances (flat_maintenances -> settlements/monthly)
-
-
-
 LEFT JOIN (
   SELECT
     fm.society_id,
@@ -150,11 +147,6 @@ LEFT JOIN (
     AND (settlements.settlement_amount IS NOT NULL OR monthly.monthly_amount IS NOT NULL)
   GROUP BY fm.society_id
 ) AS pending_maintenance ON pending_maintenance.society_id = s.id
-
-
-
-
-
 -- Penalties paid in current month only
 LEFT JOIN (
   SELECT
@@ -167,7 +159,7 @@ LEFT JOIN (
     AND DATE_TRUNC('month', fp.paid_at) = DATE_TRUNC('month', CURRENT_DATE)
   GROUP BY f.society_id
 ) AS penalty_data ON penalty_data.society_id = s.id
-WHERE s.id = $1;
+WHERE s.id = $1 AND s.is_deleted = false;
     `;
 
     const res: QueryResult<FinalBalanceResponse> =

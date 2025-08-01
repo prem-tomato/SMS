@@ -20,23 +20,37 @@ export const getSocietyIdByMemberId = async (
 
 export const getAdminDashboard = async (societyId: string): Promise<any> => {
   try {
-    const societyFilter = societyId ? `WHERE s.id = '${societyId}'` : "";
+    const societyFilter = societyId
+      ? `WHERE s.id = '${societyId}' AND s.is_deleted = false`
+      : "WHERE s.is_deleted = false";
 
     const queryText = `
       SELECT json_build_object(
-          'total_societies', (SELECT COUNT(*) FROM public.societies ${societyId ? `WHERE id = '${societyId}'` : ''}),
+          'total_societies', (SELECT COUNT(*) FROM public.societies ${
+            societyId
+              ? `WHERE id = '${societyId}' AND is_deleted = false`
+              : "WHERE is_deleted = false"
+          }),
           'total_buildings', (
             SELECT COUNT(*) 
             FROM public.buildings b
             JOIN public.societies s ON s.id = b.society_id
-            ${societyFilter}
+            ${
+              societyId
+                ? `AND s.id = '${societyId}' AND s.is_deleted = false`
+                : "AND s.is_deleted = false"
+            }
           ),
           'total_flats', (
             SELECT COUNT(*) 
             FROM public.flats f
             JOIN public.buildings b ON f.building_id = b.id
             JOIN public.societies s ON b.society_id = s.id
-            ${societyFilter}
+            ${
+              societyId
+                ? `AND s.id = '${societyId}' AND s.is_deleted = false`
+                : "AND s.is_deleted = false"
+            }
           ),
           'occupied_flats', (
             SELECT COUNT(*) 
@@ -44,7 +58,11 @@ export const getAdminDashboard = async (societyId: string): Promise<any> => {
             JOIN public.buildings b ON f.building_id = b.id
             JOIN public.societies s ON b.society_id = s.id
             WHERE f.is_occupied = true
-            ${societyId ? `AND s.id = '${societyId}'` : ''}
+            ${
+              societyId
+                ? `AND s.id = '${societyId}' AND s.is_deleted = false`
+                : "AND s.is_deleted = false"
+            }
           ),
           'total_members', (
             SELECT COUNT(*) 
@@ -52,14 +70,19 @@ export const getAdminDashboard = async (societyId: string): Promise<any> => {
             JOIN public.flats f ON m.flat_id = f.id
             JOIN public.buildings b ON f.building_id = b.id
             JOIN public.societies s ON b.society_id = s.id
-            ${societyFilter}
+            ${
+              societyId
+                ? `AND s.id = '${societyId}' AND s.is_deleted = false`
+                : "AND s.is_deleted = false"
+            }
           ),
           'recent_notices', (
             SELECT COALESCE(json_agg(row_to_json(notices)), '[]') FROM (
               SELECT n.id, n.title, n.created_at, n.status
               FROM public.notices n
               JOIN public.societies s ON n.society_id = s.id
-              ${societyFilter}
+              WHERE n.is_deleted = false AND s.is_deleted = false
+              ${societyId ? `AND s.id = '${societyId}'` : ""}
               ORDER BY n.created_at DESC
               LIMIT 5
             ) notices
@@ -73,7 +96,8 @@ export const getAdminDashboard = async (societyId: string): Promise<any> => {
                 (SELECT COUNT(*) FROM public.flats f JOIN public.buildings b ON f.building_id = b.id WHERE b.society_id = s.id) AS total_flats,
                 (SELECT COUNT(*) FROM public.members m JOIN public.flats f ON m.flat_id = f.id JOIN public.buildings b ON f.building_id = b.id WHERE b.society_id = s.id) AS total_members
               FROM public.societies s
-              ${societyId ? `WHERE s.id = '${societyId}'` : ''}
+              WHERE s.is_deleted = false
+              ${societyId ? `AND s.id = '${societyId}'` : ""}
               ORDER BY s.name
             ) soc_data
           ),
@@ -85,14 +109,16 @@ export const getAdminDashboard = async (societyId: string): Promise<any> => {
               JOIN public.flats f ON m.flat_id = f.id
               JOIN public.buildings b ON f.building_id = b.id
               JOIN public.societies s ON b.society_id = s.id
-              ${societyFilter}
+              WHERE u.is_deleted = false AND s.is_deleted = false
+              ${societyId ? `AND s.id = '${societyId}'` : ""}
             ) members
           ),
           'all_notices', (
             SELECT COALESCE(json_agg(row_to_json(n)), '[]')
             FROM public.notices n
             JOIN public.societies s ON n.society_id = s.id
-            ${societyFilter}
+            WHERE n.is_deleted = false AND s.is_deleted = false
+            ${societyId ? `AND s.id = '${societyId}'` : ""}
           )
       ) AS dashboard;
     `;

@@ -9,11 +9,13 @@ import {
   deleteSociety,
   fetchSocieties,
   setEndDateFunc,
+  softDeleteSociety,
 } from "@/services/societies";
 import { createUser } from "@/services/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import WarningIcon from "@mui/icons-material/Warning";
 import {
   Box,
   Button,
@@ -108,6 +110,7 @@ export default function SocietiesPage() {
     null
   );
   const [endDateDialogOpen, setEndDateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [role, setRole] = useState<string | null>(null);
 
@@ -236,6 +239,21 @@ export default function SocietiesPage() {
       },
     });
 
+  const { mutateAsync: deleteMutation, isPending: isDeleting } = useMutation({
+    mutationFn: (societyId: string) => softDeleteSociety(societyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["societies"] });
+      setDeleteDialogOpen(false);
+      setMenuAnchor(null);
+      setSelectedSocietyId(null);
+      toast.success("Society deleted successfully");
+    },
+    onError: (error: any) => {
+      console.error("Failed to delete society:", error);
+      toast.error("Society already in use.");
+    },
+  });
+
   const filteredSocieties = useMemo(
     () =>
       societies.filter(
@@ -245,6 +263,8 @@ export default function SocietiesPage() {
       ),
     [societies, search]
   );
+
+  const selectedSociety = societies.find((s) => s.id === selectedSocietyId);
 
   const columns = [
     { field: "name", headerName: "Society", flex: 1 },
@@ -331,6 +351,11 @@ export default function SocietiesPage() {
     await endDateMutation({ id: selectedSocietyId, end_date: endDate });
   };
 
+  const handleDeleteSociety = async () => {
+    if (!selectedSocietyId) return;
+    await deleteMutation(selectedSocietyId);
+  };
+
   return (
     <>
       <Box height="calc(100vh - 180px)">
@@ -372,6 +397,15 @@ export default function SocietiesPage() {
             {societies.find((s) => s.id === selectedSocietyId)?.end_date
               ? "Update End Date"
               : "Set End Date"}
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setDeleteDialogOpen(true);
+              setMenuAnchor(null);
+            }}
+            sx={{ color: "#ef4444" }}
+          >
+            Delete Society
           </MenuItem>
         </Menu>
 
@@ -417,6 +451,51 @@ export default function SocietiesPage() {
               sx={{ textTransform: "none", bgcolor: "#1e1ee4" }}
             >
               Update
+            </CommonButton>
+          </DialogActions>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          fullWidth
+          maxWidth="xs"
+          PaperProps={{ sx: { borderRadius: 2 } }}
+        >
+          <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <WarningIcon sx={{ color: "#ef4444" }} />
+            <Typography variant="h6" fontWeight="bold">
+              Delete Society
+            </Typography>
+          </DialogTitle>
+
+          <DialogContent sx={{ pt: 1 }}>
+            <Typography variant="body1">
+              Are you sure you want to delete the society{" "}
+              <strong>"{selectedSociety?.name}"</strong>?
+            </Typography>
+          </DialogContent>
+
+          <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
+            <Button
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+              sx={{ textTransform: "none" }}
+            >
+              Cancel
+            </Button>
+            <CommonButton
+              variant="contained"
+              loading={isDeleting}
+              onClick={handleDeleteSociety}
+              sx={{
+                textTransform: "none",
+                bgcolor: "#ef4444",
+                "&:hover": { bgcolor: "#dc2626" },
+              }}
+            >
+              Delete Society
             </CommonButton>
           </DialogActions>
         </Dialog>
