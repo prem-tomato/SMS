@@ -8,27 +8,28 @@ export async function generateMonthlyDues() {
   try {
     const result = await sql`
       INSERT INTO public.member_monthly_maintenance_dues (
-      society_id, building_id, flat_id, member_ids, month_year,
-      maintenance_amount, created_by, created_at, updated_by, updated_at
-    )
+          society_id, building_id, flat_id, member_ids, month_year,
+          maintenance_amount, created_by, created_at, updated_by, updated_at
+      )
       SELECT
-        m.society_id,
-        m.building_id,
-        m.flat_id,
-        ARRAY_AGG(m.id),
-        date_trunc('month', CURRENT_DATE)::date,
-        f.current_maintenance,
-        '537a3518-e7f7-4049-9867-7254ca1486da',
-        NOW(),
-        '537a3518-e7f7-4049-9867-7254ca1486da',
-        NOW()
+          m.society_id,
+          m.building_id,
+          m.flat_id,
+          ARRAY_AGG(m.id),
+          CURRENT_DATE,  -- This will give you the actual current date
+          f.current_maintenance,
+          '537a3518-e7f7-4049-9867-7254ca1486da',
+          NOW(),
+          '537a3518-e7f7-4049-9867-7254ca1486da',
+          NOW()
       FROM public.members m
       JOIN public.flats f ON f.id = m.flat_id
-      GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
-      HAVING NOT EXISTS (
-        SELECT 1 FROM public.member_monthly_maintenance_dues d
-        WHERE d.flat_id = m.flat_id AND d.month_year = date_trunc('month', CURRENT_DATE)::date
-      );
+      WHERE NOT EXISTS (
+          SELECT 1 FROM public.member_monthly_maintenance_dues d
+          WHERE d.flat_id = m.flat_id 
+          AND d.month_year = CURRENT_DATE  -- Also update this condition
+      )
+      GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance;
     `;
 
     console.log(`[✔] Monthly dues inserted for ${monthStart}`);
