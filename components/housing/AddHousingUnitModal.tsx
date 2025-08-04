@@ -28,10 +28,6 @@ const schema = z.object({
     .string()
     .min(1, "Unit type is required")
     .max(50, "Unit type must be 50 characters or less"),
-  address_line: z
-    .string()
-    .min(1, "Address is required")
-    .max(100, "Address must be 100 characters or less"),
   square_foot: z.number().int().min(1, "Square foot must be at least 1"),
   current_maintenance: z
     .number()
@@ -66,7 +62,6 @@ export default function AddHousingUnitDialog({ open, onClose }: Props) {
       society_id: "",
       unit_number: "",
       unit_type: "",
-      address_line: "",
       square_foot: 0,
       current_maintenance: 0,
     },
@@ -175,22 +170,6 @@ export default function AddHousingUnitDialog({ open, onClose }: Props) {
                 <MenuItem value="Raw House">Raw House</MenuItem>
                 <MenuItem value="Villas">Villas</MenuItem>
               </TextField>
-            )}
-          />
-
-          <Controller
-            name="address_line"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Address Line"
-                fullWidth
-                disabled={isPending}
-                error={!!errors.address_line}
-                helperText={errors.address_line?.message}
-                placeholder="Street address, building details"
-              />
             )}
           />
 

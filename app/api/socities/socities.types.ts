@@ -292,7 +292,6 @@ export type HousingUnits = {
   society_id: string;
   unit_number: string;
   unit_type: string;
-  address_line: string;
   square_foot: number;
   current_maintenance: number;
   is_occupied: boolean;

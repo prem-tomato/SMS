@@ -704,7 +704,6 @@ CREATE TABLE public.housing_units (
 	society_id uuid NOT NULL,
 	unit_number varchar(20) NOT NULL, -- House/plot number
 	unit_type varchar(50) NOT NULL, -- 'bungalow', 'raw_house', 'villa', etc.
-	address_line text NULL, -- Specific address within society
 	square_foot numeric(10, 2) NULL,
 	current_maintenance numeric(10, 2) NULL,
 	is_occupied bool DEFAULT false NULL,

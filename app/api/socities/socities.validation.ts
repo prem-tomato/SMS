@@ -243,9 +243,6 @@ export const addHousingUnitValidation = object({
     unit_type: string()
       .min(1, "Unit type is required")
       .max(50, "Unit type must be less than 50 characters"),
-    address_line: string()
-      .min(1, "Address line is required")
-      .max(100, "Address line must be less than 100 characters"),
     square_foot: number()
       .int("Square foot must be an integer")
       .min(1, "Square foot must be at least 1"),

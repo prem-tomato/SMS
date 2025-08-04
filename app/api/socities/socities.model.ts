@@ -1201,7 +1201,6 @@ export const addHousingUnit = async (
         society_id,
         unit_type,
         unit_number,
-        address_line,
         square_foot,
         current_maintenance,
         created_by,
@@ -1216,7 +1215,6 @@ export const addHousingUnit = async (
         $4,
         $5,
         $6,
-        $7,
         NOW(),
         $7,
         NOW()
@@ -1230,7 +1228,6 @@ export const addHousingUnit = async (
         societyId,
         body.unit_type,
         body.unit_number,
-        body.address_line,
         body.square_foot,
         body.current_maintenance,
         userId,

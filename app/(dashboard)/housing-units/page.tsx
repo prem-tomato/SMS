@@ -24,7 +24,6 @@ export default function HousingUnitsPage() {
     () => [
       { field: "unit_number", headerName: "Unit Number", flex: 1 },
       { field: "unit_type", headerName: "Unit Type", flex: 1 },
-      { field: "address_line", headerName: "Address", flex: 2 },
       { field: "square_foot", headerName: "Sq. Ft", flex: 1 },
       { field: "current_maintenance", headerName: "Maintenance (₹)", flex: 1 },
     ],
