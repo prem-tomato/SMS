@@ -86,3 +86,18 @@ export async function markSettlementAsPaid(
     throw new Error(json.message || "Failed to mark settlement as paid");
   }
 }
+
+export async function getDuesYearMonth() {
+  const token = getAccessToken();
+  const res = await fetch("/api/dues-year-month", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.message || "Failed to get dues year month");
+  }
+  return json;
+}
