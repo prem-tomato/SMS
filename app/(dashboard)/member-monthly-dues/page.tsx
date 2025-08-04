@@ -6,7 +6,6 @@ import {
   getSocietyTypeFromLocalStorage,
   getUserRole,
 } from "@/lib/auth";
-import { getDuesYearMonth } from "@/services/manage-flat-maintenance";
 import {
   bulkMonetize,
   getMemberMonthlyDueRecord,
@@ -18,7 +17,6 @@ import ClearIcon from "@mui/icons-material/Clear";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PaymentIcon from "@mui/icons-material/Payment";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -37,7 +35,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   Stack,
   SxProps,
   Table,
@@ -60,10 +57,8 @@ export default function MemberMonthlyDues() {
   const queryClient = useQueryClient();
   const [role, setRole] = useState<string>("");
   const [adminSocietyId, setAdminSocietyId] = useState<string>("");
-  
-  // FIX: Initialize selectedMonth as empty string to avoid timing issues
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
-  
+  const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
@@ -138,45 +133,10 @@ export default function MemberMonthlyDues() {
       },
     });
 
-  // FIX: Load available months first and extract month_year strings
-  const { data: availableMonthsRaw = [], isLoading: loadingAvailableMonths } =
-    useQuery({
-      queryKey: ["dues-year-month"],
-      queryFn: getDuesYearMonth,
-    });
-
-  // FIX: Extract month_year strings from the API response
-  const availableMonths = availableMonthsRaw.map((item: any) => item.month_year);
-
-  // FIX: Set selectedMonth after availableMonths loads
-  useEffect(() => {
-    if (availableMonths.length > 0 && !selectedMonth) {
-      const currentMonth = dayjs().startOf("month").format("YYYY-MM-DD");
-      // Use current month if available, otherwise use the latest available month
-      const monthToSelect = availableMonths.includes(currentMonth) 
-        ? currentMonth 
-        : availableMonths[availableMonths.length - 1];
-      
-      // FIX: Ensure monthToSelect is a string
-      console.log("Setting selectedMonth to:", monthToSelect, typeof monthToSelect);
-      if (typeof monthToSelect === 'string') {
-        setSelectedMonth(monthToSelect);
-      }
-    }
-  }, [availableMonths, selectedMonth]);
-
   const { data: MemberMonthlyDues = [], isLoading: loadingMemberMonthlyDues } =
     useQuery({
       queryKey: ["member-monthly-dues", selectedMonth],
       queryFn: async () => {
-        console.log("API call with selectedMonth:", selectedMonth, typeof selectedMonth);
-        
-        // FIX: Additional validation before API call
-        if (!selectedMonth || typeof selectedMonth !== 'string') {
-          console.error("Invalid selectedMonth:", selectedMonth);
-          return [];
-        }
-        
         if (role === "admin" && adminSocietyId) {
           return await getMembersMonthlyDuesForAdmin(
             adminSocietyId,
@@ -185,9 +145,18 @@ export default function MemberMonthlyDues() {
         }
         return await getMembersMonthlyDues(selectedMonth);
       },
-      // FIX: Only run query when selectedMonth is available AND is a string
-      enabled: !!role && !!selectedMonth && typeof selectedMonth === 'string',
+      enabled: !!role && !!selectedMonth,
     });
+
+  const { data: availableMonths = [] } = useQuery({
+    queryKey: ["dues-year-month"],
+    queryFn: async () => {
+      const res = await fetch("/api/dues-year-month");
+      if (!res.ok) throw new Error("Failed to fetch months");
+      const json = await res.json();
+      return json.map((item: any) => item.month_year);
+    },
+  });
 
   const handleBulkMonetize = async () => {
     if (selectedRows.length === 0) {
@@ -391,14 +360,6 @@ export default function MemberMonthlyDues() {
         </Tooltip>
         <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
           <MenuItem onClick={handleView}>View Record</MenuItem>
-          {!row.maintenance_paid && (
-            <MenuItem
-              disabled={isPending}
-              onClick={() => handleUpdate({ maintenance_paid: true })}
-            >
-              Mark Maintenance Paid
-            </MenuItem>
-          )}
         </Menu>
         <Dialog
           open={openDialog}
@@ -499,8 +460,7 @@ export default function MemberMonthlyDues() {
     );
   };
 
-  // FIX: Show loading state while months or initial data is loading
-  if (loadingAvailableMonths || (loadingMemberMonthlyDues && !selectedMonth)) {
+  if (loadingMemberMonthlyDues) {
     return (
       <Box
         display="flex"
@@ -551,16 +511,8 @@ export default function MemberMonthlyDues() {
                   labelId="month-select-label"
                   value={selectedMonth}
                   label="Select Month"
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    console.log("Month selection changed:", value, typeof value);
-                    // FIX: Ensure value is string before setting
-                    if (typeof value === 'string') {
-                      setSelectedMonth(value);
-                    }
-                  }}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
                   sx={{ backgroundColor: "white" }}
-                  disabled={loadingAvailableMonths}
                 >
                   {availableMonths.map((month: string) => (
                     <MenuItem key={month} value={month}>
@@ -569,18 +521,6 @@ export default function MemberMonthlyDues() {
                   ))}
                 </Select>
               </FormControl>
-              
-              {/* FIX: Show loading indicator */}
-              {loadingAvailableMonths && (
-                <CircularProgress size={16} />
-              )}
-              
-              {/* FIX: Show message when no months available */}
-              {availableMonths.length === 0 && !loadingAvailableMonths && (
-                <Typography variant="body2" color="error">
-                  No months available
-                </Typography>
-              )}
             </Stack>
           </Stack>
 
@@ -957,21 +897,6 @@ export default function MemberMonthlyDues() {
           }}
         />
       </Card>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }
