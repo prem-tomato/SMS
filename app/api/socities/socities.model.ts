@@ -1216,7 +1216,7 @@ export const addHousingUnit = async (
         $5,
         $6,
         NOW(),
-        $7,
+        $6,
         NOW()
       )
       RETURNING *
