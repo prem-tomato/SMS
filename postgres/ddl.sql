@@ -790,3 +790,17 @@ WHERE m.housing_id IS NOT NULL
       AND d.month_year = DATE '2025-08-01'
 )
 GROUP BY m.society_id, m.housing_id, h.current_maintenance
+
+ALTER TABLE member_monthly_maintenance_dues
+ADD CONSTRAINT chk_month_year_first_day
+CHECK (EXTRACT(DAY FROM month_year) = 1);
+
+-- 👷 Ensures one dues record per flat per month
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_dues_flat_month
+  ON member_monthly_maintenance_dues(flat_id, month_year)
+  WHERE flat_id IS NOT NULL;
+
+-- 🏘️ Ensures one dues record per housing unit per month
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_dues_housing_month
+  ON member_monthly_maintenance_dues(housing_id, month_year)
+  WHERE housing_id IS NOT NULL;

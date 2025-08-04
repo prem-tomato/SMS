@@ -8,28 +8,66 @@ export async function generateMonthlyDues() {
   try {
     const result = await sql`
       INSERT INTO public.member_monthly_maintenance_dues (
-          society_id, building_id, flat_id, member_ids, month_year,
-          maintenance_amount, created_by, created_at, updated_by, updated_at
+        society_id,
+        building_id,
+        flat_id,
+        housing_id,
+        member_ids,
+        month_year,
+        maintenance_amount,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
       )
+      -- 🎯 1. FLAT MEMBERS
       SELECT
-          m.society_id,
-          m.building_id,
-          m.flat_id,
-          ARRAY_AGG(m.id),
-          CURRENT_DATE,  -- This will give you the actual current date
-          f.current_maintenance,
-          '537a3518-e7f7-4049-9867-7254ca1486da',
-          NOW(),
-          '537a3518-e7f7-4049-9867-7254ca1486da',
-          NOW()
+        m.society_id,
+        m.building_id,
+        m.flat_id,
+        NULL::uuid AS housing_id,
+        ARRAY_AGG(m.id),
+        DATE_TRUNC('month', CURRENT_DATE),
+        f.current_maintenance,
+        '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+        NOW(),
+        '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+        NOW()
       FROM public.members m
       JOIN public.flats f ON f.id = m.flat_id
-      WHERE NOT EXISTS (
-          SELECT 1 FROM public.member_monthly_maintenance_dues d
-          WHERE d.flat_id = m.flat_id 
-          AND d.month_year = CURRENT_DATE  -- Also update this condition
+      WHERE m.flat_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM public.member_monthly_maintenance_dues d
+          WHERE d.flat_id = m.flat_id
+            AND d.month_year = DATE_TRUNC('month', CURRENT_DATE)
       )
-      GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance;
+      GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
+
+      UNION ALL
+      -- 🎯 2. HOUSING UNIT MEMBERS
+      SELECT
+        m.society_id,
+        NULL::uuid AS building_id,
+        NULL::uuid AS flat_id,
+        m.housing_id,
+        ARRAY_AGG(m.id),
+        DATE_TRUNC('month', CURRENT_DATE),
+        h.current_maintenance,
+        '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+        NOW(),
+        '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+        NOW()
+      FROM public.members m
+      JOIN public.housing_units h ON h.id = m.housing_id
+      WHERE m.housing_id IS NOT NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM public.member_monthly_maintenance_dues d
+          WHERE d.housing_id = m.housing_id
+            AND d.month_year = DATE_TRUNC('month', CURRENT_DATE)
+      )
+      GROUP BY m.society_id, m.housing_id, h.current_maintenance
     `;
 
     console.log(`[✔] Monthly dues inserted for ${monthStart}`);
