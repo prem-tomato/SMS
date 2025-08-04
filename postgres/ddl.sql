@@ -696,3 +696,98 @@ ADD COLUMN  updated_at TIMESTAMPTZ DEFAULT now(),
 ADD COLUMN  updated_by UUID REFERENCES users(id),
 ADD COLUMN  deleted_at TIMESTAMPTZ,
 ADD COLUMN  deleted_by UUID REFERENCES users(id)
+
+ALTER TYPE public."society_type" ADD VALUE 'housing';
+
+CREATE TABLE public.housing_units (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	society_id uuid NOT NULL,
+	unit_number varchar(20) NOT NULL, -- House/plot number
+	unit_type varchar(50) NOT NULL, -- 'bungalow', 'raw_house', 'villa', etc.
+	address_line text NULL, -- Specific address within society
+	square_foot numeric(10, 2) NULL,
+	current_maintenance numeric(10, 2) NULL,
+	is_occupied bool DEFAULT false NULL,
+	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+	created_by uuid NULL,
+	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+	updated_by uuid NULL,
+	deleted_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+	deleted_by uuid NULL,
+	is_deleted boolean DEFAULT false NULL,
+	CONSTRAINT housing_units_pkey PRIMARY KEY (id),
+	CONSTRAINT housing_units_society_id_fkey FOREIGN KEY (society_id) REFERENCES public.societies(id),
+	CONSTRAINT housing_units_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
+);
+
+alter table members
+add COLUMN housing_id uuid REFERENCES public.housing_units(id) NULL
+
+alter table member_monthly_maintenance_dues
+add COLUMN housing_id uuid REFERENCES housing_units(id) NULL
+
+
+
+
+
+INSERT INTO public.member_monthly_maintenance_dues (
+  society_id,
+  building_id,
+  flat_id,
+  housing_id,
+  member_ids,
+  month_year,
+  maintenance_amount,
+  created_by,
+  created_at,
+  updated_by,
+  updated_at
+)
+-- 🎯 1. FLAT MEMBERS
+SELECT
+  m.society_id,
+  m.building_id,
+  m.flat_id,
+  NULL::uuid AS housing_id,
+  ARRAY_AGG(m.id),
+  DATE '2025-08-01',
+  f.current_maintenance,
+  '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+  NOW(),
+  '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+  NOW()
+FROM public.members m
+JOIN public.flats f ON f.id = m.flat_id
+WHERE m.flat_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM public.member_monthly_maintenance_dues d
+    WHERE d.flat_id = m.flat_id
+      AND d.month_year = DATE '2025-08-01'
+)
+GROUP BY m.society_id, m.building_id, m.flat_id, f.current_maintenance
+
+UNION ALL
+-- 🎯 2. HOUSING UNIT MEMBERS
+SELECT
+  m.society_id,
+  NULL::uuid AS building_id,
+  NULL::uuid AS flat_id,
+  m.housing_id,
+  ARRAY_AGG(m.id),
+  DATE '2025-08-01',
+  0.0, -- or use a real column if you track maintenance for housing units
+  '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+  NOW(),
+  '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
+  NOW()
+FROM public.members m
+JOIN public.housing_units h ON h.id = m.housing_id
+WHERE m.housing_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM public.member_monthly_maintenance_dues d
+    WHERE d.housing_id = m.housing_id
+      AND d.month_year = DATE '2025-08-01'
+)
+GROUP BY m.society_id, m.housing_id;

@@ -12,9 +12,11 @@ import {
   addEndDateValidation,
   addExpenseTrackingValidation,
   addFlatValidation,
+  addHousingUnitValidation,
   addIncomeTrackingValidation,
   addMemberValidation,
   addSocietyValidation,
+  assignHousingUnit,
   assignMemberValidation,
   flatPenaltyValidation,
   noticeResponseValidation,
@@ -284,3 +286,36 @@ export type MaintenanceView = Pick<
     "id" | "maintenance_id" | "settlement_amount"
   >[] &
   Pick<FlatMaintenanceMonthly, "id" | "maintenance_id" | "month" | "amount">[];
+
+export type HousingUnits = {
+  id: string;
+  society_id: string;
+  unit_number: string;
+  unit_type: string;
+  address_line: string;
+  square_foot: number;
+  current_maintenance: number;
+  is_occupied: boolean;
+  created_at: string;
+  created_by: string;
+  updated_at: string;
+  updated_by: string;
+  deleted_at: string;
+  deleted_by: string;
+  is_deleted: boolean;
+};
+
+export type AddHousingUnitReqBody = z.infer<
+  typeof addHousingUnitValidation.shape.body
+>;
+
+export type AssignHousingUnitReqBody = z.infer<
+  typeof assignHousingUnit.shape.body
+>;
+
+export type HousingOptions = Pick<
+  HousingUnits,
+  "id" | "unit_number" | "unit_type" | "is_occupied" | "square_foot"
+> & {
+  society_name: string;
+};

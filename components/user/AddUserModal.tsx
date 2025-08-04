@@ -166,7 +166,7 @@ export default function AddUserModal({
       >
         <DialogTitle>
           <Typography variant="h6" fontWeight="bold">
-            Add {societyType === "residential" ? "Resident" : "Shop Owner"}
+            Add {societyType === "commercial" ? "Shop Owner" : "Resident"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Enter details below
@@ -342,7 +342,7 @@ export default function AddUserModal({
               loading={mutation.isPending}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Save {societyType === "residential" ? "Resident" : "Shop Owner"}
+              Save {societyType === "commercial" ? "Shop Owner" : "Resident"}
             </CommonButton>
           </DialogActions>
         </Box>

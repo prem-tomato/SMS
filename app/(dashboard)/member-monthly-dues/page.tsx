@@ -1,7 +1,11 @@
 "use client";
 
 import { GetMemberMonthlyDuesResponse } from "@/app/api/member-monthly-dues/member-monthly-dues.types";
-import { getSocietyIdFromLocalStorage, getSocietyTypeFromLocalStorage, getUserRole } from "@/lib/auth";
+import {
+  getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
+  getUserRole,
+} from "@/lib/auth";
 import {
   bulkMonetize,
   getMemberMonthlyDueRecord,
@@ -34,6 +38,7 @@ import {
   Select,
   Snackbar,
   Stack,
+  SxProps,
   Table,
   TableBody,
   TableCell,
@@ -266,9 +271,11 @@ export default function MemberMonthlyDues() {
           .toLowerCase()
           .includes(filters.building.toLowerCase());
 
+      const safeIncludes = (value: string | null | undefined, filter: string) =>
+        (value ?? "").toLowerCase().includes(filter.toLowerCase());
+
       const flatMatch =
-        !filters.flat ||
-        row.flat_number.toLowerCase().includes(filters.flat.toLowerCase());
+        !filters.flat || safeIncludes(row.unit_identifier, filters.flat);
 
       const memberMatch =
         !filters.member ||
@@ -364,7 +371,6 @@ export default function MemberMonthlyDues() {
             </MenuItem>
           )}
         </Menu>
-
         <Dialog
           open={openDialog}
           onClose={() => setOpenDialog(false)}
@@ -376,22 +382,35 @@ export default function MemberMonthlyDues() {
             {recordDetails ? (
               <Stack spacing={2}>
                 <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Typography variant="subtitle2">Flat Details</Typography>
+                  <Typography variant="subtitle2">Unit Details</Typography>
+
                   <Typography variant="body2">
                     <strong>Society:</strong> {recordDetails.society_name}
                   </Typography>
-                  <Typography variant="body2">
-                    <strong>Building:</strong> {recordDetails.building_name}
-                  </Typography>
+
+                  {recordDetails.building_name && (
+                    <Typography variant="body2">
+                      <strong>Building:</strong> {recordDetails.building_name}
+                    </Typography>
+                  )}
+
                   <Typography variant="body2">
                     <strong>
-                      {societyType === "commercial" ? "Shop:" : "Flat:"}:
-                      </strong> {recordDetails.flat_number}
+                      {recordDetails.property_type === "commercial"
+                        ? "Shop"
+                        : recordDetails.property_type === "housing"
+                        ? "Bungalow"
+                        : "Flat"}
+                      :
+                    </strong>{" "}
+                    {recordDetails.unit_identifier}
                   </Typography>
+
                   <Typography variant="body2">
                     <strong>Month:</strong>{" "}
                     {dayjs(recordDetails.month_year).format("MMMM YYYY")}
                   </Typography>
+
                   <Typography variant="body2">
                     <strong>Member(s):</strong>{" "}
                     {(recordDetails.member_name || []).join(", ")}
@@ -464,6 +483,22 @@ export default function MemberMonthlyDues() {
     );
   }
 
+  const headCellStyle = (key?: string): SxProps => ({
+    backgroundColor: "#f8f9fa",
+    borderBottom: "2px solid #dee2e6",
+    fontWeight: 600,
+    color: "#495057",
+    py: 2,
+  });
+
+  const bodyCellStyle = (
+    variant: "bold" | "muted" | "normal" = "normal"
+  ): SxProps => ({
+    py: 2,
+    color: variant === "muted" ? "#6c757d" : "#495057",
+    fontWeight: variant === "bold" ? 500 : 400,
+  });
+
   return (
     <Box sx={{ height: "calc(100vh - 180px)", backgroundColor: "#fafafa" }}>
       {/* Header Section */}
@@ -516,6 +551,7 @@ export default function MemberMonthlyDues() {
               flexWrap="wrap"
               gap={2}
             >
+              {/* 🔹 Society filter for super admins */}
               {role === "super_admin" && (
                 <TextField
                   size="small"
@@ -534,23 +570,35 @@ export default function MemberMonthlyDues() {
                 />
               )}
 
-              <TextField
-                size="small"
-                label="Building"
-                value={filters.building}
-                onChange={(e) => handleFilterChange("building", e.target.value)}
-                sx={{
-                  minWidth: 140,
-                  backgroundColor: "white",
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "6px",
-                  },
-                }}
-              />
+              {/* 🔹 Building filter — shown only for non-housing */}
+              {societyType !== "housing" && (
+                <TextField
+                  size="small"
+                  label="Building"
+                  value={filters.building}
+                  onChange={(e) =>
+                    handleFilterChange("building", e.target.value)
+                  }
+                  sx={{
+                    minWidth: 140,
+                    backgroundColor: "white",
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "6px",
+                    },
+                  }}
+                />
+              )}
 
+              {/* 🔹 Flat/Unit/Shop filter */}
               <TextField
                 size="small"
-                label={societyType === "commercial" ? "Shop" : "Flat"}
+                label={
+                  societyType === "commercial"
+                    ? "Shop"
+                    : societyType === "housing"
+                    ? "Unit"
+                    : "Flat"
+                }
                 value={filters.flat}
                 onChange={(e) => handleFilterChange("flat", e.target.value)}
                 sx={{
@@ -562,9 +610,16 @@ export default function MemberMonthlyDues() {
                 }}
               />
 
+              {/* 🔹 Member filter */}
               <TextField
                 size="small"
-                label={societyType === "commercial" ? "Owner" : "Resident"}
+                label={
+                  societyType === "commercial"
+                    ? "Owner"
+                    : societyType === "housing"
+                    ? "Resident"
+                    : "Resident"
+                }
                 value={filters.member}
                 onChange={(e) => handleFilterChange("member", e.target.value)}
                 sx={{
@@ -576,6 +631,7 @@ export default function MemberMonthlyDues() {
                 }}
               />
 
+              {/* 🔹 Status filter */}
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>Status</InputLabel>
                 <Select
@@ -593,6 +649,7 @@ export default function MemberMonthlyDues() {
                 </Select>
               </FormControl>
 
+              {/* 🔹 Clear filters */}
               <Button
                 variant="outlined"
                 size="small"
@@ -611,6 +668,7 @@ export default function MemberMonthlyDues() {
 
             <Divider sx={{ my: 2 }} />
 
+            {/* Footer section with counts and bulk actions */}
             <Stack
               direction="row"
               justifyContent="space-between"
@@ -627,6 +685,7 @@ export default function MemberMonthlyDues() {
                     {selectedRows.length} selected ({unpaidSelectedCount}{" "}
                     unpaid)
                   </Typography>
+
                   <Button
                     variant="contained"
                     color="primary"
@@ -639,7 +698,6 @@ export default function MemberMonthlyDues() {
                       textTransform: "none",
                       fontWeight: 500,
                       boxShadow: "0 2px 4px rgba(25,118,210,0.3)",
-                      bgcolor: "#1e1ee4",
                     }}
                   >
                     {isBulkPending
@@ -680,66 +738,42 @@ export default function MemberMonthlyDues() {
                     sx={{ color: "#1976d2" }}
                   />
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
+
+                {/* Society Name */}
+                <TableCell sx={headCellStyle("society_name")}>
+                  Society
+                </TableCell>
+
+                {/* Building Name (hide if housing) */}
+                {societyType !== "housing" && (
+                  <TableCell sx={headCellStyle("building_name")}>
+                    <TableSortLabel
+                      active={orderBy === "building_name"}
+                      direction={orderBy === "building_name" ? order : "asc"}
+                      onClick={() => handleSort("building_name")}
+                    >
+                      Building
+                    </TableSortLabel>
+                  </TableCell>
+                )}
+
+                {/* Flat/Shop/Unit */}
+                <TableCell sx={headCellStyle("unit_identifier")}>
                   <TableSortLabel
-                    active={orderBy === "society_name"}
-                    direction={orderBy === "society_name" ? order : "asc"}
-                    onClick={() => handleSort("society_name")}
+                    active={orderBy === "unit_identifier"}
+                    direction={orderBy === "unit_identifier" ? order : "asc"}
+                    onClick={() => handleSort("unit_identifier")}
                   >
-                    Society
+                    {societyType === "commercial"
+                      ? "Shop No"
+                      : societyType === "housing"
+                      ? "Unit No"
+                      : "Flat No"}
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === "building_name"}
-                    direction={orderBy === "building_name" ? order : "asc"}
-                    onClick={() => handleSort("building_name")}
-                  >
-                    Building
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === "flat_number"}
-                    direction={orderBy === "flat_number" ? order : "asc"}
-                    onClick={() => handleSort("flat_number")}
-                  >
-                    {societyType === "commercial" ? "Shop No" : "Flat No"}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
+
+                {/* Members */}
+                <TableCell sx={headCellStyle("member_name")}>
                   <TableSortLabel
                     active={orderBy === "member_name"}
                     direction={orderBy === "member_name" ? order : "asc"}
@@ -748,15 +782,9 @@ export default function MemberMonthlyDues() {
                     Members
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
+
+                {/* Month */}
+                <TableCell sx={headCellStyle("month_year")}>
                   <TableSortLabel
                     active={orderBy === "month_year"}
                     direction={orderBy === "month_year" ? order : "asc"}
@@ -765,15 +793,9 @@ export default function MemberMonthlyDues() {
                     Month
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
+
+                {/* Maintenance Amount */}
+                <TableCell sx={headCellStyle("maintenance_amount")}>
                   <TableSortLabel
                     active={orderBy === "maintenance_amount"}
                     direction={orderBy === "maintenance_amount" ? order : "asc"}
@@ -782,15 +804,9 @@ export default function MemberMonthlyDues() {
                     Maintenance
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
+
+                {/* Status */}
+                <TableCell sx={headCellStyle("maintenance_paid")}>
                   <TableSortLabel
                     active={orderBy === "maintenance_paid"}
                     direction={orderBy === "maintenance_paid" ? order : "asc"}
@@ -799,31 +815,20 @@ export default function MemberMonthlyDues() {
                     Maintenance Status
                   </TableSortLabel>
                 </TableCell>
-                <TableCell
-                  sx={{
-                    backgroundColor: "#f8f9fa",
-                    borderBottom: "2px solid #dee2e6",
-                    fontWeight: 600,
-                    color: "#495057",
-                    py: 2,
-                  }}
-                >
-                  Actions
-                </TableCell>
+
+                {/* Actions */}
+                <TableCell sx={headCellStyle()}>Actions</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
-              {paginatedData.map((row: any, index: number) => (
+              {paginatedData.map((row: any) => (
                 <TableRow
                   key={row.id}
                   hover
                   sx={{
-                    "&:hover": {
-                      backgroundColor: "#f8f9fa",
-                    },
-                    "&:nth-of-type(even)": {
-                      backgroundColor: "#fafafa",
-                    },
+                    "&:hover": { backgroundColor: "#f8f9fa" },
+                    "&:nth-of-type(even)": { backgroundColor: "#fafafa" },
                     borderBottom: "1px solid #e9ecef",
                   }}
                 >
@@ -834,28 +839,31 @@ export default function MemberMonthlyDues() {
                       sx={{ color: "#1976d2" }}
                     />
                   </TableCell>
-                  <TableCell sx={{ py: 2, fontWeight: 500, color: "#495057" }}>
-                    {row.society_name}
+
+                  <TableCell sx={bodyCellStyle()}>{row.society_name}</TableCell>
+
+                  {societyType !== "housing" && (
+                    <TableCell sx={bodyCellStyle("muted")}>
+                      {row.building_name || "-"}
+                    </TableCell>
+                  )}
+
+                  <TableCell sx={bodyCellStyle("bold")}>
+                    {row.unit_identifier || "-"}
                   </TableCell>
-                  <TableCell sx={{ py: 2, color: "#6c757d" }}>
-                    {row.building_name}
+
+                  <TableCell sx={bodyCellStyle("muted")}>
+                    {(row.member_name || []).join(", ") || "No members"}
                   </TableCell>
-                  <TableCell sx={{ py: 2, fontWeight: 500, color: "#495057" }}>
-                    {row.flat_number}
+
+                  <TableCell sx={bodyCellStyle("muted")}>
+                    {dayjs(row.month_year).format("YYYY-MM-DD")}
                   </TableCell>
-                  <TableCell sx={{ py: 2, color: "#6c757d" }}>
-                    <Typography variant="body2">
-                      {(row.member_name || []).join(", ") || "No members"}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ py: 2, color: "#6c757d" }}>
-                    <Typography variant="body2">
-                      {dayjs(row.month_year).format("YYYY-MM-DD")}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ py: 2, fontWeight: 500, color: "#495057" }}>
+
+                  <TableCell sx={bodyCellStyle("bold")}>
                     ₹{row.maintenance_amount?.toLocaleString() || "0"}
                   </TableCell>
+
                   <TableCell sx={{ py: 2 }}>
                     <Chip
                       label={row.maintenance_paid ? "Paid" : "Unpaid"}
@@ -868,12 +876,11 @@ export default function MemberMonthlyDues() {
                         fontSize: "0.75rem",
                         height: 24,
                         borderRadius: "12px",
-                        "& .MuiChip-label": {
-                          px: 1.5,
-                        },
+                        "& .MuiChip-label": { px: 1.5 },
                       }}
                     />
                   </TableCell>
+
                   <TableCell sx={{ py: 2 }}>
                     <ActionCell row={row} />
                   </TableCell>

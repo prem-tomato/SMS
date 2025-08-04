@@ -226,9 +226,7 @@ export default function Dashboard() {
                     {/* Icon indicator */}
                     <span className="inline-flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                      {societyType === "commercial"
-                        ? "Commercial"
-                        : "residential"}
+                      {societyType}
                     </span>
                   </div>
                 </div>

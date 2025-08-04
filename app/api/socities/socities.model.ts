@@ -1,4 +1,5 @@
 import { query } from "@/db/database-connect";
+import { HOUSING } from "@/db/utils/enums/enum";
 import { QueryResult } from "pg";
 import { User } from "../auth/auth.types";
 import {
@@ -8,6 +9,7 @@ import {
   AddExpenseTrackingReqBody,
   AddflatPenaltyReqBody,
   AddFlatReqBody,
+  AddHousingUnitReqBody,
   AddIncomeTrackingReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
@@ -22,6 +24,8 @@ import {
   FlatOptions,
   FlatPenalty,
   FlatView,
+  HousingOptions,
+  HousingUnits,
   IncomeTrackingResponse,
   MaintenanceView,
   NoticeResponse,
@@ -472,6 +476,27 @@ export const listSocietiesOptions = async (): Promise<SocietyOptions[]> => {
   }
 };
 
+export const listSocietiesOptionsForFlats = async (): Promise<
+  SocietyOptions[]
+> => {
+  try {
+    const queryText: string = `
+      SELECT id, name
+      FROM societies
+      WHERE is_deleted = false
+        AND society_type <> 'housing';
+    `;
+
+    const res: QueryResult<SocietyOptions> = await query<SocietyOptions>(
+      queryText
+    );
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting societies options: ${error}`);
+  }
+};
+
 export const listFlats = async (params: {
   id: string;
   buildingId: string;
@@ -525,6 +550,34 @@ export const listVacantFlats = async (params: {
       params.id,
       params.buildingId,
     ]);
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting flats: ${error}`);
+  }
+};
+
+export const listVacantHouseUnits = async (
+  societyId: string
+): Promise<HousingOptions[]> => {
+  try {
+    const queryText: string = `
+      SELECT
+        hu.id,
+        hu.unit_number,
+        hu.unit_type,
+        hu.is_occupied,
+        hu.square_foot,
+        societies.name AS society_name
+      FROM housing_units hu
+      LEFT JOIN societies ON societies.id = hu.society_id
+      WHERE hu.society_id = $1 AND hu.is_occupied = false
+    `;
+
+    const res: QueryResult<HousingOptions> = await query<HousingOptions>(
+      queryText,
+      [societyId]
+    );
 
     return res.rows;
   } catch (error) {
@@ -1134,5 +1187,144 @@ export const checkSocietyInBuilding = async (
     return res.rows[0]?.id;
   } catch (error) {
     throw new Error(`Error soft deleting society: ${error}`);
+  }
+};
+
+export const addHousingUnit = async (
+  societyId: string,
+  body: AddHousingUnitReqBody,
+  userId: string
+): Promise<HousingUnits> => {
+  try {
+    const queryText: string = `
+      INSERT INTO housing_units (
+        society_id,
+        unit_type,
+        unit_number,
+        address_line,
+        square_foot,
+        current_maintenance,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+      )
+      VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        NOW(),
+        $7,
+        NOW()
+      )
+      RETURNING *
+    `;
+
+    const res: QueryResult<HousingUnits> = await query<HousingUnits>(
+      queryText,
+      [
+        societyId,
+        body.unit_type,
+        body.unit_number,
+        body.address_line,
+        body.square_foot,
+        body.current_maintenance,
+        userId,
+      ]
+    );
+
+    return res.rows[0];
+  } catch (error) {
+    throw new Error(`Error adding housing unit: ${error}`);
+  }
+};
+
+export const listSocietiesHousingOptions = async (
+  societyId?: string
+): Promise<SocietyOptions[]> => {
+  try {
+    const isListingSocieties = !societyId;
+
+    const tableName = isListingSocieties ? "societies" : "housing_units";
+    const filterColumn = isListingSocieties ? "society_type" : "society_id";
+    const filterValue = isListingSocieties ? HOUSING : societyId;
+
+    const queryText = `
+      SELECT id, ${
+        isListingSocieties ? "name" : "unit_number"
+      } FROM ${tableName}
+      WHERE is_deleted = FALSE AND ${filterColumn} = $1
+    `;
+
+    const { rows } = await query<SocietyOptions>(queryText, [filterValue]);
+
+    return rows;
+  } catch (error) {
+    throw new Error(`Error getting options: ${error}`);
+  }
+};
+
+export const findHousingUnitById = async (
+  housingId: string
+): Promise<HousingUnits | undefined> => {
+  try {
+    const queryText = `
+      SELECT * FROM housing_units
+      WHERE is_deleted = FALSE AND id = $1
+    `;
+
+    const { rows } = await query<HousingUnits>(queryText, [housingId]);
+
+    return rows[0];
+  } catch (error) {
+    throw new Error(`Error getting housing unit: ${error}`);
+  }
+};
+
+export const assignHousingUnitToMember = async (
+  userIds: string[],
+  moveInDate: string,
+  params: { id: string; housingId: string },
+  createdBy: string
+): Promise<void> => {
+  try {
+    const values = userIds
+      .map(
+        (userId) =>
+          `('${userId}', '${params.id}', '${params.housingId}', '${moveInDate}', '${createdBy}')`
+      )
+      .join(",");
+
+    const queryText: string = `
+    INSERT INTO members
+    (user_id, society_id, housing_id, move_in_date, created_by)
+    VALUES ${values}
+    RETURNING *
+  `;
+
+    await query(queryText);
+  } catch (error) {
+    throw new Error(`error in assigning member ${error}`);
+  }
+};
+
+export const toggleForIsOccupiedForHousing = async (
+  housingId: string,
+  isOccupied: boolean
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      UPDATE housing_units
+      SET is_occupied = $1
+      WHERE id = $2
+    `;
+
+    await query(queryText, [isOccupied, housingId]);
+  } catch (error) {
+    throw new Error(`Error toggling for is occupied: ${error}`);
   }
 };

@@ -52,6 +52,19 @@ export async function fetchSocietyOptions() {
   return json.data as { id: string; name: string }[];
 }
 
+export async function fetchSocietyOptionsForFlat() {
+  const token = getAccessToken();
+
+  const res = await fetch("/api/socities/options/flats", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to fetch societies");
+  return json.data as { id: string; name: string }[];
+}
+
 // services/societies.ts
 export const setEndDateFunc = async ({
   id,

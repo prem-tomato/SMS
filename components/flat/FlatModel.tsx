@@ -7,7 +7,7 @@ import {
 } from "@/lib/auth";
 import { fetchBuildingsBySociety } from "@/services/building";
 import { createFlat } from "@/services/flats";
-import { fetchSocietyOptions } from "@/services/societies";
+import { fetchSocietyOptionsForFlat } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
@@ -114,7 +114,7 @@ export default function AddFlatModal({
     Society[]
   >({
     queryKey: ["societies"],
-    queryFn: fetchSocietyOptions,
+    queryFn: fetchSocietyOptionsForFlat,
     enabled: role === "super_admin",
   });
 
@@ -124,7 +124,7 @@ export default function AddFlatModal({
     queryFn: async () => {
       if (!adminSocietyId) return "";
       try {
-        const allSocieties = await fetchSocietyOptions();
+        const allSocieties = await fetchSocietyOptionsForFlat();
         return (
           allSocieties.find((s: Society) => s.id === adminSocietyId)?.name || ""
         );
@@ -485,7 +485,9 @@ export default function AddFlatModal({
               return (
                 <TextField
                   {...field}
-                  label={societyType === "commercial" ? "Shop Floor" : "Floor No"}
+                  label={
+                    societyType === "commercial" ? "Shop Floor" : "Floor No"
+                  }
                   placeholder={
                     maxFloors ? `e.g., 1 (max: ${maxFloors})` : "e.g., 1"
                   }

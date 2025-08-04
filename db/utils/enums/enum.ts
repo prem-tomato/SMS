@@ -43,8 +43,10 @@ export const flatMaintenanceType = {
 
 export const RESIDENTIAL = "residential";
 export const COMMERCIAL = "commercial";
+export const HOUSING = "housing";
 
 export const societyType = {
   RESIDENTIAL,
   COMMERCIAL,
-};
+  HOUSING,
+} as const;

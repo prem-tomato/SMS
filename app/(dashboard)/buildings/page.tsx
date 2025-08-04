@@ -8,7 +8,7 @@ import {
   fetchBuildingBySocietyForAdmin,
   fetchBuildings,
 } from "@/services/building";
-import { fetchSocietyOptions } from "@/services/societies";
+import { fetchSocietyOptionsForFlat } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
 import {
@@ -76,7 +76,7 @@ export default function BuildingsPage() {
 
   const { data: societies = [], isLoading: loadingSocieties } = useQuery({
     queryKey: ["societies"],
-    queryFn: fetchSocietyOptions,
+    queryFn: fetchSocietyOptionsForFlat,
   });
 
   const [open, setOpen] = useState(false);

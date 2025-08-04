@@ -66,7 +66,7 @@ export default function UsersPage() {
             color: "#1e1ee4",
           }}
         >
-          Add {societyType === "residential" ? "Resident" : "Shop Owner"}
+          Add {societyType === "commercial" ? "Shop Owner" : "Resident"}
         </Button>
       </Box>
 

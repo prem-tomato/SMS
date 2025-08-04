@@ -29,7 +29,7 @@ export const GET = async (
 
   // Step 3: If validation, authentication, and permission check succeed, process the request
   const { status, ...responseData }: Response<UserResponse[]> =
-    await getVacantUserController(params.id);
+    await getVacantUserController(request, params.id);
 
   // Return the response with the appropriate status code
   return NextResponse.json(responseData, { status });

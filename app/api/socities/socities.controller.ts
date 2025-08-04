@@ -15,9 +15,11 @@ import {
   addFlat,
   addFlatMaintenance,
   addFlatPenalty,
+  addHousingUnit,
   addIncomeTracking,
   addMember,
   addSocieties,
+  assignHousingUnitToMember,
   assignMembersToFlat,
   checkLoginKeyUnique,
   checkSocietyInBuilding,
@@ -26,6 +28,7 @@ import {
   findBuildingById,
   findFlatById,
   findFlatPenaltyById,
+  findHousingUnitById,
   findSocietyById,
   findSocityByName,
   getAssignedFlatsUser,
@@ -39,12 +42,16 @@ import {
   getSocieties,
   listFlats,
   listSocieties,
+  listSocietiesHousingOptions,
   listSocietiesOptions,
+  listSocietiesOptionsForFlats,
   listVacantFlats,
+  listVacantHouseUnits,
   markFlatPenaltyDeleted,
   markFlatPenaltyPaid,
   softDeleteSociety,
   toggleForIsOccupied,
+  toggleForIsOccupiedForHousing,
   toggleNoticeStatus,
   updateEndDate,
   updateMonthlyDues,
@@ -56,12 +63,14 @@ import {
   AddExpenseTrackingReqBody,
   AddflatPenaltyReqBody,
   AddFlatReqBody,
+  AddHousingUnitReqBody,
   AddIncomeTrackingReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
   AddSocietyReqBody,
   AdminResponse,
   AssignedFlatOptions,
+  AssignHousingUnitReqBody,
   AssignMemberReqBody,
   Building,
   BuildingResponse,
@@ -72,6 +81,8 @@ import {
   FlatPenalty,
   FlatResponse,
   FlatView,
+  HousingOptions,
+  HousingUnits,
   IncomeTrackingResponse,
   MaintenanceView,
   MemberResponse,
@@ -414,6 +425,59 @@ export const assignMemberController = async (
   }
 };
 
+export const assignHousingUnitController = async (
+  request: Request,
+  reqBody: AssignHousingUnitReqBody,
+  params: {
+    id: string;
+    housingId: string;
+  }
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    // Check if the society exists
+    const society: Societies | undefined = await findSocietyById(params.id);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const housing: HousingUnits | undefined = await findHousingUnitById(
+      params.housingId
+    );
+    if (!housing) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_NOT_FOUND")
+      );
+    }
+
+    await assignHousingUnitToMember(
+      reqBody.user_id,
+      reqBody.move_in_date,
+      params,
+      userId
+    );
+
+    await toggleForIsOccupiedForHousing(params.housingId, true);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("MEMBER_ASSIGNED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in assignHousingUnitController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
 // get APIs
 
 export const getSocietiesController = async (
@@ -564,6 +628,28 @@ export const getVacantFlatController = async (params: {
       StatusCodes.OK,
       getMessage("LIST_SUCCESSFULL"),
       flats
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getFlatController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getVacantHousingController = async (
+  id: string
+): Promise<Response<HousingOptions[]>> => {
+  try {
+    const house: HousingOptions[] = await listVacantHouseUnits(id);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      house
     );
   } catch (error: any) {
     socitiesLogger.error("Error in getFlatController:", error);
@@ -1239,6 +1325,94 @@ export const softDeleteSocietyController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in softDeleteSocietyController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const addHousingUnitController = async (
+  request: Request,
+  societyId: string,
+  body: AddHousingUnitReqBody
+): Promise<Response<AddHousingUnitReqBody>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+    const housingUnit: HousingUnits = await addHousingUnit(
+      societyId,
+      body,
+      userId
+    );
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNIT_ADDED_SUCCESSFULLY"),
+      housingUnit
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in addHousingUnitController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const listSocietiesHousingOptionsController = async (
+  societyId?: string
+): Promise<Response<SocietyOptions[]>> => {
+  try {
+    const societiesHousingOptions: SocietyOptions[] =
+      await listSocietiesHousingOptions(societyId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("SOCIETIES_HOUSING_OPTIONS_LISTED_SUCCESSFULLY"),
+      societiesHousingOptions
+    );
+  } catch (error: any) {
+    socitiesLogger.error(
+      "Error in listSocietiesHousingOptionsController:",
+      error
+    );
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const listSocietiesOptionsForFlatController = async (
+): Promise<Response<SocietyOptions[]>> => {
+  try {
+    const societiesHousingOptions: SocietyOptions[] =
+      await listSocietiesOptionsForFlats();
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("SOCIETIES_HOUSING_OPTIONS_LISTED_SUCCESSFULLY"),
+      societiesHousingOptions
+    );
+  } catch (error: any) {
+    socitiesLogger.error(
+      "Error in listSocietiesHousingOptionsController:",
+      error
+    );
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

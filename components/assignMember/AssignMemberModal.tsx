@@ -2,6 +2,11 @@
 import { UserResponse } from "@/app/api/users/user.types";
 import { fetchBuildingsBySociety } from "@/services/building";
 import { assignMembersToFlat, getVacantFlats } from "@/services/flats";
+import {
+  assignHousingUnitService,
+  getHousingUnitsBySocietyId,
+  getVacantHousingUnits,
+} from "@/services/housing";
 import { fetchSocietyOptions } from "@/services/societies";
 import { fetchVacantUsersBySociety } from "@/services/user";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +32,14 @@ import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import CommonButton from "../common/CommonButton";
 
+// Schema for housing type (no building/flat needed)
+const housingSchema = z.object({
+  society_id: z.string().min(1, "Select society"),
+  housing_unit_id: z.string().min(1, "Select housing unit"),
+  user_id: z.array(z.string()).min(1, "Select at least one user"),
+  move_in_date: z.string().min(1, "Select move-in date"),
+});
+
 const superAdminSchema = z.object({
   society_id: z.string().min(1, "Select society"),
   building_id: z.string().min(1, "Select building"),
@@ -42,9 +55,22 @@ const adminSchema = z.object({
   move_in_date: z.string().min(1, "Select move-in date"),
 });
 
+// Schema for housing admin
+const housingAdminSchema = z.object({
+  housing_unit_id: z.string().min(1, "Select housing unit"),
+  user_id: z.array(z.string()).min(1, "Select at least one user"),
+  move_in_date: z.string().min(1, "Select move-in date"),
+});
+
 type SuperAdminFormValues = z.infer<typeof superAdminSchema>;
 type AdminFormValues = z.infer<typeof adminSchema>;
-type FormValues = SuperAdminFormValues | AdminFormValues;
+type HousingFormValues = z.infer<typeof housingSchema>;
+type HousingAdminFormValues = z.infer<typeof housingAdminSchema>;
+type FormValues =
+  | SuperAdminFormValues
+  | AdminFormValues
+  | HousingFormValues
+  | HousingAdminFormValues;
 
 type AssignMemberModalProps = {
   open: boolean;
@@ -63,6 +89,54 @@ export default function AssignMemberModal({
 }: AssignMemberModalProps) {
   const qc = useQueryClient();
   const isSuperAdmin = role === "super_admin";
+  const isHousingSociety = societyType === "housing";
+
+  // Determine schema and default values based on society type and role
+  const getSchemaAndDefaults = () => {
+    if (isHousingSociety) {
+      if (isSuperAdmin) {
+        return {
+          schema: housingSchema,
+          defaults: {
+            society_id: "",
+            housing_unit_id: "",
+            user_id: [],
+            move_in_date: "",
+          },
+        };
+      } else {
+        return {
+          schema: housingAdminSchema,
+          defaults: { housing_unit_id: "", user_id: [], move_in_date: "" },
+        };
+      }
+    } else {
+      if (isSuperAdmin) {
+        return {
+          schema: superAdminSchema,
+          defaults: {
+            society_id: "",
+            building_id: "",
+            flat_id: "",
+            user_id: [],
+            move_in_date: "",
+          },
+        };
+      } else {
+        return {
+          schema: adminSchema,
+          defaults: {
+            building_id: "",
+            flat_id: "",
+            user_id: [],
+            move_in_date: "",
+          },
+        };
+      }
+    }
+  };
+
+  const { schema, defaults } = getSchemaAndDefaults();
 
   const {
     control,
@@ -71,24 +145,19 @@ export default function AssignMemberModal({
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
-    resolver: zodResolver(isSuperAdmin ? superAdminSchema : adminSchema),
-    defaultValues: isSuperAdmin
-      ? {
-          society_id: "",
-          building_id: "",
-          flat_id: "",
-          user_id: [],
-          move_in_date: "",
-        }
-      : { building_id: "", flat_id: "", user_id: [], move_in_date: "" },
+    resolver: zodResolver(schema),
+    defaultValues: defaults,
   });
 
   // Watch form values for dependent dropdowns
   const watchedValues = useWatch({ control });
   const societyId = isSuperAdmin
-    ? (watchedValues as SuperAdminFormValues).society_id
+    ? "society_id" in watchedValues
+      ? watchedValues.society_id
+      : ""
     : adminSocietyId;
-  const buildingId = watchedValues.building_id;
+  const buildingId =
+    "building_id" in watchedValues ? watchedValues.building_id : "";
 
   // Fetch societies (only for super admin)
   const { data: societies = [], isLoading: lsSoc } = useQuery({
@@ -97,18 +166,41 @@ export default function AssignMemberModal({
     enabled: !!adminSocietyId || isSuperAdmin,
   });
 
-  // Fetch buildings
+  // Fetch buildings (only for non-housing societies)
   const { data: buildings = [], isLoading: lsBld } = useQuery({
     queryKey: ["buildings", societyId],
     queryFn: () => fetchBuildingsBySociety(societyId!),
-    enabled: !!societyId,
+    enabled: !!societyId && !isHousingSociety,
   });
 
-  // Fetch vacant flats
+  // // Fetch vacant flats (only for non-housing societies)
+  // const { data: vacantFlats = [], isLoading: lsFlats } = useQuery({
+  //   queryKey: ["vacantFlats", societyId, buildingId],
+  //   queryFn: () => getVacantFlats(societyId!, buildingId!),
+  //   enabled: !!buildingId && !!societyId && !isHousingSociety,
+  // });
+  // Fetch vacant flats/housing units
   const { data: vacantFlats = [], isLoading: lsFlats } = useQuery({
-    queryKey: ["vacantFlats", societyId, buildingId],
-    queryFn: () => getVacantFlats(societyId!, buildingId!),
-    enabled: !!buildingId && !!societyId,
+    queryKey: isHousingSociety
+      ? ["vacantHousingUnits", societyId]
+      : ["vacantFlats", societyId, buildingId],
+    queryFn: () => {
+      if (isHousingSociety) {
+        // For housing societies, get all vacant housing units for the society
+        return getVacantHousingUnits(societyId!); // Pass empty string or null for housingId
+      } else {
+        // For non-housing societies, get vacant flats for the building
+        return getVacantFlats(societyId!, buildingId!);
+      }
+    },
+    enabled: isHousingSociety ? !!societyId : !!buildingId && !!societyId,
+  });
+
+  // Fetch housing units (only for housing societies)
+  const { data: housingUnits = [], isLoading: lsHousingUnits } = useQuery({
+    queryKey: ["housingUnits", societyId],
+    queryFn: () => getHousingUnitsBySocietyId(societyId!),
+    enabled: !!societyId && isHousingSociety,
   });
 
   // Fetch users
@@ -121,17 +213,35 @@ export default function AssignMemberModal({
   const mut = useMutation({
     mutationFn: (data: FormValues) => {
       const finalSocietyId = isSuperAdmin
-        ? (data as SuperAdminFormValues).society_id
+        ? "society_id" in data
+          ? data.society_id
+          : adminSocietyId!
         : adminSocietyId!;
-      return assignMembersToFlat(
-        finalSocietyId,
-        data.building_id,
-        data.flat_id,
-        {
-          user_id: data.user_id,
-          move_in_date: data.move_in_date,
-        }
-      );
+
+      if (isHousingSociety) {
+        // For housing societies, we might need a different API call
+        // Assuming you have an assignMembersToHousingUnit function
+        const housingUnitId =
+          "housing_unit_id" in data ? data.housing_unit_id : "";
+        return assignHousingUnitService(
+          finalSocietyId,
+          housingUnitId, // use housing unit as flat
+          {
+            user_id: data.user_id,
+            move_in_date: data.move_in_date,
+          }
+        );
+      } else {
+        return assignMembersToFlat(
+          finalSocietyId,
+          "building_id" in data ? data.building_id : "",
+          "flat_id" in data ? data.flat_id : "",
+          {
+            user_id: data.user_id,
+            move_in_date: data.move_in_date,
+          }
+        );
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["assignedMembers"] });
@@ -155,20 +265,56 @@ export default function AssignMemberModal({
     return undefined;
   };
 
-  // Reset building and flat when society changes (super admin only)
+  // Reset dependent fields when parent changes
   useEffect(() => {
-    if (isSuperAdmin && societyId && watchedValues.building_id) {
-      setValue("building_id", "");
-      setValue("flat_id", "");
+    if (isSuperAdmin && societyId) {
+      if (!isHousingSociety && "building_id" in watchedValues) {
+        setValue("building_id", "");
+        setValue("flat_id", "");
+      }
+      if (isHousingSociety && "housing_unit_id" in watchedValues) {
+        setValue("housing_unit_id", "");
+      }
     }
-  }, [societyId, isSuperAdmin, setValue]);
+  }, [societyId, isSuperAdmin, setValue, isHousingSociety]);
 
-  // Reset flat when building changes
+  // Reset flat when building changes (non-housing only)
   useEffect(() => {
-    if (buildingId && watchedValues.flat_id) {
+    if (!isHousingSociety && buildingId && "flat_id" in watchedValues) {
       setValue("flat_id", "");
     }
-  }, [buildingId, setValue]);
+  }, [buildingId, setValue, isHousingSociety]);
+
+  const getTitle = () => {
+    if (isHousingSociety) return "Assign Unit to Resident";
+    return societyType === "commercial"
+      ? "Assign Shop to Owner"
+      : "Assign Flat to Resident";
+  };
+
+  const getSubtitle = () => {
+    if (isHousingSociety) return "Select housing unit and residents.";
+    return societyType === "commercial"
+      ? "Select Building, Shop and Owners."
+      : "Select society, building, flat and members.";
+  };
+
+  const getUnitLabel = () => {
+    if (isHousingSociety) return "Housing Unit";
+    return societyType === "commercial" ? "Shop" : "Flat";
+  };
+
+  const getUserLabel = () => {
+    if (isHousingSociety) return "Residents";
+    return societyType === "commercial" ? "Owners" : "Residents";
+  };
+
+  const getButtonLabel = () => {
+    if (isHousingSociety) return "Assign Unit to Resident";
+    return societyType === "commercial"
+      ? "Assign Shop to Owner"
+      : "Assign Flat to Resident";
+  };
 
   return (
     <Dialog
@@ -182,12 +328,10 @@ export default function AssignMemberModal({
     >
       <DialogTitle sx={{ pb: 2 }}>
         <Typography variant="h6" fontWeight="bold">
-          {societyType === "commercial" ? "Assign Shop to Owner" : "Assign Flat to Resident"}
+          {getTitle()}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {societyType === "commercial"
-            ? "Select Building, Shop and Owners."
-            : "Select society, building, flat and members."}
+          {getSubtitle()}
         </Typography>
       </DialogTitle>
 
@@ -210,6 +354,7 @@ export default function AssignMemberModal({
               />
             </Box>
           )}
+
           {/* Society Dropdown (Super Admin Only) */}
           {isSuperAdmin && (
             <Controller
@@ -253,97 +398,153 @@ export default function AssignMemberModal({
             />
           )}
 
-          {/* Building Dropdown */}
-          <Controller
-            name="building_id"
-            control={control}
-            render={({ field }) => (
-              <FormControl
-                fullWidth
-                disabled={!societyId}
-                error={!!errors.building_id}
-              >
-                <InputLabel>Building</InputLabel>
-                <Select
-                  {...field}
-                  label="Building"
-                  sx={{ borderRadius: 2 }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        maxHeight: 300,
-                        "& .MuiMenuItem-root": {
-                          fontSize: "0.875rem",
+          {/* Housing Unit Dropdown (Housing societies only) */}
+          {isHousingSociety && (
+            <Controller
+              name="housing_unit_id"
+              control={control}
+              render={({ field }) => (
+                <FormControl
+                  fullWidth
+                  disabled={!societyId}
+                  error={
+                    !!("housing_unit_id" in errors
+                      ? errors.housing_unit_id
+                      : undefined)
+                  }
+                >
+                  <InputLabel>{getUnitLabel()}</InputLabel>
+                  <Select
+                    {...field}
+                    label={getUnitLabel()}
+                    sx={{ borderRadius: 2 }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          "& .MuiMenuItem-root": {
+                            fontSize: "0.875rem",
+                          },
                         },
                       },
-                    },
-                  }}
-                >
-                  {lsBld ? (
-                    <MenuItem disabled>Loading...</MenuItem>
-                  ) : (
-                    buildings.map((b: any) => (
-                      <MenuItem key={b.id} value={b.id}>
-                        {b.name}
-                      </MenuItem>
-                    ))
+                    }}
+                  >
+                    {lsFlats ? (
+                      <MenuItem disabled>Loading...</MenuItem>
+                    ) : (
+                      vacantFlats.map((unit: any) => (
+                        <MenuItem key={unit.id} value={unit.id}>
+                          {unit.unit_number} - {unit.unit_type} (
+                          {unit.square_foot} sq ft)
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                  {"housing_unit_id" in errors && errors.housing_unit_id && (
+                    <Typography color="error" variant="caption">
+                      {errors.housing_unit_id.message}
+                    </Typography>
                   )}
-                </Select>
-                {errors.building_id && (
-                  <Typography color="error" variant="caption">
-                    {errors.building_id.message}
-                  </Typography>
-                )}
-              </FormControl>
-            )}
-          />
+                </FormControl>
+              )}
+            />
+          )}
 
-          {/* Flat Dropdown */}
-          <Controller
-            name="flat_id"
-            control={control}
-            render={({ field }) => (
-              <FormControl
-                fullWidth
-                disabled={!buildingId}
-                error={!!errors.flat_id}
-              >
-                <InputLabel>
-                  {societyType === "commercial" ? "Shop" : "Flat"}
-                </InputLabel>
-                <Select
-                  {...field}
-                  label={societyType === "commercial" ? "Shop" : "Flat"}
-                  sx={{ borderRadius: 2 }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        maxHeight: 300,
-                        "& .MuiMenuItem-root": {
-                          fontSize: "0.875rem",
+          {/* Building Dropdown (Non-housing societies only) */}
+          {!isHousingSociety && (
+            <Controller
+              name="building_id"
+              control={control}
+              render={({ field }) => (
+                <FormControl
+                  fullWidth
+                  disabled={!societyId}
+                  error={
+                    !!("building_id" in errors ? errors.building_id : undefined)
+                  }
+                >
+                  <InputLabel>Building</InputLabel>
+                  <Select
+                    {...field}
+                    label="Building"
+                    sx={{ borderRadius: 2 }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          "& .MuiMenuItem-root": {
+                            fontSize: "0.875rem",
+                          },
                         },
                       },
-                    },
-                  }}
-                >
-                  {lsFlats ? (
-                    <MenuItem disabled>Loading...</MenuItem>
-                  ) : (
-                    vacantFlats.map((f: any) => (
-                      <MenuItem key={f.id} value={f.id}>
-                        {f.flat_number} – Floor {f.floor_number}
-                      </MenuItem>
-                    ))
+                    }}
+                  >
+                    {lsBld ? (
+                      <MenuItem disabled>Loading...</MenuItem>
+                    ) : (
+                      buildings.map((b: any) => (
+                        <MenuItem key={b.id} value={b.id}>
+                          {b.name}
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                  {"building_id" in errors && errors.building_id && (
+                    <Typography color="error" variant="caption">
+                      {errors.building_id.message}
+                    </Typography>
                   )}
-                </Select>
-                {errors.flat_id && (
-                  <Typography color="error" variant="caption">
-                    {errors.flat_id.message}
-                  </Typography>
-                )}
-              </FormControl>
-            )}
-          />
+                </FormControl>
+              )}
+            />
+          )}
+
+          {/* Flat Dropdown (Non-housing societies only) */}
+          {!isHousingSociety && (
+            <Controller
+              name="flat_id"
+              control={control}
+              render={({ field }) => (
+                <FormControl
+                  fullWidth
+                  disabled={!buildingId}
+                  error={!!("flat_id" in errors ? errors.flat_id : undefined)}
+                >
+                  <InputLabel>{getUnitLabel()}</InputLabel>
+                  <Select
+                    {...field}
+                    label={getUnitLabel()}
+                    sx={{ borderRadius: 2 }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          "& .MuiMenuItem-root": {
+                            fontSize: "0.875rem",
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    {lsFlats ? (
+                      <MenuItem disabled>Loading...</MenuItem>
+                    ) : (
+                      vacantFlats.map((f: any) => (
+                        <MenuItem key={f.id} value={f.id}>
+                          {f.flat_number} – Floor {f.floor_number}
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                  {"flat_id" in errors && errors.flat_id && (
+                    <Typography color="error" variant="caption">
+                      {errors.flat_id.message}
+                    </Typography>
+                  )}
+                </FormControl>
+              )}
+            />
+          )}
 
           {/* Members Multi-Select */}
           <Controller
@@ -351,17 +552,13 @@ export default function AssignMemberModal({
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.user_id}>
-                <InputLabel>
-                  {societyType === "commercial" ? "Owners" : "Residents"}
-                </InputLabel>
+                <InputLabel>{getUserLabel()}</InputLabel>
                 <Select
                   {...field}
                   multiple
                   input={
                     <OutlinedInput
-                      label={
-                        societyType === "commercial" ? "Owners" : "Residents"
-                      }
+                      label={getUserLabel()}
                       sx={{ borderRadius: 2 }}
                     />
                   }
@@ -439,9 +636,7 @@ export default function AssignMemberModal({
             loading={mut.isPending}
             sx={{ bgcolor: "#1e1ee4" }}
           >
-            {societyType === "commercial"
-              ? "Assign Shop to Owner"
-              : "Assign Flat to Resident"}
+            {getButtonLabel()}
           </CommonButton>
         </DialogActions>
       </Box>

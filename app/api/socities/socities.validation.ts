@@ -231,3 +231,40 @@ export const markFlatPenaltyPaidValidation = object({
     penaltyId: idValidation,
   }),
 });
+
+export const addHousingUnitValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+  body: object({
+    unit_number: string()
+      .min(1, "Unit number is required")
+      .max(20, "Unit number must be less than 20 characters"),
+    unit_type: string()
+      .min(1, "Unit type is required")
+      .max(50, "Unit type must be less than 50 characters"),
+    address_line: string()
+      .min(1, "Address line is required")
+      .max(100, "Address line must be less than 100 characters"),
+    square_foot: number()
+      .int("Square foot must be an integer")
+      .min(1, "Square foot must be at least 1"),
+    current_maintenance: number()
+      .min(0, "Current maintenance must be greater than or equal to 0")
+      .max(
+        1000000,
+        "Current maintenance must be less than or equal to 1000000"
+      ),
+  }),
+});
+
+export const assignHousingUnit = object({
+  params: object({
+    id: idValidation,
+    housingId: idValidation,
+  }),
+  body: object({
+    user_id: array(idValidation),
+    move_in_date: string().date(),
+  }),
+})

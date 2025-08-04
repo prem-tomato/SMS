@@ -92,33 +92,57 @@ export default function Sidebar() {
     },
   ];
 
-  const adminItems = [
-    {
-      label: "Buildings",
-      icon: <ApartmentOutlined />,
-      path: "/buildings",
-    },
-    {
-      label: societyType === "commercial" ? "Shops" : "Flats",
-      icon: <PeopleOutlined />,
-      path: "/flats",
-    },
-    {
-      label: societyType === "commercial" ? "Add Shop Owner" : "Add Resident",
+  // Create admin items based on society type
+  const getAdminItems = () => {
+    const items = [];
+
+    // Only show Buildings and Flats if society type is NOT housing
+    if (societyType !== "housing") {
+      items.push({
+        label: "Buildings",
+        icon: <ApartmentOutlined />,
+        path: "/buildings",
+      });
+
+      items.push({
+        label: societyType === "commercial" ? "Shops" : "Flats",
+        icon: <PeopleOutlined />,
+        path: "/flats",
+      });
+    }
+
+    // Always show Housing Units
+    items.push({
+      label: "Housing Units",
+      icon: <HouseOutlined />,
+      path: "/housing-units",
+    });
+
+    // Add member and assign items
+    items.push({
+      label: societyType === "commercial" ? "Add Shop Owner" : 
+             societyType === "housing" ? "Add Resident" : "Add Resident",
       icon: <FaceOutlined />,
       path: "/add-member",
-    },
-    {
-      label: societyType === "commercial" ? "Assign Shop" : "Assign Flat",
+    });
+
+    items.push({
+      label: societyType === "commercial" ? "Assign Shop" : 
+             societyType === "housing" ? "Assign Unit" : "Assign Flat",
       icon: <HouseOutlined />,
       path: "/assign-flats",
-    },
-    {
+    });
+
+    items.push({
       label: "Maintenance Dues",
       icon: <MoreHorizIcon />,
       path: "/member-monthly-dues",
-    },
-  ];
+    });
+
+    return items;
+  };
+
+  const adminItems = getAdminItems();
 
   const miscItems = [
     {
