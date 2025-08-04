@@ -775,7 +775,7 @@ SELECT
   m.housing_id,
   ARRAY_AGG(m.id),
   DATE '2025-08-01',
-  0.0, -- or use a real column if you track maintenance for housing units
+  h.current_maintenance,
   '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
   NOW(),
   '537a3518-e7f7-4049-9867-7254ca1486da'::uuid,
@@ -789,4 +789,4 @@ WHERE m.housing_id IS NOT NULL
     WHERE d.housing_id = m.housing_id
       AND d.month_year = DATE '2025-08-01'
 )
-GROUP BY m.society_id, m.housing_id;
+GROUP BY m.society_id, m.housing_id, h.current_maintenance
