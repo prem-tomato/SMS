@@ -6,6 +6,7 @@ import {
   getSocietyTypeFromLocalStorage,
   getUserRole,
 } from "@/lib/auth";
+import { getDuesYearMonth } from "@/services/manage-flat-maintenance";
 import {
   bulkMonetize,
   getMemberMonthlyDueRecord,
@@ -150,12 +151,7 @@ export default function MemberMonthlyDues() {
 
   const { data: availableMonths = [] } = useQuery({
     queryKey: ["dues-year-month"],
-    queryFn: async () => {
-      const res = await fetch("/api/dues-year-month");
-      if (!res.ok) throw new Error("Failed to fetch months");
-      const json = await res.json();
-      return json.map((item: any) => item.month_year);
-    },
+    queryFn: getDuesYearMonth,
   });
 
   const handleBulkMonetize = async () => {

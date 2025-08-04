@@ -95,9 +95,12 @@ export async function getDuesYearMonth() {
       Authorization: `Bearer ${token}`,
     },
   });
+
   const json = await res.json();
+
   if (!res.ok) {
     throw new Error(json.message || "Failed to get dues year month");
   }
-  return json;
+
+  return json.data.month_year;
 }
