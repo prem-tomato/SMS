@@ -12,6 +12,7 @@ import {
   addEndDateValidation,
   addExpenseTrackingValidation,
   addFlatValidation,
+  addHousingUnitPenaltyValidation,
   addHousingUnitValidation,
   addIncomeTrackingValidation,
   addMemberValidation,
@@ -318,3 +319,42 @@ export type HousingOptions = Pick<
 > & {
   society_name: string;
 };
+
+export type AddHousingUnitPenaltyReqBody = z.infer<
+  typeof addHousingUnitPenaltyValidation.shape.body
+>;
+
+export type HousingUnitPenalty = {
+  id: string;
+  society_id: string;
+  unit_id: string;
+  amount: number;
+  reason: string;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_by: string;
+  updated_at: string;
+  deleted_by: string;
+  deleted_at: string;
+  is_paid: boolean;
+  paid_at: string;
+}
+
+export type ViewHousingUnitPenalty = {
+  id: string;
+  society_id: string;
+  unit_id: string;
+  amount: number;
+  reason: string;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_by: string;
+  updated_at: string;
+  deleted_by: string;
+  deleted_at: string;
+  is_paid: boolean;
+  paid_at: string;
+  action_by: string;
+}

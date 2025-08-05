@@ -804,3 +804,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS uniq_dues_flat_month
 CREATE UNIQUE INDEX IF NOT EXISTS uniq_dues_housing_month
   ON member_monthly_maintenance_dues(housing_id, month_year)
   WHERE housing_id IS NOT NULL;
+
+CREATE TABLE public.unit_penalties (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	society_id uuid NOT NULL REFERENCES societies(id),
+	unit_id uuid NOT NULL REFERENCES housing_units(id),
+	amount numeric(10, 2) NOT NULL,
+	reason text NOT NULL,
+	is_deleted bool DEFAULT false NOT NULL,
+	created_by uuid NOT NULL REFERENCES users(id),
+	created_at timestamptz DEFAULT now() NOT NULL,
+	updated_by uuid NOT NULL REFERENCES users(id),
+	updated_at timestamptz DEFAULT now() NOT NULL,
+	deleted_by uuid NULL REFERENCES users(id),
+	deleted_at timestamptz NULL,
+	is_paid bool DEFAULT false NULL,
+	paid_at timestamptz NULL
+);

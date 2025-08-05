@@ -16,6 +16,7 @@ import {
   addFlatMaintenance,
   addFlatPenalty,
   addHousingUnit,
+  addHousingUnitPenalty,
   addIncomeTracking,
   addMember,
   addSocieties,
@@ -24,10 +25,12 @@ import {
   checkLoginKeyUnique,
   checkSocietyInBuilding,
   createNotice,
+  deleteHousingUnitPenalty,
   deleteSocietyModel,
   findBuildingById,
   findFlatById,
   findFlatPenaltyById,
+  findHousingPenaltyById,
   findHousingUnitById,
   findSocietyById,
   findSocityByName,
@@ -41,6 +44,7 @@ import {
   getNotices,
   getSocieties,
   listFlats,
+  listHousingUnitPenalties,
   listSocieties,
   listSocietiesHousingOptions,
   listSocietiesOptions,
@@ -54,6 +58,7 @@ import {
   toggleForIsOccupiedForHousing,
   toggleNoticeStatus,
   updateEndDate,
+  updateHousingUnitPenalty,
   updateMonthlyDues,
 } from "./socities.model";
 import {
@@ -63,6 +68,7 @@ import {
   AddExpenseTrackingReqBody,
   AddflatPenaltyReqBody,
   AddFlatReqBody,
+  AddHousingUnitPenaltyReqBody,
   AddHousingUnitReqBody,
   AddIncomeTrackingReqBody,
   AddMemberReqBody,
@@ -82,6 +88,7 @@ import {
   FlatResponse,
   FlatView,
   HousingOptions,
+  HousingUnitPenalty,
   HousingUnits,
   IncomeTrackingResponse,
   MaintenanceView,
@@ -1397,8 +1404,9 @@ export const listSocietiesHousingOptionsController = async (
   }
 };
 
-export const listSocietiesOptionsForFlatController = async (
-): Promise<Response<SocietyOptions[]>> => {
+export const listSocietiesOptionsForFlatController = async (): Promise<
+  Response<SocietyOptions[]>
+> => {
   try {
     const societiesHousingOptions: SocietyOptions[] =
       await listSocietiesOptionsForFlats();
@@ -1414,6 +1422,176 @@ export const listSocietiesOptionsForFlatController = async (
       error
     );
 
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const addHousingUnitPenaltyController = async (
+  request: Request,
+  societyId: string,
+  housingUnitId: string,
+  body: AddHousingUnitPenaltyReqBody
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const housingUnit: HousingUnits | undefined = await findHousingUnitById(
+      housingUnitId
+    );
+    if (!housingUnit) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_UNIT_NOT_FOUND")
+      );
+    }
+
+    await addHousingUnitPenalty(societyId, housingUnitId, body, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNIT_PENALTY_ADDED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in addHousingUnitPenaltyController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const deleteHousingPenaltyController = async (
+  request: Request,
+  societyId: string,
+  housingUnitId: string,
+  penaltyId: string
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const housingUnit: HousingUnits | undefined = await findHousingUnitById(
+      housingUnitId
+    );
+    if (!housingUnit) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_UNIT_NOT_FOUND")
+      );
+    }
+
+    const penalty: HousingUnitPenalty | undefined =
+      await findHousingPenaltyById(penaltyId);
+    if (!penalty) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_UNIT_PENALTY_NOT_FOUND")
+      );
+    }
+
+    await deleteHousingUnitPenalty(societyId, housingUnitId, penaltyId, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNIT_PENALTY_DELETED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in deleteHousingPenaltyController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const updateHousingPenaltyController = async (
+  request: Request,
+  societyId: string,
+  housingUnitId: string,
+  penaltyId: string
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const housingUnit: HousingUnits | undefined = await findHousingUnitById(
+      housingUnitId
+    );
+    if (!housingUnit) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_UNIT_NOT_FOUND")
+      );
+    }
+
+    const penalty: HousingUnitPenalty | undefined =
+      await findHousingPenaltyById(penaltyId);
+    if (!penalty) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_UNIT_PENALTY_NOT_FOUND")
+      );
+    }
+
+    await updateHousingUnitPenalty(societyId, housingUnitId, penaltyId, userId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNIT_PENALTY_UPDATED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in updateHousingPenaltyController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const listHousingPenaltiesController = async (
+  societyId: string,
+  housingUnitId: string
+): Promise<Response<HousingUnitPenalty[]>> => {
+  try {
+    const housingPenalties: HousingUnitPenalty[] =
+      await listHousingUnitPenalties(societyId, housingUnitId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNIT_PENALTIES_LISTED_SUCCESSFULLY"),
+      housingPenalties
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in listHousingPenaltiesController:", error);
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,

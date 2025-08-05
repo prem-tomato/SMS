@@ -49,5 +49,11 @@
     "SOCIETY_ALREADY_IN_USE": "Society already in use",
     "HOUSING_UNIT_ADDED_SUCCESSFULLY": "housing unit added successfully",
     "SOCIETIES_HOUSING_OPTIONS_LISTED_SUCCESSFULLY": "socities housing options listed successfully",
-    "HOUSING_NOT_FOUND": "housing not found"
+    "HOUSING_NOT_FOUND": "housing not found",
+    "HOUSING_UNIT_NOT_FOUND": "housing unit not found",
+    "HOUSING_UNIT_PENALTY_ADDED_SUCCESSFULLY": "housing unit penalty added successfully",
+    "HOUSING_UNIT_PENALTY_NOT_FOUND": "housing unit penalty not found",
+    "HOUSING_UNIT_PENALTY_DELETED_SUCCESSFULLY": "housing unit penalty deleted successfully",
+    "HOUSING_UNIT_PENALTY_UPDATED_SUCCESSFULLY": "housing unit penalty updated successfully",
+    "HOUSING_UNIT_PENALTIES_LISTED_SUCCESSFULLY": "housing unit penalties listed successfully"
 }

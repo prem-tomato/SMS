@@ -10,14 +10,28 @@ import {
   YAxis,
   Cell,
 } from "recharts";
+import { useEffect, useState } from "react";
 import { FinalBalanceData } from "../typesOfDash";
+import { getSocietyTypeFromLocalStorage } from "@/lib/auth";
 
 interface FinancialChartProps {
   data: FinalBalanceData;
 }
 
 export const FinancialChart = ({ data }: FinancialChartProps) => {
-  // Original chart data - keeping only 4 main bars
+  const [societyType, setSocietyType] = useState<string | null>(null);
+
+  useEffect(() => {
+    const type = getSocietyTypeFromLocalStorage();
+    setSocietyType(type);
+  }, []);
+
+  const collectedAmount =
+    (data.regular_maintenance_amount || 0) +
+    (societyType === "housing" ? 0 : data.pending_collected_maintenances || 0) +
+    (data.total_income || 0) +
+    (data.total_penalties_paid_current_month || 0);
+
   const chartData = [
     {
       name: "Total Expense",
@@ -26,12 +40,7 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
     },
     {
       name: "Collected Amount",
-      value: Math.abs(
-        data.regular_maintenance_amount +
-          data.pending_collected_maintenances +
-          data.total_income +
-          data.total_penalties_paid_current_month || 0
-      ),
+      value: Math.abs(collectedAmount),
       color: "#f59e0b", // Amber
     },
     {
@@ -46,10 +55,8 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
     },
   ];
 
-  // Custom tooltip - shows breakdown only for Collected Amount
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      // For Collected Amount, show the 3 specific breakdown values
       if (label === "Collected Amount") {
         return (
           <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg min-w-[250px]">
@@ -67,12 +74,14 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
                   "en-IN"
                 )}
               </p>
-              <p className="text-sm text-red-600">
-                Pending Collected Maintenances: ₹
-                {Math.abs(
-                  data.pending_collected_maintenances || 0
-                ).toLocaleString("en-IN")}
-              </p>
+              {societyType !== "housing" && (
+                <p className="text-sm text-red-600">
+                  Pending Collected Maintenances: ₹
+                  {Math.abs(
+                    data.pending_collected_maintenances || 0
+                  ).toLocaleString("en-IN")}
+                </p>
+              )}
               <p className="text-sm text-green-600">
                 Income Collected: ₹
                 {Math.abs(data.total_income || 0).toLocaleString("en-IN")}
@@ -82,7 +91,6 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
         );
       }
 
-      // For other bars, show standard tooltip
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-800">{label}</p>
@@ -96,9 +104,6 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
     }
     return null;
   };
-
-  // Choose which approach to use:
-  const useStackedChart = false; // Always false since we want only 4 main bars
 
   return (
     <div className="w-full h-80">
@@ -119,8 +124,6 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
             tick={{ fontSize: 12 }}
             tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
           />
-
-          {/* Custom tooltip for all bars */}
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>
             {chartData.map((entry, index) => (

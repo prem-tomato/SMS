@@ -9,6 +9,7 @@ import {
   AddExpenseTrackingReqBody,
   AddflatPenaltyReqBody,
   AddFlatReqBody,
+  AddHousingUnitPenaltyReqBody,
   AddHousingUnitReqBody,
   AddIncomeTrackingReqBody,
   AddMemberReqBody,
@@ -25,6 +26,7 @@ import {
   FlatPenalty,
   FlatView,
   HousingOptions,
+  HousingUnitPenalty,
   HousingUnits,
   IncomeTrackingResponse,
   MaintenanceView,
@@ -956,6 +958,31 @@ export const addFlatPenalty = async (
   }
 };
 
+export const addHousingUnitPenalty = async (
+  societyId: string,
+  housingUnitId: string,
+  reqBody: AddHousingUnitPenaltyReqBody,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText: string = `
+      INSERT INTO unit_penalties
+      (amount, reason, society_id, unit_id, created_by, created_at, updated_by, updated_at)
+      VALUES ($1, $2, $3, $4, $5, NOW(), $5, NOW())
+    `;
+
+    await query(queryText, [
+      reqBody.amount,
+      reqBody.reason,
+      societyId,
+      housingUnitId,
+      userId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error adding housing unit penalty: ${error}`);
+  }
+};
+
 export const updateMonthlyDues = async (
   params: {
     id: string;
@@ -1323,5 +1350,88 @@ export const toggleForIsOccupiedForHousing = async (
     await query(queryText, [isOccupied, housingId]);
   } catch (error) {
     throw new Error(`Error toggling for is occupied: ${error}`);
+  }
+};
+
+export const findHousingPenaltyById = async (
+  penaltyId: string
+): Promise<HousingUnitPenalty | undefined> => {
+  try {
+    const queryText = `
+      SELECT * FROM unit_penalties
+      WHERE is_deleted = FALSE AND id = $1
+    `;
+
+    const { rows } = await query<HousingUnitPenalty>(queryText, [penaltyId]);
+
+    return rows[0];
+  } catch (error) {
+    throw new Error(`Error getting housing penalty: ${error}`);
+  }
+};
+
+export const deleteHousingUnitPenalty = async (
+  societyId: string,
+  housingUnitId: string,
+  penaltyId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText = `
+      UPDATE unit_penalties
+      SET is_deleted = TRUE,
+        deleted_at = NOW(),
+        deleted_by = $4,
+        updated_at = NOW(),
+        updated_by = $4
+      WHERE society_id = $1 AND unit_id = $2 AND id = $3
+    `;
+
+    await query(queryText, [societyId, housingUnitId, penaltyId, userId]);
+  } catch (error) {
+    throw new Error(`Error deleting housing unit penalty: ${error}`);
+  }
+};
+
+export const updateHousingUnitPenalty = async (
+  societyId: string,
+  housingUnitId: string,
+  penaltyId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const queryText = `
+      UPDATE unit_penalties
+      SET is_paid = TRUE,
+        paid_at = NOW(),
+        updated_at = NOW(),
+        updated_by = $4
+      WHERE society_id = $1 AND unit_id = $2 AND id = $3
+    `;
+    await query(queryText, [societyId, housingUnitId, penaltyId, userId]);
+  } catch (error) {
+    throw new Error(`Error updating housing unit penalty: ${error}`);
+  }
+};
+
+export const listHousingUnitPenalties = async (
+  societyId: string,
+  housingUnitId: string
+): Promise<HousingUnitPenalty[]> => {
+  try {
+    const queryText = `
+      SELECT up.*,
+      CONCAT(u.first_name, ' ', u.last_name) as action_by 
+      FROM unit_penalties up
+      LEFT JOIN users u ON up.updated_by = u.id
+      WHERE up.society_id = $1 AND up.unit_id = $2 AND up.is_deleted = FALSE AND up.is_paid = FALSE
+    `;
+    const { rows } = await query<HousingUnitPenalty>(queryText, [
+      societyId,
+      housingUnitId,
+    ]);
+    return rows;
+  } catch (error) {
+    throw new Error(`Error listing housing unit penalties: ${error}`);
   }
 };
