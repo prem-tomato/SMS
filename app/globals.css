@@ -26,3 +26,8 @@
 .phone-input:focus-within {
   border: 2px solid #1976d2;
 }
+
+/* ::selection {
+  background-color: #4c97ff; 
+  color: #00ccff;
+} */

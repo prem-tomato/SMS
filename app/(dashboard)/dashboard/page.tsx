@@ -30,8 +30,8 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData>({
     total_societies: 0,
     total_buildings: 0,
-    total_flats: 0,
-    occupied_flats: 0,
+    total_units: 0, // Changed from total_flats
+    occupied_units: 0, // Changed from occupied_flats
     total_members: 0,
     recent_notices: [],
     societies_breakdown: [],
@@ -51,6 +51,20 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [societyType, setSocietyType] = useState<string | null>(null);
+
+  // Helper function to get unit label based on society type
+  const getUnitLabel = (societyType: string | null): string => {
+    switch (societyType?.toLowerCase()) {
+      case 'housing':
+        return 'Housing Units';
+      case 'commercial':
+        return 'Commercial Units';
+      case 'residential':
+        return 'Flats';
+      default:
+        return 'Units';
+    }
+  };
 
   // API Functions (keeping the same logic)
   async function fetchGeneralData() {
@@ -100,8 +114,8 @@ export default function Dashboard() {
 
       const societyData: SocietySpecificData = {
         total_buildings: 0,
-        total_flats: 0,
-        occupied_flats: 0,
+        total_units: 0, // Changed from total_flats
+        occupied_units: 0, // Changed from occupied_flats
         total_members: 0,
         recent_notices: [],
         members_list: [],
@@ -115,9 +129,9 @@ export default function Dashboard() {
       ) {
         societyData.total_buildings =
           societyDashboardJson.data.total_buildings || 0;
-        societyData.total_flats = societyDashboardJson.data.total_flats || 0;
-        societyData.occupied_flats =
-          societyDashboardJson.data.occupied_flats || 0;
+        societyData.total_units = societyDashboardJson.data.total_units || 0; // Changed from total_flats
+        societyData.occupied_units =
+          societyDashboardJson.data.occupied_units || 0; // Changed from occupied_flats
         societyData.total_members =
           societyDashboardJson.data.total_members || 0;
         societyData.recent_notices =
@@ -175,8 +189,8 @@ export default function Dashboard() {
   // Use society-specific data if available, otherwise use general data
   const displayData = societySpecificData || {
     total_buildings: data.total_buildings,
-    total_flats: data.total_flats,
-    occupied_flats: data.occupied_flats,
+    total_units: data.total_units, // Changed from total_flats
+    occupied_units: data.occupied_units, // Changed from occupied_flats
     total_members: data.total_members,
     recent_notices: data.recent_notices,
     members_list: data.members_list,
@@ -189,6 +203,9 @@ export default function Dashboard() {
     : role !== "super_admin" && data.societies_breakdown.length > 0
     ? data.societies_breakdown[0].name
     : null;
+
+  // Get unit label for display
+  const unitLabel = getUnitLabel(societyType);
 
   return (
     <Box height="calc(100vh - 180px)">
@@ -254,15 +271,15 @@ export default function Dashboard() {
                   color="text-green-500"
                 />
                 <SimpleStatsCard
-                  label="Flats"
-                  value={data.total_flats}
+                  label="Units"
+                  value={data.total_units} // Changed from total_flats
                   max={200}
                   color="text-purple-500"
                 />
                 <SimpleStatsCard
                   label="Occupied"
-                  value={data.occupied_flats}
-                  max={data.total_flats || 200}
+                  value={data.occupied_units} // Changed from occupied_flats
+                  max={data.total_units || 200} // Changed from total_flats
                   color="text-orange-500"
                 />
                 <SimpleStatsCard
@@ -295,10 +312,13 @@ export default function Dashboard() {
               {/* Stats Section */}
               <div
                 className={
-                  "grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                  societyType === 'housing' 
+                    ? "grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" // No buildings for housing
+                    : "grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
                 }
               >
-                {role && (
+                {/* Only show buildings card for commercial and residential societies */}
+                {societyType !== 'housing' && (
                   <SimpleStatsCard
                     label="Buildings"
                     value={loading ? 0 : displayData.total_buildings}
@@ -308,16 +328,16 @@ export default function Dashboard() {
                   />
                 )}
                 <SimpleStatsCard
-                  label="Flats"
-                  value={loading ? 0 : displayData.total_flats}
+                  label={unitLabel}
+                  value={loading ? 0 : displayData.total_units} // Changed from total_flats
                   max={50}
                   color="text-purple-500"
                   loading={loading}
                 />
                 <SimpleStatsCard
                   label="Occupied"
-                  value={loading ? 0 : displayData.occupied_flats}
-                  max={displayData.total_flats || 50}
+                  value={loading ? 0 : displayData.occupied_units} // Changed from occupied_flats
+                  max={displayData.total_units || 50} // Changed from total_flats
                   color="text-orange-500"
                   loading={loading}
                 />
@@ -382,7 +402,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">
-                    Flat Occupancy
+                    {unitLabel} Occupancy
                   </h2>
                   {loading ? (
                     <div className="flex items-center justify-center h-80">
@@ -390,8 +410,8 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <OccupancyChart
-                      occupied={displayData.occupied_flats}
-                      total={displayData.total_flats}
+                      occupied={displayData.occupied_units} // Changed from occupied_flats
+                      total={displayData.total_units} // Changed from total_flats
                     />
                   )}
                 </div>

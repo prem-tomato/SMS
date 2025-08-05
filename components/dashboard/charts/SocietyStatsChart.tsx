@@ -11,7 +11,7 @@ export const SocietyStatsChart = ({ societies }: SocietyStatsChartProps) => {
   const chartData = societies.map((society) => ({
     name: society.name.length > 10 ? society.name.substring(0, 10) + "..." : society.name,
     buildings: society.total_buildings,
-    flats: society.total_flats,
+    flats: society.total_units,
     members: society.total_members,
   }))
 
@@ -30,7 +30,7 @@ export const SocietyStatsChart = ({ societies }: SocietyStatsChartProps) => {
             }}
           />
           <Bar dataKey="buildings" fill="#3b82f6" name="Buildings" radius={[2, 2, 0, 0]} />
-          <Bar dataKey="flats" fill="#10b981" name="Flats" radius={[2, 2, 0, 0]} />
+          <Bar dataKey="flats" fill="#10b981" name="Units" radius={[2, 2, 0, 0]} />
           <Bar dataKey="members" fill="#f59e0b" name="Members" radius={[2, 2, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>

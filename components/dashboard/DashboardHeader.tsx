@@ -85,7 +85,7 @@ export const DashboardHeader = ({
                   {selectedSociety && (
                     <p className="text-xs text-gray-500">
                       {selectedSociety.total_buildings} buildings •{" "}
-                      {selectedSociety.total_flats} flats
+                      {selectedSociety.total_units} flats
                     </p>
                   )}
                 </div>
@@ -146,7 +146,7 @@ export const DashboardHeader = ({
                         </p>
                         <p className="text-xs text-gray-500">
                           {society.total_buildings} buildings •{" "}
-                          {society.total_flats} flats • {society.total_members}{" "}
+                          {society.total_units} flats • {society.total_members}{" "}
                           members
                         </p>
                       </div>

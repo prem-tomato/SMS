@@ -26,7 +26,7 @@ export const SocietyBreakdownTable = ({
             >
               <td className="p-4 font-medium text-gray-800">{s.name}</td>
               <td className="p-4 text-gray-600">{s.total_buildings}</td>
-              <td className="p-4 text-gray-600">{s.total_flats}</td>
+              <td className="p-4 text-gray-600">{s.total_units}</td>
               <td className="p-4 text-gray-600">{s.total_members}</td>
             </tr>
           ))

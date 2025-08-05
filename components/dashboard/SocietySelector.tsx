@@ -145,7 +145,7 @@ export const SocietySelector = ({
                         {society.name}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {society.total_buildings}B • {society.total_flats}F •{" "}
+                        {society.total_buildings}B • {society.total_units}F •{" "}
                         {society.total_members}M
                       </p>
                     </div>
