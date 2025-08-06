@@ -6,10 +6,10 @@ import {
   getSocietyIdFromLocalStorage,
   getSocietyTypeFromLocalStorage,
 } from "@/lib/auth";
+import { loadRazorpayScript } from "@/lib/loadRazorpay";
 import { getDuesYearMonth } from "@/services/manage-flat-maintenance";
 import { getMemberMaintenances } from "@/services/member-maintenances";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -61,7 +61,7 @@ export default function MemberMaintenancePage() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
       });
       if (response.ok) {
@@ -127,11 +127,77 @@ export default function MemberMaintenancePage() {
     }
   };
 
-  const handlePayment = () => {
-    // Handle actual payment logic here
-    console.log("Processing payment for:", selectedMaintenance);
-    // You can call your payment API here
-    setShowPaymentDialog(false);
+  const handlePayment = async () => {
+    const res = await loadRazorpayScript();
+    if (!res) {
+      alert("Failed to load Razorpay SDK");
+      return;
+    }
+
+    const orderResponse = await fetch("/api/payments/create-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: selectedMaintenance.maintenance_amount,
+        currency: "INR",
+        receipt: `maint-${selectedMaintenance.id?.slice(0, 20) || "unknown"}`,
+      }),
+    });
+
+    const result = await orderResponse.json();
+    if (!result.order) {
+      alert("Failed to create order.");
+      return;
+    }
+
+    const { order } = result;
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!, // From env
+      amount: order.amount,
+      currency: order.currency,
+      name:
+        societyType === "housing"
+          ? `${selectedMaintenance.housing_unit_number}`
+          : `${selectedMaintenance.flat_number}`,
+      description: "Maintenance Payment",
+      order_id: order.id,
+      handler: async (response: any) => {
+        const verifyRes = await fetch("/api/payments/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            maintenance_id: selectedMaintenance.id, // send to backend
+          }),
+        });
+
+        const verifyData = await verifyRes.json();
+        if (verifyData.success) {
+          alert("Payment Successful!");
+          window.location.reload();
+        } else {
+          alert("Payment Failed. Please contact support.");
+        }
+      },
+      prefill: {
+        name: currentUser?.name || "Member",
+        email: currentUser?.email || "",
+        contact: currentUser?.phone || "",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    const razorpay = new (window as any).Razorpay(options);
+    razorpay.open();
   };
 
   const columns = useMemo(() => {
@@ -234,7 +300,7 @@ export default function MemberMaintenancePage() {
   return (
     <Box height="calc(100vh - 180px)">
       {/* Unpaid Maintenance Alert - Show if user has unpaid maintenance */}
-      {userMaintenanceRecord && !userMaintenanceRecord.maintenance_paid && (
+      {/* {userMaintenanceRecord && !userMaintenanceRecord.maintenance_paid && (
         <Alert
           severity="warning"
           sx={{ mb: 2 }}
@@ -253,7 +319,7 @@ export default function MemberMaintenancePage() {
           {userMaintenanceRecord.maintenance_amount} for{" "}
           {formatMonthYear(selectedMonthYear)}
         </Alert>
-      )}
+      )} */}
 
       {/* Header with Month Filter and Action Button */}
       <Box
@@ -262,29 +328,6 @@ export default function MemberMaintenancePage() {
         alignItems="center"
         mb={2}
       >
-        {/* User Action Button - Only show if user has maintenance record */}
-        {userMaintenanceRecord && (
-          <Box>
-            {userMaintenanceRecord.maintenance_paid ? (
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleViewClick}
-              >
-                View My Payment
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handlePayNowClick}
-              >
-                Pay My Maintenance
-              </Button>
-            )}
-          </Box>
-        )}
-
         {/* Month-Year Filter */}
         <FormControl size="small">
           <InputLabel>Month</InputLabel>
@@ -301,6 +344,29 @@ export default function MemberMaintenancePage() {
             ))}
           </Select>
         </FormControl>
+
+        {/* User Action Button - Only show if user has maintenance record */}
+        {userMaintenanceRecord && (
+          <Box>
+            {userMaintenanceRecord.maintenance_paid ? (
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleViewClick}
+              >
+                View My Payment
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handlePayNowClick}
+              >
+                Pay My Maintenance
+              </Button>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Data Grid */}
@@ -308,11 +374,7 @@ export default function MemberMaintenancePage() {
         rows={maintenances}
         columns={columns}
         loading={isLoading}
-        height={
-          userMaintenanceRecord && !userMaintenanceRecord.maintenance_paid
-            ? "calc(100vh - 280px)"
-            : "calc(100vh - 220px)"
-        }
+        height="calc(100vh - 180px)"
         pageSize={20}
       />
 

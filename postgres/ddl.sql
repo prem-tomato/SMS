@@ -821,3 +821,6 @@ CREATE TABLE public.unit_penalties (
 	is_paid bool DEFAULT false NULL,
 	paid_at timestamptz NULL
 );
+
+alter table member_monthly_maintenance_dues
+add COLUMN razorpay_payment_id varchar(255) NULL
