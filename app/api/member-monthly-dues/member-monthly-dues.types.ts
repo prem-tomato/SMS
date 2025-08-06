@@ -15,6 +15,7 @@ export type MemberMonthlyDues = {
   created_by: string;
   updated_at: string;
   updated_by: string;
+  housing_id: string;
 };
 
 export type GetMemberMonthlyDuesResponse = Pick<

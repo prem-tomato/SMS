@@ -11,6 +11,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -121,6 +122,18 @@ export default function HousingUnitsPage() {
       { field: "unit_number", headerName: "Unit Number", flex: 1 },
       { field: "unit_type", headerName: "Unit Type", flex: 1 },
       { field: "square_foot", headerName: "Sq. Ft", flex: 1 },
+      {
+        field: "is_occupied",
+        headerName: "Status",
+        flex: 1,
+        renderCell: (params: any) => (
+          <Chip
+            label={params.value ? "Occupied" : "Vacant"}
+            color={params.value ? "success" : "warning"}
+            size="small"
+          />
+        ),
+      },
       {
         field: "current_maintenance",
         headerName: "Maintenance",

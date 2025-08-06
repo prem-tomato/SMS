@@ -166,14 +166,13 @@ export default function AssignFlatsPage() {
               headerName: "Floor",
               flex: 1,
               renderCell: (params: any) => {
-                if (!params.value) return null;
-                return (
-                  <Chip
-                    label={`Floor ${params.value}`}
-                    color="secondary"
-                    size="small"
-                  />
-                );
+                const floor = params?.value;
+
+                if (floor === null || floor === undefined) return "-";
+
+                const label = floor === 0 ? "Ground Floor" : `Floor ${floor}`;
+
+                return <Chip label={label} color="secondary" size="small" />;
               },
             },
             {

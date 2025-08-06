@@ -17,6 +17,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import PaymentIcon from "@mui/icons-material/Payment";
 import StorageOutlinedIcon from "@mui/icons-material/StorageOutlined";
 
 import {
@@ -144,6 +145,13 @@ export default function Sidebar() {
 
   const adminItems = getAdminItems();
 
+  // Pay Dues item for admin and member roles
+  const payDuesItem = {
+    label: "Pay Dues",
+    icon: <PaymentIcon />,
+    path: "/pay-dues",
+  };
+
   const miscItems = [
     {
       label: "Notices",
@@ -182,9 +190,9 @@ export default function Sidebar() {
     role === "super_admin"
       ? [...commonItems, ...superAdminExtra, ...adminItems]
       : role === "admin"
-      ? [...commonItems, ...adminItems]
+      ? [...commonItems, ...adminItems, payDuesItem]
       : role === "member"
-      ? [...commonItems, miscItems[0]]
+      ? [...commonItems, payDuesItem, miscItems[0]]
       : [];
 
   const renderNavItem = (item: any) => {

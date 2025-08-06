@@ -4,6 +4,7 @@ import {
   saveAccessToken,
   saveSocietyId,
   saveSocietyType,
+  saveUserId,
   saveUserRole,
 } from "@/lib/auth";
 import { loginUser } from "@/services/auth";
@@ -22,13 +23,17 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { access_token, role, societyId, societyType } = await loginUser({
-        login_key: Number(login_key),
-      });
+      const { access_token, role, societyId, societyType, user } =
+        await loginUser({
+          login_key: Number(login_key),
+        });
+        console.log(access_token, role, societyId, societyType, user.id);
+
       saveUserRole(role);
       saveSocietyId(societyId);
       saveAccessToken(access_token);
       saveSocietyType(societyType);
+      saveUserId(user.id);
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Login failed, please try again.");

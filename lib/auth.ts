@@ -49,3 +49,11 @@ export const getSocietyTypeFromLocalStorage = () => {
 export const removeSocietyType = () => {
   localStorage.removeItem("society_type");
 };
+
+export const saveUserId = (id: string) => {
+  localStorage.setItem("id", id);
+};
+
+export const getLoggedInUserId = () => {
+  return localStorage.getItem("id");
+};
