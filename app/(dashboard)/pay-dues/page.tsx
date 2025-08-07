@@ -866,6 +866,7 @@ export default function MemberMaintenancePage() {
                     onClick={handleMultiPayment}
                     variant="contained"
                     color="primary"
+                    sx={{ bgcolor: "#C62828" }}
                   >
                     Pay ₹{totalAmount.toFixed(2)}
                   </Button>
@@ -875,6 +876,7 @@ export default function MemberMaintenancePage() {
                     onClick={handleSinglePayment}
                     variant="contained"
                     color="primary"
+                    sx={{ bgcolor: "#C62828" }}
                   >
                     Pay Now
                   </Button>
