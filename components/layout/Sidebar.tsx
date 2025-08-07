@@ -41,6 +41,7 @@ export default function Sidebar() {
   const [isLoading, setIsLoading] = useState(true);
   const [openMisc, setOpenMisc] = useState(false);
   const [openTransactions, setOpenTransactions] = useState(false);
+  const [openDues, setOpenDues] = useState(false);
   const [societyType, setSocietyType] = useState<string | null>(null);
 
   useEffect(() => {
@@ -121,23 +122,25 @@ export default function Sidebar() {
 
     // Add member and assign items
     items.push({
-      label: societyType === "commercial" ? "Add Shop Owner" : 
-             societyType === "housing" ? "Add Resident" : "Add Resident",
+      label:
+        societyType === "commercial"
+          ? "Add Shop Owner"
+          : societyType === "housing"
+          ? "Add Resident"
+          : "Add Resident",
       icon: <FaceOutlined />,
       path: "/add-member",
     });
 
     items.push({
-      label: societyType === "commercial" ? "Assign Shop" : 
-             societyType === "housing" ? "Assign Unit" : "Assign Flat",
+      label:
+        societyType === "commercial"
+          ? "Assign Shop"
+          : societyType === "housing"
+          ? "Assign Unit"
+          : "Assign Flat",
       icon: <HouseOutlined />,
       path: "/assign-flats",
-    });
-
-    items.push({
-      label: "Maintenance Dues",
-      icon: <MoreHorizIcon />,
-      path: "/member-monthly-dues",
     });
 
     return items;
@@ -145,18 +148,43 @@ export default function Sidebar() {
 
   const adminItems = getAdminItems();
 
-  // Pay Dues item for admin and member roles
-  const payDuesItem = {
-    label: "Pay Dues",
-    icon: <PaymentIcon />,
-    path: "/pay-dues",
-  };
+  const superAdminDuesItems = [
+    {
+      label: "Maintenance Dues",
+      icon: <MoreHorizIcon />,
+      path: "/member-monthly-dues",
+    },
+  ];
 
-  // dues summary
-  const duesSummaryItem = {
-    label: "Dues Summary",
-    icon: <MonetizationOnOutlinedIcon />,
-    path: "/dues-summary",
+  // Dues items for dropdown
+  const duesItems = [
+    {
+      label: "Maintenance Dues",
+      icon: <MoreHorizIcon />,
+      path: "/member-monthly-dues",
+    },
+    {
+      label: "Pay Dues",
+      icon: <PaymentIcon />,
+      path: "/pay-dues",
+    },
+    {
+      label: "Dues Summary",
+      icon: <MonetizationOnOutlinedIcon />,
+      path: "/dues-summary",
+    },
+  ];
+
+  // Filter dues items based on role
+  const getDuesItemsForRole = () => {
+    if (role === "super_admin") {
+      return superAdminDuesItems;
+    } else if (role === "admin") {
+      return duesItems;
+    } else if (role === "member") {
+      return duesItems.filter((item) => item.path !== "/member-monthly-dues"); // Exclude maintenance dues
+    }
+    return [];
   };
 
   const miscItems = [
@@ -197,11 +225,9 @@ export default function Sidebar() {
     role === "super_admin"
       ? [...commonItems, ...superAdminExtra, ...adminItems]
       : role === "admin"
-      ? [...commonItems, ...adminItems, payDuesItem, duesSummaryItem]
-
+      ? [...commonItems, ...adminItems]
       : role === "member"
-      ? [...commonItems, payDuesItem, miscItems[0], duesSummaryItem]
-
+      ? [...commonItems, miscItems[0]] // Only notices for members
       : [];
 
   const renderNavItem = (item: any) => {
@@ -279,6 +305,41 @@ export default function Sidebar() {
       {/* Main nav items */}
       <List sx={{ flex: 1 }}>
         {navItems.map(renderNavItem)}
+
+        {/* Dues Dropdown */}
+        <>
+          <ListItemButton
+            onClick={() => setOpenDues(!openDues)}
+            sx={{
+              borderRadius: 1,
+              border: "1px solid #e0e0e0",
+              mb: 1,
+              "&:hover": {
+                borderColor: "#1e1ee4",
+                bgcolor: "rgba(30, 30, 228, 0.04)",
+              },
+            }}
+          >
+            <ListItemIcon sx={{ color: "#1e1ee4", minWidth: 40 }}>
+              <PaymentIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Dues Management"
+              primaryTypographyProps={{
+                fontSize: "12px",
+                fontWeight: openDues ? 700 : 500,
+                textTransform: "uppercase",
+              }}
+            />
+            {openDues ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openDues} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding sx={{ pl: 3 }}>
+              {getDuesItemsForRole().map(renderNavItem)}
+            </List>
+          </Collapse>
+        </>
+
         {/* Transactions Dropdown */}
         {(role === "super_admin" || role === "admin") && (
           <>
