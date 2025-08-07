@@ -607,11 +607,7 @@ export default function DuesSummary() {
         rows={maintenances}
         columns={columns}
         loading={isLoading}
-        height={
-          userMaintenanceRecord && !userMaintenanceRecord.maintenance_paid
-            ? "calc(100vh - 280px)"
-            : "calc(100vh - 220px)"
-        }
+        height="calc(100vh - 180px)"
         pageSize={20}
       />
 
