@@ -45,6 +45,7 @@ import {
   getSocieties,
   listFlats,
   listHousingUnitPenalties,
+  listOccupiedHouseUnits,
   listSocieties,
   listSocietiesHousingOptions,
   listSocietiesOptions,
@@ -660,6 +661,28 @@ export const getVacantHousingController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in getFlatController:", error);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getOccupiedHousingController = async (
+  id: string
+): Promise<Response<HousingOptions[]>> => {
+  try {
+    const house: HousingOptions[] = await listOccupiedHouseUnits(id);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("LIST_SUCCESSFULL"),
+      house
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getOccupiedHousingController:", error);
 
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,

@@ -8,13 +8,22 @@ const razorpay = new Razorpay({
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const amountInPaise = body.amount * 100;
+  const { amount, maintenance_ids } = body;
+  
+  // Convert amount to paise (multiply by 100)
+  const amountInPaise = Math.round(amount * 100);
 
   try {
     const order = await razorpay.orders.create({
       amount: amountInPaise,
       currency: "INR",
       receipt: body.receipt || "receipt#1",
+      notes: {
+        // Store maintenance IDs in notes for reference
+        maintenance_ids: Array.isArray(maintenance_ids) 
+          ? maintenance_ids.join(',') 
+          : maintenance_ids || '',
+      },
     });
 
     return NextResponse.json({ order });

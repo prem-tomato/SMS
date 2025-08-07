@@ -587,6 +587,35 @@ export const listVacantHouseUnits = async (
   }
 };
 
+export const listOccupiedHouseUnits = async (
+  societyId: string
+): Promise<HousingOptions[]> => {
+  try {
+    const queryText: string = `
+      SELECT
+        hu.id,
+        hu.unit_number,
+        hu.unit_type,
+        hu.is_occupied,
+        hu.square_foot,
+        societies.name AS society_name
+      FROM housing_units hu
+      LEFT JOIN societies ON societies.id = hu.society_id
+      WHERE hu.society_id = $1 AND hu.is_occupied = true
+
+    `;
+
+    const res: QueryResult<HousingOptions> = await query<HousingOptions>(
+      queryText,
+      [societyId]
+    );
+
+    return res.rows;
+  } catch (error) {
+    throw new Error(`Error getting flats: ${error}`);
+  }
+};
+
 export const toggleForIsOccupied = async (
   flatId: string,
   isOccupied: boolean

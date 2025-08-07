@@ -95,3 +95,19 @@ export const getVacantHousingUnits = async (societyId: string) => {
     throw new Error(json.message || "Failed to fetch vacant housing units");
   return json.data;
 };
+
+export const getOccupiedHousingUnits = async (societyId: string) => {
+  const token = getAccessToken();
+  const res = await fetch(
+    `/api/socities/${societyId}/housing/get-occupied-housing`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  const json = await res.json();
+  if (!res.ok)
+    throw new Error(json.message || "Failed to fetch occupied housing units");
+  return json.data;
+};
