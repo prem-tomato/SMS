@@ -152,6 +152,13 @@ export default function Sidebar() {
     path: "/pay-dues",
   };
 
+  // dues summary
+  const duesSummaryItem = {
+    label: "Dues Summary",
+    icon: <MonetizationOnOutlinedIcon />,
+    path: "/dues-summary",
+  };
+
   const miscItems = [
     {
       label: "Notices",
@@ -190,9 +197,11 @@ export default function Sidebar() {
     role === "super_admin"
       ? [...commonItems, ...superAdminExtra, ...adminItems]
       : role === "admin"
-      ? [...commonItems, ...adminItems, payDuesItem]
+      ? [...commonItems, ...adminItems, payDuesItem, duesSummaryItem]
+
       : role === "member"
-      ? [...commonItems, payDuesItem, miscItems[0]]
+      ? [...commonItems, payDuesItem, miscItems[0], duesSummaryItem]
+
       : [];
 
   const renderNavItem = (item: any) => {
