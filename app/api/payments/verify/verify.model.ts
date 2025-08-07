@@ -46,3 +46,49 @@ export const updateMultipleMaintenanceAsPaid = async (
     throw new Error(`Failed to update multiple maintenances as paid: ${error}`);
   }
 };
+
+export const savePaymentDetailsToDB = async (details: any) => {
+  const queryText = `
+    INSERT INTO razorpay_payments (
+      razorpay_payment_id,
+      razorpay_order_id,
+      bank_rrn,
+      invoice_id,
+      method,
+      payer_upi_id,
+      payer_account_type,
+      customer_contact,
+      customer_email,
+      total_fee,
+      razorpay_fee,
+      gst,
+      description,
+      maintenance_ids,
+      raw_payload
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7,
+      $8, $9, $10, $11, $12, $13,
+      $14, $15
+    )
+  `;
+
+  const values = [
+    details.razorpay_payment_id,
+    details.razorpay_order_id,
+    details.bank_rrn,
+    details.invoice_id,
+    details.method,
+    details.payer_upi_id,
+    details.payer_account_type,
+    details.customer_contact,
+    details.customer_email,
+    details.total_fee,
+    details.razorpay_fee,
+    details.gst,
+    details.description,
+    details.maintenance_ids,
+    details.raw_payload,
+  ];
+
+  await query(queryText, values);
+};

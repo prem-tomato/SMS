@@ -824,3 +824,24 @@ CREATE TABLE public.unit_penalties (
 
 alter table member_monthly_maintenance_dues
 add COLUMN razorpay_payment_id varchar(255) NULL
+
+
+CREATE TABLE razorpay_payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  razorpay_payment_id TEXT NOT NULL,
+  razorpay_order_id TEXT NOT NULL,
+  bank_rrn TEXT,
+  invoice_id TEXT,
+  method TEXT,
+  payer_upi_id TEXT,
+  payer_account_type TEXT,
+  customer_contact TEXT,
+  customer_email TEXT,
+  total_fee NUMERIC,
+  razorpay_fee NUMERIC,
+  gst NUMERIC,
+  description TEXT,
+  maintenance_ids TEXT[],
+  raw_payload JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
