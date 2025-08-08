@@ -2,6 +2,7 @@
 
 import {
   getAccessToken,
+  getUserRole,
   removeAccessToken,
   removeSocietyId,
   removeSocietyType,
@@ -10,6 +11,7 @@ import {
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import PersonIcon from "@mui/icons-material/Person";
+import SettingsIcon from "@mui/icons-material/Settings";
 import {
   AppBar,
   Avatar,
@@ -36,16 +38,21 @@ export default function Topbar() {
   const [isLoading, setIsLoading] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<string>("");
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndRole = async () => {
       try {
         const token = getAccessToken();
         if (!token) {
           router.push("/auth/login");
           return;
         }
+
+        // Get user role
+        const userRole = await getUserRole();
+        setRole(userRole!);
 
         const response = await fetch("/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
@@ -75,7 +82,7 @@ export default function Topbar() {
       }
     };
 
-    fetchUser();
+    fetchUserAndRole();
   }, [router]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -105,6 +112,11 @@ export default function Topbar() {
     handleMenuClose();
   };
 
+  const handleSettings = () => {
+    router.push("/settings");
+    handleMenuClose();
+  };
+
   const getRoleColor = (role: string) => {
     switch (role.toLowerCase()) {
       case "super_admin":
@@ -119,6 +131,9 @@ export default function Topbar() {
   const formatRole = (role: string) => {
     return role.replace("_", " ").toUpperCase();
   };
+
+  // Check if user is admin or super_admin
+  const isAdminUser = role.toLowerCase() === "admin";
 
   // Loading state
   if (isLoading) {
@@ -318,7 +333,32 @@ export default function Topbar() {
             Profile
           </Typography>
         </MenuItem>
+
+        {/* Only show RazorPay settings for admin and super_admin users */}
+        {isAdminUser && (
+          <MenuItem
+            onClick={handleSettings}
+            role="menuitem"
+            sx={{
+              py: 1.5,
+              "&:hover": {
+                bgcolor: "#f5f5f5",
+              },
+              "&:focus-visible": {
+                outline: "2px solid #1e1ee4",
+                outlineOffset: "-2px",
+              },
+            }}
+          >
+            <SettingsIcon sx={{ mr: 2, fontSize: 20, color: "#666" }} />
+            <Typography variant="body2" fontWeight="500">
+              RazorPay
+            </Typography>
+          </MenuItem>
+        )}
+
         <Divider sx={{ my: 0.5 }} />
+
         <MenuItem
           onClick={handleLogout}
           role="menuitem"

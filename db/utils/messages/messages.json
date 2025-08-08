@@ -55,5 +55,8 @@
     "HOUSING_UNIT_PENALTY_NOT_FOUND": "housing unit penalty not found",
     "HOUSING_UNIT_PENALTY_DELETED_SUCCESSFULLY": "housing unit penalty deleted successfully",
     "HOUSING_UNIT_PENALTY_UPDATED_SUCCESSFULLY": "housing unit penalty updated successfully",
-    "HOUSING_UNIT_PENALTIES_LISTED_SUCCESSFULLY": "housing unit penalties listed successfully"
+    "HOUSING_UNIT_PENALTIES_LISTED_SUCCESSFULLY": "housing unit penalties listed successfully",
+    "RAZORPAY_CONFIG_ADDED_SUCCESSFULLY": "razor pay config added successfully",
+    "RAZORPAY_CONFIG_RETRIEVED_SUCCESSFULLY": "razor pay config retrieved successfully",
+    "RAZORPAY_CONFIG_NOT_FOUND": "razor pay config not found"
 }

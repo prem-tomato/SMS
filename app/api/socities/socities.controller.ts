@@ -6,6 +6,7 @@ import {
 } from "@/db/configs/acid";
 import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
+import crypto from "crypto";
 import { StatusCodes } from "http-status-codes";
 import socitiesLogger from "./socities.logger";
 import {
@@ -19,6 +20,7 @@ import {
   addHousingUnitPenalty,
   addIncomeTracking,
   addMember,
+  addRazorPayConfig,
   addSocieties,
   assignHousingUnitToMember,
   assignMembersToFlat,
@@ -42,6 +44,7 @@ import {
   getFlats,
   getIncomeTracking,
   getNotices,
+  getRazorPayConfig,
   getSocieties,
   listFlats,
   listHousingUnitPenalties,
@@ -74,6 +77,7 @@ import {
   AddIncomeTrackingReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
+  AddRazorPayConfig,
   AddSocietyReqBody,
   AdminResponse,
   AssignedFlatOptions,
@@ -95,6 +99,7 @@ import {
   MaintenanceView,
   MemberResponse,
   NoticeResponse,
+  RazorPayConfig,
   Societies,
   SocietyOptions,
 } from "./socities.types";
@@ -1615,6 +1620,71 @@ export const listHousingPenaltiesController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in listHousingPenaltiesController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const addRazorPayConfigController = async (
+  request: Request,
+  societyId: string,
+  body: AddRazorPayConfig
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const webhookSecret = crypto.randomBytes(32).toString("hex");
+
+    await addRazorPayConfig(societyId, userId, body, webhookSecret);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("RAZORPAY_CONFIG_ADDED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in addRazorPayConfigController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getRazorPayConfigController = async (
+  societyId: string
+): Promise<Response<RazorPayConfig[]>> => {
+  try {
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const razorPayConfig: RazorPayConfig[] | undefined = await getRazorPayConfig(
+      societyId
+    );
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("RAZORPAY_CONFIG_RETRIEVED_SUCCESSFULLY"),
+      razorPayConfig
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in getRazorPayConfigController:", error);
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,

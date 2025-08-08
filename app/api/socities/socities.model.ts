@@ -14,6 +14,7 @@ import {
   AddIncomeTrackingReqBody,
   AddMemberReqBody,
   AddNoticeReqBody,
+  AddRazorPayConfig,
   AddSocietyReqBody,
   AssignedFlatOptions,
   AssignFlatMembers,
@@ -31,6 +32,7 @@ import {
   IncomeTrackingResponse,
   MaintenanceView,
   NoticeResponse,
+  RazorPayConfig,
   Societies,
   SocietyOptions,
 } from "./socities.types";
@@ -1462,5 +1464,73 @@ export const listHousingUnitPenalties = async (
     return rows;
   } catch (error) {
     throw new Error(`Error listing housing unit penalties: ${error}`);
+  }
+};
+
+export const addRazorPayConfig = async (
+  societyId: string,
+  userId: string,
+  config: AddRazorPayConfig,
+  webhookSecret: string
+): Promise<void> => {
+  try {
+    // 1️⃣ Soft delete all existing active configs for this society
+    await query(
+      `
+      UPDATE society_razorpay_config
+      SET is_deleted = true,
+          deleted_at = NOW(),
+          updated_at = NOW(),
+          deleted_by = $2,
+          updated_by = $2
+      WHERE society_id = $1
+        AND is_deleted = false
+      `,
+      [societyId, userId]
+    );
+
+    // 2️⃣ Insert new config
+    await query(
+      `
+      INSERT INTO society_razorpay_config (
+        society_id,
+        razorpay_key_id,
+        razorpay_key_secret,
+        razorpay_webhook_secret,
+        created_by,
+        updated_by,
+        created_at,
+        updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $5, NOW(), NOW())
+      `,
+      [
+        societyId,
+        config.razorpay_key_id,
+        config.razorpay_key_secret,
+        webhookSecret,
+        userId,
+      ]
+    );
+  } catch (error) {
+    throw new Error(`Error adding razor pay config: ${error}`);
+  }
+};
+
+export const getRazorPayConfig = async (
+  societyId: string
+): Promise<RazorPayConfig[] | undefined> => {
+  try {
+    const queryText = `
+      SELECT * FROM society_razorpay_config
+      WHERE society_id = $1 AND is_deleted = FALSE
+    `;
+    const rows: QueryResult<RazorPayConfig> = await query<RazorPayConfig>(
+      queryText,
+      [societyId]
+    );
+    return rows.rows;
+  } catch (error) {
+    throw new Error(`Error finding razor pay config: ${error}`);
   }
 };

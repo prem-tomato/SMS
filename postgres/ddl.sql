@@ -845,3 +845,18 @@ CREATE TABLE razorpay_payments (
   raw_payload JSONB,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE society_razorpay_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  society_id UUID NOT NULL REFERENCES societies(id),
+  razorpay_key_id TEXT,
+  razorpay_key_secret TEXT,
+  razorpay_webhook_secret TEXT,
+  is_deleted boolean DEFAULT false NULL,
+  created_by uuid NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  updated_by uuid NOT NULL REFERENCES users(id),
+  deleted_by uuid NULL REFERENCES users(id),
+  deleted_at TIMESTAMP DEFAULT NOW()
+)

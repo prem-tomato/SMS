@@ -1,4 +1,6 @@
 import { query } from "@/db/database-connect";
+import { QueryResult } from "pg";
+import { RazorPayConfig } from "../../socities/socities.types";
 
 export const updateMaintenanceAsPaid = async (
   maintenance_id: string,
@@ -25,8 +27,10 @@ export const updateMultipleMaintenanceAsPaid = async (
 ): Promise<void> => {
   try {
     // Create placeholders for the IN clause ($1, $2, $3, etc.)
-    const placeholders = maintenance_ids.map((_, index) => `$${index + 2}`).join(', ');
-    
+    const placeholders = maintenance_ids
+      .map((_, index) => `$${index + 2}`)
+      .join(", ");
+
     const queryText = `
       UPDATE member_monthly_maintenance_dues
       SET maintenance_paid = true,
@@ -37,11 +41,13 @@ export const updateMultipleMaintenanceAsPaid = async (
 
     // First parameter is razorpay_payment_id, rest are maintenance_ids
     const queryParams = [razorpay_payment_id, ...maintenance_ids];
-    
+
     await query(queryText, queryParams);
-    
+
     // Log for debugging
-    console.log(`Updated ${maintenance_ids.length} maintenance records as paid`);
+    console.log(
+      `Updated ${maintenance_ids.length} maintenance records as paid`
+    );
   } catch (error) {
     throw new Error(`Failed to update multiple maintenances as paid: ${error}`);
   }
@@ -91,4 +97,22 @@ export const savePaymentDetailsToDB = async (details: any) => {
   ];
 
   await query(queryText, values);
+};
+
+export const getRazorPayConfigBySocietyId = async (
+  societyId: string
+): Promise<RazorPayConfig | null> => {
+  try {
+    const queryText = `
+      SELECT *
+      FROM society_razorpay_config
+      WHERE society_id = $1 AND is_deleted = false
+      `;
+
+    const result: QueryResult = await query(queryText, [societyId]);
+
+    return result.rows[0];
+  } catch (error) {
+    throw new Error(`Error in getRazorPayConfigBySocietyId: ${error}`);
+  }
 };

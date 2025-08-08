@@ -37,6 +37,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
 
 const formatMonthYear = (value: string) => {
   const date = new Date(value);
@@ -302,18 +303,19 @@ export default function MemberMaintenancePage() {
         amount: selectedMaintenance.maintenance_amount,
         currency: "INR",
         receipt: `maint-${selectedMaintenance.id?.slice(0, 20) || "unknown"}`,
+        societyId,
       }),
     });
 
     const result = await orderResponse.json();
     if (!result.order) {
-      alert("Failed to create order.");
+      toast("Please check your razor pay configuration.");
       return;
     }
 
-    const { order } = result;
+    const { order, razorpay_key_id } = result; // ✅ Get dynamic key_id
     const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+      key: razorpay_key_id!,
       amount: order.amount,
       currency: order.currency,
       name:
@@ -331,6 +333,7 @@ export default function MemberMaintenancePage() {
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             maintenance_id: selectedMaintenance.id,
+            societyId,
           }),
         });
         const verifyData = await verifyRes.json();
@@ -386,13 +389,13 @@ export default function MemberMaintenancePage() {
 
     const result = await orderResponse.json();
     if (!result.order) {
-      alert("Failed to create order.");
+      toast("Failed to create order.");
       return;
     }
 
-    const { order } = result;
+    const { order, razorpay_key_id } = result;
     const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+      key: razorpay_key_id!,
       amount: order.amount,
       currency: order.currency,
       name:
@@ -884,6 +887,7 @@ export default function MemberMaintenancePage() {
           </DialogActions>
         </Dialog>
       </Box>
+      <ToastContainer />
     </>
   );
 }

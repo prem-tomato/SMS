@@ -1,30 +1,60 @@
+// app/api/verify-payment/route.ts
 import crypto from "crypto";
-import Razorpay from "razorpay";
 import { NextRequest, NextResponse } from "next/server";
+import Razorpay from "razorpay";
+
+// Your DB function to get society's Razorpay config by societyId
 import {
+  getRazorPayConfigBySocietyId,
+  savePaymentDetailsToDB,
   updateMaintenanceAsPaid,
   updateMultipleMaintenanceAsPaid,
-  savePaymentDetailsToDB, // <-- You must implement this
 } from "./verify.model";
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_SECRET!,
-});
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+
   const {
     razorpay_order_id,
     razorpay_payment_id,
     razorpay_signature,
     maintenance_id,
     maintenance_ids,
+    societyId, // Must be sent from frontend or derived from auth
   } = body;
 
+  if (!societyId) {
+    return NextResponse.json(
+      { success: false, error: "societyId is required" },
+      { status: 400 }
+    );
+  }
+
+  // Step 1: Fetch society-specific Razorpay config
+  const config = await getRazorPayConfigBySocietyId(societyId);
+
+  if (!config || !config.razorpay_key_id || !config.razorpay_key_secret) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Razorpay configuration not found for this society",
+      },
+      { status: 400 }
+    );
+  }
+
+  const { razorpay_key_id, razorpay_key_secret } = config;
+
+  // Step 2: Create dynamic Razorpay instance
+  const razorpay = new Razorpay({
+    key_id: razorpay_key_id,
+    key_secret: razorpay_key_secret,
+  });
+
+  // Step 3: Verify signature
   const sign = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSign = crypto
-    .createHmac("sha256", process.env.RAZORPAY_SECRET!)
+    .createHmac("sha256", razorpay_key_secret)
     .update(sign)
     .digest("hex");
 
@@ -36,7 +66,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Fetch full payment details from Razorpay
+    // Step 4: Fetch payment details using society-specific client
     const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
 
     const paymentData = {
@@ -49,22 +79,32 @@ export async function POST(req: NextRequest) {
       payer_account_type: paymentDetails.bank || null,
       customer_contact: paymentDetails.contact || null,
       customer_email: paymentDetails.email || null,
-      total_fee: typeof paymentDetails.amount === "number" ? paymentDetails.amount / 100 : 0,
-      razorpay_fee: typeof paymentDetails.fee === "number" ? paymentDetails.fee / 100 : 0,
-      gst: typeof paymentDetails.tax === "number" ? paymentDetails.tax / 100 : 0,
+      total_fee:
+        typeof paymentDetails.amount === "number"
+          ? paymentDetails.amount / 100
+          : 0,
+      razorpay_fee:
+        typeof paymentDetails.fee === "number" ? paymentDetails.fee / 100 : 0,
+      gst:
+        typeof paymentDetails.tax === "number" ? paymentDetails.tax / 100 : 0,
       description: paymentDetails.description || null,
-      maintenance_ids: maintenance_ids || (maintenance_id ? [maintenance_id] : []),
+      maintenance_ids:
+        maintenance_ids || (maintenance_id ? [maintenance_id] : []),
       raw_payload: paymentDetails,
+      societyId, // Include societyId in stored data
     };
 
     console.log("Payment Data:", paymentData);
 
-    // Store the payment details in DB
+    // Step 5: Save to DB
     await savePaymentDetailsToDB(paymentData);
 
-    // Mark maintenance(s) as paid
+    // Step 6: Update maintenance status
     if (maintenance_ids && Array.isArray(maintenance_ids)) {
-      await updateMultipleMaintenanceAsPaid(maintenance_ids, razorpay_payment_id);
+      await updateMultipleMaintenanceAsPaid(
+        maintenance_ids,
+        razorpay_payment_id
+      );
     } else if (maintenance_id) {
       await updateMaintenanceAsPaid(maintenance_id, razorpay_payment_id);
     } else {

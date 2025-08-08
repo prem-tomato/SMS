@@ -16,6 +16,7 @@ import {
   addHousingUnitValidation,
   addIncomeTrackingValidation,
   addMemberValidation,
+  addRazorPayConfigValidation,
   addSocietyValidation,
   assignHousingUnit,
   assignMemberValidation,
@@ -339,7 +340,7 @@ export type HousingUnitPenalty = {
   deleted_at: string;
   is_paid: boolean;
   paid_at: string;
-}
+};
 
 export type ViewHousingUnitPenalty = {
   id: string;
@@ -357,4 +358,23 @@ export type ViewHousingUnitPenalty = {
   is_paid: boolean;
   paid_at: string;
   action_by: string;
-}
+};
+
+export type RazorPayConfig = {
+  id: string;
+  society_id: string;
+  razorpay_key_id: string;
+  razorpay_key_secret: string;
+  razorpay_webhook_secret: string;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_by: string;
+  updated_at: string;
+  deleted_by: string | null;
+  deleted_at: string | null;
+};
+
+export type AddRazorPayConfig = z.infer<
+  typeof addRazorPayConfigValidation.shape.body
+>;

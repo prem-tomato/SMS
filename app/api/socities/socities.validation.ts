@@ -280,3 +280,23 @@ export const addHousingUnitPenaltyValidation = object({
       .max(255, "Reason must be less than 255 characters"),
   }),
 });
+
+export const addRazorPayConfigValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+  body: object({
+    razorpay_key_id: string()
+      .min(1, "Razorpay key id is required")
+      .max(255, "Razorpay key id must be less than 255 characters"),
+    razorpay_key_secret: string()
+      .min(1, "Razorpay key secret is required")
+      .max(255, "Razorpay key secret must be less than 255 characters"),
+  }),
+});
+
+export const getRazorPayConfigValidation = object({
+  params: object({
+    id: idValidation,
+  }),
+});
