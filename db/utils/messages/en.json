@@ -97,7 +97,7 @@
     "deleteSociety": "Delete Society",
     "cancel": "Cancel",
     "update": "Update",
-    "deleteConfirmText": "Are you sure you want to delete the society \"{name}\"?",
+    "deleteConfirmText": "Are you sure you want to delete the society?",
     "addNewSocietyAdmin": "Add New Society & Admin",
     "fillSocietyDetails": "Fill in the society details and admin user information below",
     "societyInformation": "Society Information",

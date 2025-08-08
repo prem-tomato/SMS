@@ -43,7 +43,7 @@ export const findSocityByName = async (
   try {
     const queryText: string = `
             SELECT * FROM societies
-            WHERE name = $1
+            WHERE name = $1 AND is_deleted = false
         `;
 
     const res: QueryResult<Societies> = await query<Societies>(queryText, [
@@ -1532,5 +1532,23 @@ export const getRazorPayConfig = async (
     return rows.rows;
   } catch (error) {
     throw new Error(`Error finding razor pay config: ${error}`);
+  }
+};
+
+export const checkSocietyInHousing = async (
+  societyId: string
+): Promise<string | undefined> => {
+  try {
+    const queryText = `
+      SELECT id FROM housing_units
+      WHERE society_id = $1 AND is_deleted = FALSE
+    `;
+    const res: QueryResult<{ id: string | undefined }> = await query<{
+      id: string | undefined;
+    }>(queryText, [societyId]);
+
+    return res.rows[0]?.id;
+  } catch (error) {
+    throw new Error(`Error checking society in housing: ${error}`);
   }
 };

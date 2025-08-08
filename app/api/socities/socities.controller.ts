@@ -4,6 +4,7 @@ import {
   startTransaction,
   Transaction,
 } from "@/db/configs/acid";
+import { HOUSING } from "@/db/utils/enums/enum";
 import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import crypto from "crypto";
@@ -26,6 +27,7 @@ import {
   assignMembersToFlat,
   checkLoginKeyUnique,
   checkSocietyInBuilding,
+  checkSocietyInHousing,
   createNotice,
   deleteHousingUnitPenalty,
   deleteSocietyModel,
@@ -1344,13 +1346,25 @@ export const softDeleteSocietyController = async (
       );
     }
 
-    const checkInBuilding = await checkSocietyInBuilding(societyId);
-    if (checkInBuilding) {
-      return generateResponseJSON(
-        StatusCodes.NOT_FOUND,
-        getMessage("SOCIETY_ALREADY_IN_USE")
-      );
+    if (society.society_type !== HOUSING) {
+      const checkInBuilding = await checkSocietyInBuilding(societyId);
+      if (checkInBuilding) {
+        return generateResponseJSON(
+          StatusCodes.CONFLICT,
+          getMessage("SOCIETY_ALREADY_IN_USE")
+        );
+      }
+    } else {
+      const checkInHousing = await checkSocietyInHousing(societyId);
+      if (checkInHousing) {
+        return generateResponseJSON(
+          StatusCodes.CONFLICT,
+          getMessage("SOCIETY_ALREADY_IN_USE")
+        );
+      }
     }
+
+    // delete admin and members of society
 
     await softDeleteSociety(societyId, userId);
 
@@ -1674,9 +1688,8 @@ export const getRazorPayConfigController = async (
       );
     }
 
-    const razorPayConfig: RazorPayConfig[] | undefined = await getRazorPayConfig(
-      societyId
-    );
+    const razorPayConfig: RazorPayConfig[] | undefined =
+      await getRazorPayConfig(societyId);
 
     return generateResponseJSON(
       StatusCodes.OK,
