@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { FinancialChart } from "@/components/dashboard/charts/FinancialChart";
 import { OccupancyChart } from "@/components/dashboard/charts/OccupancyChart";
 import { SimpleStatsCard } from "@/components/dashboard/charts/SimpleStatsCard";
@@ -27,6 +29,8 @@ import { Box } from "@mui/material";
 import { useEffect, useState } from "react";
 
 export default function Dashboard() {
+  const t = useTranslations("Dashboard");
+
   const [data, setData] = useState<DashboardData>({
     total_societies: 0,
     total_buildings: 0,
@@ -55,18 +59,18 @@ export default function Dashboard() {
   // Helper function to get unit label based on society type
   const getUnitLabel = (societyType: string | null): string => {
     switch (societyType?.toLowerCase()) {
-      case 'housing':
-        return 'Housing Units';
-      case 'commercial':
-        return 'Commercial Units';
-      case 'residential':
-        return 'Flats';
+      case "housing":
+        return t("unitLabelHousing");
+      case "commercial":
+        return t("unitLabelCommercial");
+      case "residential":
+        return t("unitLabelResidential");
       default:
-        return 'Units';
+        return t("unitLabelDefault");
     }
   };
 
-  // API Functions (keeping the same logic)
+  // API Functions (keeping your existing logic intact)
   async function fetchGeneralData() {
     const userRole = getUserRole();
     setRole(userRole);
@@ -199,7 +203,7 @@ export default function Dashboard() {
 
   const selectedSocietyName = selectedSocietyId
     ? data.societies_breakdown.find((s) => s.id === selectedSocietyId)?.name ||
-      "Selected Society"
+      t("selectedSociety")
     : role !== "super_admin" && data.societies_breakdown.length > 0
     ? data.societies_breakdown[0].name
     : null;
@@ -259,31 +263,31 @@ export default function Dashboard() {
             <>
               <div className="grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
                 <SimpleStatsCard
-                  label="Societies"
+                  label={t("labelSocieties")}
                   value={data.total_societies}
                   max={20}
                   color="text-blue-500"
                 />
                 <SimpleStatsCard
-                  label="Buildings"
+                  label={t("labelBuildings")}
                   value={data.total_buildings}
                   max={50}
                   color="text-green-500"
                 />
                 <SimpleStatsCard
-                  label="Units"
-                  value={data.total_units} // Changed from total_flats
+                  label={t("labelUnits")}
+                  value={data.total_units}
                   max={200}
                   color="text-purple-500"
                 />
                 <SimpleStatsCard
-                  label="Occupied"
-                  value={data.occupied_units} // Changed from occupied_flats
-                  max={data.total_units || 200} // Changed from total_flats
+                  label={t("labelOccupied")}
+                  value={data.occupied_units}
+                  max={data.total_units || 200}
                   color="text-orange-500"
                 />
                 <SimpleStatsCard
-                  label="Members"
+                  label={t("labelMembers")}
                   value={data.total_members}
                   max={200}
                   color="text-red-500"
@@ -293,7 +297,7 @@ export default function Dashboard() {
               {/* Society Breakdown Chart */}
               <div className="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800 mb-6">
-                  Society Statistics
+                  {t("titleSocietyStatistics")}
                 </h2>
                 <SocietyStatsChart societies={data.societies_breakdown} />
               </div>
@@ -301,7 +305,7 @@ export default function Dashboard() {
               {/* Society Breakdown Table */}
               <div className="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800 mb-6">
-                  Society Breakdown
+                  {t("titleSocietyBreakdown")}
                 </h2>
                 <SocietyBreakdownTable societies={data.societies_breakdown} />
               </div>
@@ -312,15 +316,15 @@ export default function Dashboard() {
               {/* Stats Section */}
               <div
                 className={
-                  societyType === 'housing' 
-                    ? "grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" // No buildings for housing
+                  societyType === "housing"
+                    ? "grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                     : "grid gap-6 mb-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
                 }
               >
                 {/* Only show buildings card for commercial and residential societies */}
-                {societyType !== 'housing' && (
+                {societyType !== "housing" && (
                   <SimpleStatsCard
-                    label="Buildings"
+                    label={t("labelBuildings")}
                     value={loading ? 0 : displayData.total_buildings}
                     max={50}
                     color="text-green-500"
@@ -329,20 +333,20 @@ export default function Dashboard() {
                 )}
                 <SimpleStatsCard
                   label={unitLabel}
-                  value={loading ? 0 : displayData.total_units} // Changed from total_flats
+                  value={loading ? 0 : displayData.total_units}
                   max={50}
                   color="text-purple-500"
                   loading={loading}
                 />
                 <SimpleStatsCard
-                  label="Occupied"
-                  value={loading ? 0 : displayData.occupied_units} // Changed from occupied_flats
-                  max={displayData.total_units || 50} // Changed from total_flats
+                  label={t("labelOccupied")}
+                  value={loading ? 0 : displayData.occupied_units}
+                  max={displayData.total_units || 50}
                   color="text-orange-500"
                   loading={loading}
                 />
                 <SimpleStatsCard
-                  label="Members"
+                  label={t("labelMembers")}
                   value={loading ? 0 : displayData.total_members}
                   max={50}
                   color="text-red-500"
@@ -354,38 +358,39 @@ export default function Dashboard() {
               {!loading && displayData.final_balance && (
                 <div className="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">
-                    Financial Overview
+                    {t("titleFinancialOverview")}
                   </h2>
 
                   {/* Summary Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <FinancialCard
-                      title="Total Expense"
+                      title={t("financialTotalExpense")}
                       value={Math.abs(
                         displayData.final_balance.total_expense || 0
                       )}
                       color="red"
                     />
                     <FinancialCard
-                      title="Collected Amount"
+                      title={t("financialCollectedAmount")}
                       value={Math.abs(
                         displayData.final_balance.regular_maintenance_amount +
                           displayData.final_balance.total_income +
-                          displayData.final_balance.pending_collected_maintenances +
+                          displayData.final_balance
+                            .pending_collected_maintenances +
                           displayData.final_balance
                             .total_penalties_paid_current_month || 0
                       )}
                       color="amber"
                     />
                     <FinancialCard
-                      title="Opening Balance"
+                      title={t("financialOpeningBalance")}
                       value={Math.abs(
                         displayData.final_balance.society_balance || 0
                       )}
                       color="green"
                     />
                     <FinancialCard
-                      title="Available Balance"
+                      title={t("financialAvailableBalance")}
                       value={Math.abs(
                         displayData.final_balance.final_balance || 0
                       )}
@@ -402,7 +407,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">
-                    {unitLabel} Occupancy
+                    {unitLabel} {t("titleOccupancy")}
                   </h2>
                   {loading ? (
                     <div className="flex items-center justify-center h-80">
@@ -410,15 +415,15 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <OccupancyChart
-                      occupied={displayData.occupied_units} // Changed from occupied_flats
-                      total={displayData.total_units} // Changed from total_flats
+                      occupied={displayData.occupied_units}
+                      total={displayData.total_units}
                     />
                   )}
                 </div>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                   <h2 className="text-xl font-bold text-gray-800 mb-6">
-                    Recent Notices
+                    {t("titleRecentNotices")}
                   </h2>
                   {loading ? (
                     <TableSkeleton rows={5} columns={3} />
@@ -432,8 +437,8 @@ export default function Dashboard() {
               <div className="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800 mb-6">
                   {role === "super_admin"
-                    ? "Society Members"
-                    : "My Society Members"}
+                    ? t("titleSocietyMembers")
+                    : t("titleMySocietyMembers")}
                 </h2>
                 {loading ? (
                   <TableSkeleton rows={8} columns={2} />

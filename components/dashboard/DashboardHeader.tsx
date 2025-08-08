@@ -4,6 +4,7 @@ import { cn } from "@/utils/cn";
 import { Building2, Building2Icon, ChevronDown, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DashboardData } from "./typesOfDash";
+import { useTranslations } from "next-intl";
 
 interface DashboardHeaderProps {
   role: string;
@@ -20,6 +21,8 @@ export const DashboardHeader = ({
   setSelectedSocietyId,
   loading,
 }: DashboardHeaderProps) => {
+  const t = useTranslations("DashboardHeader");
+
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +51,7 @@ export const DashboardHeader = ({
 
   const displayText = selectedSociety
     ? selectedSociety.name
-    : "All Societies Overview";
+    : t("allSocietiesOverview");
 
   return (
     <div className="mb-8">
@@ -56,8 +59,8 @@ export const DashboardHeader = ({
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold text-gray-800">
             <div className="flex gap-4 items-center">
-
-            <Building2Icon className="w-8 h-8 text-blue-600" />Dashboard
+              <Building2Icon className="w-8 h-8 text-blue-600" />
+              {t("dashboard")}
             </div>
           </h2>
 
@@ -79,13 +82,13 @@ export const DashboardHeader = ({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {displayText}
-                    </p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {displayText}
+                  </p>
                   {selectedSociety && (
                     <p className="text-xs text-gray-500">
-                      {selectedSociety.total_buildings} buildings •{" "}
-                      {selectedSociety.total_units} flats
+                      {selectedSociety.total_buildings} {t("buildings")} •{" "}
+                      {selectedSociety.total_units} {t("flats")}
                     </p>
                   )}
                 </div>
@@ -116,10 +119,10 @@ export const DashboardHeader = ({
                     <Users className="w-5 h-5 text-gray-500" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        All Societies Overview
+                        {t("allSocietiesOverview")}
                       </p>
                       <p className="text-xs text-gray-500">
-                        View all {data.societies_breakdown.length} societies
+                        {t("viewAllSocieties", { count: data.societies_breakdown.length })}
                       </p>
                     </div>
                   </div>
@@ -145,9 +148,9 @@ export const DashboardHeader = ({
                           {society.name}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {society.total_buildings} buildings •{" "}
-                          {society.total_units} flats • {society.total_members}{" "}
-                          members
+                          {society.total_buildings} {t("buildings")} •{" "}
+                          {society.total_units} {t("flats")} • {society.total_members}{" "}
+                          {t("members")}
                         </p>
                       </div>
                       {selectedSocietyId === society.id && (

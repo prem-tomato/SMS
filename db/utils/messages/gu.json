@@ -1,0 +1,92 @@
+{
+  "HomePage": {
+    "title": "હોમ પેજ",
+    "description": "હોમ પેજ પર આપનું સ્વાગત છે"
+  },
+  "ProfilePage": {
+    "myProfile": "મારો પ્રોફાઇલ",
+    "name": "નામ",
+    "role": "ભૂમિકા",
+    "loginKey": "લોગિન કી",
+    "phone": "ફોન",
+    "joinedAt": "જોડાયા"
+  },
+  "Dashboard": {
+    "unitLabelHousing": "હાઉસિંગ યુનિટ્સ",
+    "unitLabelCommercial": "વાણિજ્યિક યુનિટ્સ",
+    "unitLabelResidential": "ફ્લેટ્સ",
+    "unitLabelDefault": "યુનિટ્સ",
+    "selectedSociety": "ચયન કરેલી સોસાયટી",
+    "labelSocieties": "સોસાઇટીઓ",
+    "labelBuildings": "મકાન",
+    "labelUnits": "યુનિટ્સ",
+    "labelOccupied": "વસવાટવાળા",
+    "labelMembers": "સભ્યો",
+    "titleSocietyStatistics": "સોસાયટી આંકડાકીય માહિતી",
+    "titleSocietyBreakdown": "સોસાયટી વિભાજન",
+    "titleFinancialOverview": "આર્થિક ઝલક",
+    "financialTotalExpense": "કુલ ખર્ચ",
+    "financialCollectedAmount": "સંગ્રહિત રકમ",
+    "financialOpeningBalance": "પ્રારંભિક બેલેન્સ",
+    "financialAvailableBalance": "ઉપલબ્ધ બેલેન્સ",
+    "titleOccupancy": "વસવાટ",
+    "titleRecentNotices": "તાજેતરના સૂચનો",
+    "titleSocietyMembers": "સોસાયટી સભ્યો",
+    "titleMySocietyMembers": "મારા સોસાયટી સભ્યો"
+  },
+  "DashboardHeader": {
+    "dashboard": "ડેશબોર્ડ",
+    "allSocietiesOverview": "તમામ સોસાયટીઓનો અભ્યાસ",
+    "viewAllSocieties": "કુલ {count} સોસાયટીઓ જુઓ",
+    "buildings": "બિલ્ડિંગ્સ",
+    "flats": "ફ્લેટ્સ",
+    "members": "સભ્યો"
+  },
+  "MembersTable": {
+    "name": "નામ",
+    "phone": "ફોન",
+    "noMembersFound": "કોઈ સભ્ય મળ્યા નથી."
+  },
+  "NoticesTable": {
+    "title": "શીર્ષક",
+    "date": "તારીખ",
+    "status": "સ્થિતિ",
+    "open": "ખુલ્લું",
+    "closed": "બંધ",
+    "noNoticesAvailable": "કોઈ સૂચનાઓ ઉપલબ્ધ નથી."
+  },
+  "SocietyBreakdownTable": {
+    "society": "સોસાયટી",
+    "buildings": "બિલ્ડિંગ્સ",
+    "flats": "ફ્લેટ્સ",
+    "members": "સભ્યો",
+    "noSocietiesDataFound": "કોઈ સોસાયટી ડેટા મળ્યો નથી."
+  },
+  "SocietySelector": {
+    "allSocieties": "તમામ સોસાયટીઓ",
+    "overviewOfAll": "બધી {count} સોસાયટીઓનું સમીક્ષા",
+    "searchPlaceholder": "સોસાયટીઓ શોધો...",
+    "noSocietiesFound": "\"{searchTerm}\" માટે કોઈ સોસાયટી મળી નહીં"
+  },
+  "FinancialChart": {
+    "totalExpense": "કુલ ખર્ચ",
+    "collectedAmount": "સંગ્રહિત રકમ",
+    "openingBalance": "પ્રારંભિક બેલેન્સ",
+    "availableBalance": "ઉપલબ્ધ બેલેન્સ",
+    "penalties": "જુર્માના",
+    "maintenanceAmount": "રખરખાવ રકમ",
+    "pendingCollectedMaintenances": "લંબિત વસૂલાત રકમ",
+    "incomeCollected": "વસૂલાત આવક",
+    "amount": "રકમ"
+  },
+  "OccupancyChart": {
+    "occupied": "ભરેલું",
+    "vacant": "ખાલી",
+    "flats": "ફ્લેટ્સ"
+  },
+  "SocietyStatsChart": {
+    "buildings": "બિલ્ડિંગ્સ",
+    "units": "યુનિટ્સ",
+    "members": "સભ્યો"
+  }
+}

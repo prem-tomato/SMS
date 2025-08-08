@@ -26,7 +26,6 @@ export const SimpleStatsCard = ({
 
   const textColorClass = color in colorClasses ? color : "text-gray-600";
 
-
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
       {loading ? (
@@ -37,7 +36,11 @@ export const SimpleStatsCard = ({
         </div>
       ) : (
         <>
-          <div className={`text-xl font-medium text-gray-600 mb-2 ${textColorClass}`}>{label}</div>
+          <div
+            className={`text-xl font-medium text-gray-600 mb-2 ${textColorClass}`}
+          >
+            {label}
+          </div>
           <div className="text-3xl font-bold text-gray-900 mb-2">{value}</div>
         </>
       )}

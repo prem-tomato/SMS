@@ -13,12 +13,14 @@ import {
 import { useEffect, useState } from "react";
 import { FinalBalanceData } from "../typesOfDash";
 import { getSocietyTypeFromLocalStorage } from "@/lib/auth";
+import { useTranslations } from "next-intl";
 
 interface FinancialChartProps {
   data: FinalBalanceData;
 }
 
 export const FinancialChart = ({ data }: FinancialChartProps) => {
+  const t = useTranslations("FinancialChart"); // namespace key
   const [societyType, setSocietyType] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,22 +36,22 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
 
   const chartData = [
     {
-      name: "Total Expense",
+      name: t("totalExpense"),
       value: Math.abs(data.total_expense || 0),
       color: "#ef4444", // Red
     },
     {
-      name: "Collected Amount",
+      name: t("collectedAmount"),
       value: Math.abs(collectedAmount),
       color: "#f59e0b", // Amber
     },
     {
-      name: "Opening Balance",
+      name: t("openingBalance"),
       value: Math.abs(data.society_balance || 0),
       color: "#10b981", // Emerald
     },
     {
-      name: "Available Balance",
+      name: t("availableBalance"),
       value: Math.abs(data.final_balance || 0),
       color: "#3b82f6", // Blue
     },
@@ -57,33 +59,33 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      if (label === "Collected Amount") {
+      if (label === t("collectedAmount")) {
         return (
           <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg min-w-[250px]">
             <p className="font-medium text-gray-800 mb-2">{label}</p>
             <div className="space-y-1">
               <p className="text-sm text-orange-600">
-                Penalties: ₹
+                {t("penalties")}: ₹
                 {Math.abs(
                   data.total_penalties_paid_current_month || 0
                 ).toLocaleString("en-IN")}
               </p>
               <p className="text-sm text-amber-600">
-                Maintenance Amount: ₹
+                {t("maintenanceAmount")}: ₹
                 {Math.abs(data.regular_maintenance_amount || 0).toLocaleString(
                   "en-IN"
                 )}
               </p>
               {societyType !== "housing" && (
                 <p className="text-sm text-red-600">
-                  Pending Collected Maintenances: ₹
+                  {t("pendingCollectedMaintenances")}: ₹
                   {Math.abs(
                     data.pending_collected_maintenances || 0
                   ).toLocaleString("en-IN")}
                 </p>
               )}
               <p className="text-sm text-green-600">
-                Income Collected: ₹
+                {t("incomeCollected")}: ₹
                 {Math.abs(data.total_income || 0).toLocaleString("en-IN")}
               </p>
             </div>
@@ -96,7 +98,7 @@ export const FinancialChart = ({ data }: FinancialChartProps) => {
           <p className="font-medium text-gray-800">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }}>
-              Amount: ₹{entry.value?.toLocaleString("en-IN")}
+              {t("amount")}: ₹{entry.value?.toLocaleString("en-IN")}
             </p>
           ))}
         </div>

@@ -4,6 +4,7 @@ import { cn } from "@/utils/cn";
 import { Building2, Check, ChevronDown, Search, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DashboardData } from "./typesOfDash";
+import { useTranslations } from "next-intl";
 
 interface SocietySelectorProps {
   data: DashboardData;
@@ -18,6 +19,7 @@ export const SocietySelector = ({
   setSelectedSocietyId,
   className,
 }: SocietySelectorProps) => {
+  const t = useTranslations("SocietySelector");
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,7 +48,7 @@ export const SocietySelector = ({
     society.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const displayText = selectedSociety ? selectedSociety.name : "All Societies";
+  const displayText = selectedSociety ? selectedSociety.name : t("allSocieties");
 
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
@@ -85,7 +87,7 @@ export const SocietySelector = ({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search societies..."
+                  placeholder={t("searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -111,10 +113,10 @@ export const SocietySelector = ({
                 <Users className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    All Societies
+                    {t("allSocieties")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Overview of all {data.societies_breakdown.length} societies
+                    {t("overviewOfAll", { count: data.societies_breakdown.length })}
                   </p>
                 </div>
               </div>
@@ -157,7 +159,7 @@ export const SocietySelector = ({
               ))
             ) : (
               <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                No societies found matching "{searchTerm}"
+                {t("noSocietiesFound", { searchTerm })}
               </div>
             )}
           </div>

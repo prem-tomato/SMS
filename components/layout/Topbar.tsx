@@ -8,6 +8,7 @@ import {
   removeSocietyType,
   removeUserRole,
 } from "@/lib/auth";
+import { useLocaleContext } from "@/lib/LocaleContext";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import PersonIcon from "@mui/icons-material/Person";
@@ -18,9 +19,11 @@ import {
   Box,
   Chip,
   Divider,
+  FormControlLabel,
   Menu,
   MenuItem,
   Skeleton,
+  Switch,
   Toolbar,
   Typography,
 } from "@mui/material";
@@ -40,6 +43,8 @@ export default function Topbar() {
   const [error, setError] = useState<string | null>(null);
   const [role, setRole] = useState<string>("");
   const router = useRouter();
+
+  const { locale, setLocale } = useLocaleContext();
 
   useEffect(() => {
     const fetchUserAndRole = async () => {
@@ -136,6 +141,10 @@ export default function Topbar() {
   const isAdminUser = role.toLowerCase() === "admin";
 
   // Loading state
+  const handleLanguageToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLocale(event.target.checked ? "gu" : "en");
+  };
+
   if (isLoading) {
     return (
       <AppBar
@@ -190,11 +199,8 @@ export default function Topbar() {
       </AppBar>
     );
   }
-
   // No user state (shouldn't happen if loading/error states work correctly)
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <>
@@ -216,6 +222,19 @@ export default function Topbar() {
           <Box />
 
           <Box display="flex" alignItems="center" gap={2}>
+            {/* Language toggle */}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={locale === "gu"}
+                  onChange={handleLanguageToggle}
+                  color="primary"
+                  inputProps={{ "aria-label": "language toggle" }}
+                />
+              }
+              label={locale === "gu" ? "ગુજરાતી" : "English"}
+            />
+
             {/* User Profile Section */}
             <Box
               display="flex"

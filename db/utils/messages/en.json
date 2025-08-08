@@ -1,0 +1,93 @@
+{
+  "HomePage": {
+    "title": "Home Page",
+    "description": "Welcome to the home page"
+  },
+  "ProfilePage": {
+    "myProfile": "My Profile",
+    "name": "Name",
+    "role": "Role",
+    "loginKey": "Login Key",
+    "phone": "Phone",
+    "joinedAt": "Joined At"
+  },
+
+  "Dashboard": {
+    "unitLabelHousing": "Housing Units",
+    "unitLabelCommercial": "Commercial Units",
+    "unitLabelResidential": "Flats",
+    "unitLabelDefault": "Units",
+    "selectedSociety": "Selected Society",
+    "labelSocieties": "Societies",
+    "labelBuildings": "Buildings",
+    "labelUnits": "Units",
+    "labelOccupied": "Occupied",
+    "labelMembers": "Members",
+    "titleSocietyStatistics": "Society Statistics",
+    "titleSocietyBreakdown": "Society Breakdown",
+    "titleFinancialOverview": "Financial Overview",
+    "financialTotalExpense": "Total Expense",
+    "financialCollectedAmount": "Collected Amount",
+    "financialOpeningBalance": "Opening Balance",
+    "financialAvailableBalance": "Available Balance",
+    "titleOccupancy": "Occupancy",
+    "titleRecentNotices": "Recent Notices",
+    "titleSocietyMembers": "Society Members",
+    "titleMySocietyMembers": "My Society Members"
+  },
+  "DashboardHeader": {
+    "dashboard": "Dashboard",
+    "allSocietiesOverview": "All Societies Overview",
+    "viewAllSocieties": "View all {count} societies",
+    "buildings": "buildings",
+    "flats": "flats",
+    "members": "members"
+  },
+  "MembersTable": {
+    "name": "Name",
+    "phone": "Phone",
+    "noMembersFound": "No members found."
+  },
+  "NoticesTable": {
+    "title": "Title",
+    "date": "Date",
+    "status": "Status",
+    "open": "Open",
+    "closed": "Closed",
+    "noNoticesAvailable": "No notices available."
+  },
+  "SocietyBreakdownTable": {
+    "society": "Society",
+    "buildings": "Buildings",
+    "flats": "Flats",
+    "members": "Members",
+    "noSocietiesDataFound": "No societies data found."
+  },
+  "SocietySelector": {
+    "allSocieties": "All Societies",
+    "overviewOfAll": "Overview of all {count} societies",
+    "searchPlaceholder": "Search societies...",
+    "noSocietiesFound": "No societies found matching \"{searchTerm}\""
+  },
+  "FinancialChart": {
+    "totalExpense": "Total Expense",
+    "collectedAmount": "Collected Amount",
+    "openingBalance": "Opening Balance",
+    "availableBalance": "Available Balance",
+    "penalties": "Penalties",
+    "maintenanceAmount": "Maintenance Amount",
+    "pendingCollectedMaintenances": "Pending Collected Maintenances",
+    "incomeCollected": "Income Collected",
+    "amount": "Amount"
+  },
+  "OccupancyChart": {
+    "occupied": "Occupied",
+    "vacant": "Vacant",
+    "flats": "Flats"
+  },
+  "SocietyStatsChart": {
+    "buildings": "Buildings",
+    "units": "Units",
+    "members": "Members"
+  }
+}
