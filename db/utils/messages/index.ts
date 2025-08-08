@@ -1,5 +1,5 @@
 // Importing the messages from a JSON file
-import messagesJSON from './en.json';
+import messagesJSON from './error.json';
 
 // Function to get a message by key.
 const getMessage = (key: keyof typeof messagesJSON): string => {
