@@ -37,6 +37,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import flags from "emoji-flags";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
@@ -103,6 +104,8 @@ type FormInputData = z.infer<typeof inputSchema>;
 
 export default function SocietiesPage() {
   const queryClient = useQueryClient();
+  const t = useTranslations("SocietyManagement");
+
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -197,13 +200,10 @@ export default function SocietiesPage() {
         if (message.includes("login key")) {
           setError("login_key", {
             type: "manual",
-            message:
-              "Login key already exists. Please use a different login key.",
+            message: t("loginKeyExists"),
           });
 
-          toast.error(
-            "Login key already exists. Please use a different login key."
-          );
+          toast.error(t("loginKeyExists"));
         } else if (message.includes("phone")) {
           setError("phone", {
             type: "manual",
@@ -235,7 +235,7 @@ export default function SocietiesPage() {
       },
       onError: (error: any) => {
         console.error("Failed to update end date:", error);
-        toast.error("Failed to update end date. Please try again.");
+        toast.error(t("updateEndDateFailed"));
       },
     });
 
@@ -246,11 +246,11 @@ export default function SocietiesPage() {
       setDeleteDialogOpen(false);
       setMenuAnchor(null);
       setSelectedSocietyId(null);
-      toast.success("Society deleted successfully");
+      toast.success(t("societyDeletedSuccess"));
     },
     onError: (error: any) => {
       console.error("Failed to delete society:", error);
-      toast.error("Society already in use.");
+      toast.error(t("societyInUse"));
     },
   });
 
@@ -267,21 +267,23 @@ export default function SocietiesPage() {
   const selectedSociety = societies.find((s) => s.id === selectedSocietyId);
 
   const columns = [
-    { field: "name", headerName: "Society", flex: 1 },
-    { field: "society_type", headerName: "Type", flex: 1 },
-    { field: "address", headerName: "Address", flex: 1 },
-    { field: "city", headerName: "City", flex: 1 },
-    { field: "state", headerName: "State", flex: 1 },
+    { field: "name", headerName: t("societyName"), flex: 1 },
+    { field: "society_type", headerName: t("societyType"), flex: 1 },
+    { field: "address", headerName: t("address"), flex: 1 },
+    { field: "city", headerName: t("city"), flex: 1 },
+    { field: "state", headerName: t("state"), flex: 1 },
     {
       field: "end_date",
-      headerName: "End Date",
+      headerName: t("endDate"),
       flex: 1,
       renderCell: ({ row }: any) =>
-        row.end_date ? dayjs(row.end_date).format("YYYY-MMMM-DD") : "Set Date",
+        row.end_date
+          ? dayjs(row.end_date).format("YYYY-MMMM-DD")
+          : t("setEndDate"),
     },
     {
       field: "opening_balance",
-      headerName: "Opening Balance",
+      headerName: t("openingBalance"),
       flex: 1,
       renderCell: ({ row }: any) => {
         const value = Number(row.opening_balance) || 0;
@@ -295,7 +297,7 @@ export default function SocietiesPage() {
     },
     {
       field: "is_active",
-      headerName: "Status",
+      headerName: t("status"),
       flex: 1,
       renderCell: (params: any) => {
         const isActive = params.value;
@@ -321,7 +323,7 @@ export default function SocietiesPage() {
                 transition: "background-color 0.2s",
               }}
             />
-            <span>{isActive ? "Active" : "Inactive"}</span>
+            <span>{isActive ? t("active") : t("inactive")}</span>
           </div>
         );
       },
@@ -330,7 +332,7 @@ export default function SocietiesPage() {
       ? [
           {
             field: "actions",
-            headerName: "Actions",
+            headerName: t("actions"),
             renderCell: ({ row }: any) => (
               <IconButton
                 onClick={(e) => {
@@ -370,7 +372,7 @@ export default function SocietiesPage() {
               color: "#1e1ee4",
             }}
           >
-            Add Society
+            {t("addSociety")}
           </Button>
         </Box>
 
@@ -378,7 +380,7 @@ export default function SocietiesPage() {
           rows={filteredSocieties}
           columns={columns}
           loading={isLoading}
-          height="calc(100vh - 180px)" // Adjust based on header/toolbar height
+          height="calc(100vh - 180px)"
           pageSize={20}
         />
 
@@ -395,8 +397,8 @@ export default function SocietiesPage() {
             }}
           >
             {societies.find((s) => s.id === selectedSocietyId)?.end_date
-              ? "Update End Date"
-              : "Set End Date"}
+              ? t("updateEndDate")
+              : t("setEndDate")}
           </MenuItem>
           <MenuItem
             onClick={() => {
@@ -405,7 +407,7 @@ export default function SocietiesPage() {
             }}
             sx={{ color: "#ef4444" }}
           >
-            Delete Society
+            {t("deleteSociety")}
           </MenuItem>
         </Menu>
 
@@ -417,7 +419,9 @@ export default function SocietiesPage() {
           maxWidth="xs"
           PaperProps={{ sx: { borderRadius: 2 } }}
         >
-          <DialogTitle sx={{ fontWeight: "bold" }}>Set End Date</DialogTitle>
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            {t("setEndDate")}
+          </DialogTitle>
 
           <DialogContent
             sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
@@ -441,7 +445,7 @@ export default function SocietiesPage() {
               onClick={() => setEndDateDialogOpen(false)}
               sx={{ textTransform: "none" }}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <CommonButton
               variant="contained"
@@ -450,7 +454,7 @@ export default function SocietiesPage() {
               onClick={handleEndDateSubmit}
               sx={{ textTransform: "none", bgcolor: "#1e1ee4" }}
             >
-              Update
+              {t("update")}
             </CommonButton>
           </DialogActions>
         </Dialog>
@@ -466,13 +470,13 @@ export default function SocietiesPage() {
           <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <WarningIcon sx={{ color: "#ef4444" }} />
             <Typography variant="h6" fontWeight="bold">
-              Delete Society
+              {t("deleteSociety")}
             </Typography>
           </DialogTitle>
 
           <DialogContent sx={{ pt: 1 }}>
             <Typography variant="body1">
-              Are you sure you want to delete the society{" "}
+              {t("deleteConfirmText")}{" "}
               <strong>"{selectedSociety?.name}"</strong>?
             </Typography>
           </DialogContent>
@@ -483,7 +487,7 @@ export default function SocietiesPage() {
               disabled={isDeleting}
               sx={{ textTransform: "none" }}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <CommonButton
               variant="contained"
@@ -495,7 +499,7 @@ export default function SocietiesPage() {
                 "&:hover": { bgcolor: "#dc2626" },
               }}
             >
-              Delete Society
+              {t("deleteSociety")}
             </CommonButton>
           </DialogActions>
         </Dialog>
@@ -510,10 +514,10 @@ export default function SocietiesPage() {
         >
           <DialogTitle sx={{ pb: 2 }}>
             <Typography variant="h6" fontWeight="bold">
-              Add New Society & Admin
+              {t("addNewSocietyAdmin")}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Fill in the society details and admin user information below
+              {t("fillSocietyDetails")}
             </Typography>
           </DialogTitle>
 
@@ -522,111 +526,88 @@ export default function SocietiesPage() {
             onSubmit={handleSubmit((data) => createMutation(data))}
           >
             <DialogContent
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
-                pb: 2,
-              }}
+              sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
             >
               {/* Society Information Section */}
               <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
-                Society Information
+                {t("societyInformation")}
               </Typography>
 
               <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
                 <TextField
-                  label="Society Name"
-                  placeholder="Enter society name"
+                  label={t("societyName")}
+                  placeholder={t("enterSocietyName")}
                   {...register("name")}
                   error={!!errors.name}
                   helperText={errors.name?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
 
                 <TextField
-                  label="Address"
-                  placeholder="Enter address"
+                  label={t("address")}
+                  placeholder={t("enterAddress")}
                   {...register("address")}
                   error={!!errors.address}
                   helperText={errors.address?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
               </Box>
 
               <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
                 <TextField
-                  label="City"
-                  placeholder="Enter city"
+                  label={t("city")}
+                  placeholder={t("enterCity")}
                   {...register("city")}
                   error={!!errors.city}
                   helperText={errors.city?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
 
                 <TextField
-                  label="State"
-                  placeholder="Enter state"
+                  label={t("state")}
+                  placeholder={t("enterState")}
                   {...register("state")}
                   error={!!errors.state}
                   helperText={errors.state?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
               </Box>
 
               <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
                 <TextField
-                  label="Opening Balance"
-                  placeholder="Enter opening balance"
+                  label={t("openingBalance")}
+                  placeholder={t("enterOpeningBalance")}
                   type="number"
                   {...register("opening_balance")}
                   error={!!errors.opening_balance}
                   helperText={errors.opening_balance?.message}
                   fullWidth
-                  inputProps={{
-                    min: 0,
-                    max: 1000000,
-                    step: 0.01,
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  inputProps={{ min: 0, max: 1000000, step: 0.01 }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
 
                 <FormControl
                   fullWidth
                   error={!!errors.country}
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 >
-                  <InputLabel>Country</InputLabel>
+                  <InputLabel>{t("country")}</InputLabel>
                   <Controller
                     name="country"
                     control={control}
                     render={({ field }) => (
                       <Select
                         {...field}
-                        label="Country"
+                        label={t("country")}
                         MenuProps={{
                           PaperProps: {
                             sx: {
                               maxHeight: 300,
-                              "& .MuiMenuItem-root": {
-                                fontSize: "0.875rem",
-                              },
+                              "& .MuiMenuItem-root": { fontSize: "0.875rem" },
                             },
                           },
                         }}
@@ -650,12 +631,12 @@ export default function SocietiesPage() {
                 error={!!errors.society_type}
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               >
-                <InputLabel>Society Type</InputLabel>
+                <InputLabel>{t("societyType")}</InputLabel>
                 <Controller
                   name="society_type"
                   control={control}
                   render={({ field }) => (
-                    <Select {...field} label="Society Type">
+                    <Select {...field} label={t("societyType")}>
                       {Object.entries(societyType).map(([key, value]) => (
                         <MenuItem key={key} value={value}>
                           {value.charAt(0).toUpperCase() +
@@ -674,52 +655,43 @@ export default function SocietiesPage() {
 
               {/* Admin User Information Section */}
               <Typography variant="subtitle1" fontWeight="bold" color="#1e1ee4">
-                Admin User Information
+                {t("adminUserInformation")}
               </Typography>
 
               <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
                 <TextField
-                  label="First Name"
-                  placeholder="Enter first name"
+                  label={t("firstName")}
+                  placeholder={t("enterFirstName")}
                   {...register("first_name")}
                   error={!!errors.first_name}
                   helperText={errors.first_name?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
 
                 <TextField
-                  label="Last Name"
-                  placeholder="Enter last name"
+                  label={t("lastName")}
+                  placeholder={t("enterLastName")}
                   {...register("last_name")}
                   error={!!errors.last_name}
                   helperText={errors.last_name?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
               </Box>
 
               <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
                 <TextField
-                  label="Login Key"
-                  placeholder="Enter 6-digit login key"
+                  label={t("loginKey")}
+                  placeholder={t("enter6DigitLoginKey")}
                   {...register("login_key")}
                   error={!!errors.login_key}
                   helperText={errors.login_key?.message}
                   fullWidth
                   type="text"
                   inputMode="numeric"
-                  inputProps={{
-                    maxLength: 6,
-                    pattern: "[0-9]*",
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  inputProps={{ maxLength: 6, pattern: "[0-9]*" }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
                 {/* Phone Input with react-phone-number-input */}
                 <Box>
@@ -730,7 +702,7 @@ export default function SocietiesPage() {
                       <Box>
                         <PhoneInput
                           {...field}
-                          placeholder="Enter phone number"
+                          placeholder={t("enterPhoneNumber")}
                           defaultCountry="IN"
                           international
                           countryCallingCodeEditable={false}
@@ -762,7 +734,7 @@ export default function SocietiesPage() {
                 disabled={isSubmitting}
                 sx={{ textTransform: "none" }}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <CommonButton
                 type="submit"
@@ -770,7 +742,7 @@ export default function SocietiesPage() {
                 loading={isSubmitting}
                 sx={{ bgcolor: "#1e1ee4" }}
               >
-                Save Society & Admin
+                {t("saveSocietyAdmin")}
               </CommonButton>
             </DialogActions>
           </Box>
