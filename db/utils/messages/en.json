@@ -652,5 +652,18 @@
       "cancel": "Cancel",
       "save": "Save Notice"
     }
+  },
+  "LoginsPage": {
+    "columns": {
+      "user": "User",
+      "loginTime": "Login Time",
+      "ipAddress": "IP Address",
+      "device": "Device",
+      "os": "OS",
+      "browser": "Browser",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "location": "Location"
+    }
   }
 }

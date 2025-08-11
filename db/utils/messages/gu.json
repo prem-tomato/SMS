@@ -651,5 +651,18 @@
       "cancel": "રદ કરો",
       "save": "નોટિસ સાચવો"
     }
+  },
+  "LoginsPage": {
+    "columns": {
+      "user": "વપરાશકર્તા",
+      "loginTime": "લોગિન સમય",
+      "ipAddress": "IP સરનામું",
+      "device": "ઉપકરણ",
+      "os": "ઓપરેટિંગ સિસ્ટમ",
+      "browser": "બ્રાઉઝર",
+      "latitude": "અક્ષાંશ",
+      "longitude": "રેખાંશ",
+      "location": "સ્થાન"
+    }
   }
 }
