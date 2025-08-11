@@ -511,5 +511,105 @@
     "placeholders": {
       "selectDate": "તારીખ પસંદ કરો"
     }
+  },
+  "expenseTracking": {
+    "buttons": {
+      "addExpense": "ખર્ચ ઉમેરો",
+      "cancel": "રદ કરો",
+      "saveExpense": "ખર્ચ સાચવો"
+    },
+    "labels": {
+      "filterMonth": "મહિનો ફિલ્ટર કરો",
+      "society": "સોસાયટી",
+      "month": "મહિનો",
+      "year": "વર્ષ",
+      "expenseType": "ખર્ચનો પ્રકાર",
+      "reason": "કારણ",
+      "amount": "રકમ"
+    },
+    "table": {
+      "type": "પ્રકાર",
+      "reason": "કારણ",
+      "amount": "રકમ",
+      "society": "સોસાયટી",
+      "month": "મહિનો",
+      "year": "વર્ષ",
+      "actionBy": "ક્રિયા દ્વારા"
+    },
+    "dialog": {
+      "title": "નવો ખર્ચ ઉમેરો",
+      "subtitle": "નીચે ખર્ચની વિગતો દાખલ કરો"
+    },
+    "expenseTypes": {
+      "fixed": "નિયત",
+      "monthly": "માસિક"
+    },
+    "placeholders": {
+      "reasonExample": "ઉદા., ચોકીદારનો પગાર",
+      "amountExample": "ઉદા., 10000"
+    },
+    "validation": {
+      "societyRequired": "સોસાયટી જરૂરી છે",
+      "expenseTypeRequired": "ખર્ચનો પ્રકાર જરૂરી છે",
+      "expenseReasonRequired": "ખર્ચનું કારણ જરૂરી છે",
+      "amountRequired": "રકમ જરૂરી છે",
+      "amountValidNumber": "રકમ 0 કરતાં વધુનો માન્ય નંબર હોવો જોઈએ",
+      "monthRequired": "મહિનો જરૂરી છે",
+      "yearRequired": "વર્ષ જરૂરી છે"
+    },
+    "common": {
+      "selectedSociety": "પસંદ કરેલ સોસાયટી",
+      "loading": "લોડ થઈ રહ્યું છે..."
+    }
+  },
+  "IncomeTrackingPage": {
+    "columns": {
+      "type": "પ્રકાર",
+      "reason": "કારણ",
+      "amount": "રકમ",
+      "society": "સોસાયટી",
+      "month": "મહિનો",
+      "year": "વર્ષ",
+      "actionBy": "ક્રિયા કરનાર"
+    },
+    "buttons": {
+      "addIncome": "આવક ઉમેરો",
+      "cancel": "રદ્દ કરો",
+      "saveIncome": "આવક સચવો"
+    },
+    "filters": {
+      "filterMonth": "મહિનો ફિલ્ટર કરો"
+    },
+    "dialog": {
+      "title": "નવી આવક ઉમેરો",
+      "subtitle": "નીચે આવકની વિગતો દાખલ કરો"
+    },
+    "fields": {
+      "society": "સોસાયટી",
+      "month": "મહિનો",
+      "year": "વર્ષ",
+      "incomeType": "આવકનો પ્રકાર",
+      "reason": "કારણ",
+      "amount": "રકમ"
+    },
+    "labels": {
+      "selectedSociety": "પસંદ કરેલી સોસાયટી",
+      "loading": "લોડ થઈ રહ્યું છે...",
+      "fixed": "નિશ્ચિત",
+      "monthly": "માસિક"
+    },
+    "placeholders": {
+      "reason": "દા.ત., વોચમેનનો પગાર",
+      "amount": "દા.ત., 10000"
+    },
+    "errors": {
+      "societyRequired": "સોસાયટી જરૂરી છે",
+      "incomeTypeRequired": "આવકનો પ્રકાર જરૂરી છે",
+      "incomeReasonRequired": "આવકનું કારણ જરૂરી છે",
+      "amountRequired": "રકમ જરૂરી છે",
+      "amountInvalid": "રકમ માન્ય નંબર અને 0 કરતાં વધુ હોવી જોઈએ",
+      "monthRequired": "મહિનો જરૂરી છે",
+      "yearRequired": "વર્ષ જરૂરી છે"
+    }
   }
 }

@@ -512,5 +512,105 @@
     "placeholders": {
       "selectDate": "Select date"
     }
+  },
+  "expenseTracking": {
+    "buttons": {
+      "addExpense": "Add Expense",
+      "cancel": "Cancel",
+      "saveExpense": "Save Expense"
+    },
+    "labels": {
+      "filterMonth": "Filter Month",
+      "society": "Society",
+      "month": "Month",
+      "year": "Year",
+      "expenseType": "Expense Type",
+      "reason": "Reason",
+      "amount": "Amount"
+    },
+    "table": {
+      "type": "Type",
+      "reason": "Reason",
+      "amount": "Amount",
+      "society": "Society",
+      "month": "Month",
+      "year": "Year",
+      "actionBy": "Action By"
+    },
+    "dialog": {
+      "title": "Add New Expense",
+      "subtitle": "Enter expense details below"
+    },
+    "expenseTypes": {
+      "fixed": "Fixed",
+      "monthly": "Monthly"
+    },
+    "placeholders": {
+      "reasonExample": "e.g., Watchmen salary",
+      "amountExample": "e.g., 10000"
+    },
+    "validation": {
+      "societyRequired": "Society is required",
+      "expenseTypeRequired": "Expense type is required",
+      "expenseReasonRequired": "Expense reason is required",
+      "amountRequired": "Amount is required",
+      "amountValidNumber": "Amount must be a valid number greater than 0",
+      "monthRequired": "Month is required",
+      "yearRequired": "Year is required"
+    },
+    "common": {
+      "selectedSociety": "Selected Society",
+      "loading": "Loading..."
+    }
+  },
+  "IncomeTrackingPage": {
+    "columns": {
+      "type": "Type",
+      "reason": "Reason",
+      "amount": "Amount",
+      "society": "Society",
+      "month": "Month",
+      "year": "Year",
+      "actionBy": "Action By"
+    },
+    "buttons": {
+      "addIncome": "Add Income",
+      "cancel": "Cancel",
+      "saveIncome": "Save Income"
+    },
+    "filters": {
+      "filterMonth": "Filter Month"
+    },
+    "dialog": {
+      "title": "Add New Income",
+      "subtitle": "Enter income details below"
+    },
+    "fields": {
+      "society": "Society",
+      "month": "Month",
+      "year": "Year",
+      "incomeType": "Income Type",
+      "reason": "Reason",
+      "amount": "Amount"
+    },
+    "labels": {
+      "selectedSociety": "Selected Society",
+      "loading": "Loading...",
+      "fixed": "Fixed",
+      "monthly": "Monthly"
+    },
+    "placeholders": {
+      "reason": "e.g., Watchmen salary",
+      "amount": "e.g., 10000"
+    },
+    "errors": {
+      "societyRequired": "Society is required",
+      "incomeTypeRequired": "Income type is required",
+      "incomeReasonRequired": "Income reason is required",
+      "amountRequired": "Amount is required",
+      "amountInvalid": "Amount must be a valid number greater than 0",
+      "monthRequired": "Month is required",
+      "yearRequired": "Year is required"
+    }
   }
 }

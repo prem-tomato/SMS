@@ -27,40 +27,42 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-// 🔎 Validation schema
-const inputSchema = z.object({
-  society_id: z.string().min(1, "Society is required"),
-  income_type: z.string().min(1, "Income type is required"),
-  income_reason: z.string().min(1, "Income reason is required"),
-  income_amount: z
-    .string()
-    .min(1, "Amount is required")
-    .refine(
-      (val) => !isNaN(Number(val)) && Number(val) > 0,
-      "Amount must be a valid number greater than 0"
-    ),
-  income_month: z.string().min(1, "Month is required"),
-  income_year: z.string().min(4, "Year is required"),
-});
-
-type FormInputValues = z.infer<typeof inputSchema>;
-
-// 🔧 Utility
-const formatMonthYear = (value: string) => {
-  const [month, year] = value.split("-");
-  return `${new Date(Number(year), Number(month) - 1).toLocaleString(
-    "default",
-    {
-      month: "long",
-    }
-  )} ${year}`;
-};
-
+// Validation schema with translations
 export default function incomeTrackingPage() {
+  const t = useTranslations("IncomeTrackingPage");
+
+  const inputSchema = z.object({
+    society_id: z.string().min(1, t("errors.societyRequired")),
+    income_type: z.string().min(1, t("errors.incomeTypeRequired")),
+    income_reason: z.string().min(1, t("errors.incomeReasonRequired")),
+    income_amount: z
+      .string()
+      .min(1, t("errors.amountRequired"))
+      .refine(
+        (val) => !isNaN(Number(val)) && Number(val) > 0,
+        t("errors.amountInvalid")
+      ),
+    income_month: z.string().min(1, t("errors.monthRequired")),
+    income_year: z.string().min(4, t("errors.yearRequired")),
+  });
+
+  type FormInputValues = z.infer<typeof inputSchema>;
+
+  const formatMonthYear = (value: string) => {
+    const [month, year] = value.split("-");
+    return `${new Date(Number(year), Number(month) - 1).toLocaleString(
+      "default",
+      {
+        month: "long",
+      }
+    )} ${year}`;
+  };
+
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
@@ -133,10 +135,6 @@ export default function incomeTrackingPage() {
     },
   });
 
-  const onSubmit = (data: FormInputValues) => {
-    mutation.mutate(data);
-  };
-
   const handleOpen = () => {
     reset({
       society_id: role === "admin" ? adminSocietyId || "" : "",
@@ -164,17 +162,17 @@ export default function incomeTrackingPage() {
 
   const columns = useMemo(
     () => [
-      { field: "income_type", headerName: "Type", flex: 1 },
-      { field: "income_reason", headerName: "Reason", flex: 2 },
-      { field: "income_amount", headerName: "Amount", flex: 1 },
+      { field: "income_type", headerName: t("columns.type"), flex: 1 },
+      { field: "income_reason", headerName: t("columns.reason"), flex: 2 },
+      { field: "income_amount", headerName: t("columns.amount"), flex: 1 },
       ...(role === "super_admin"
-        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        ? [{ field: "society_name", headerName: t("columns.society"), flex: 1 }]
         : []),
-      { field: "income_month", headerName: "Month", flex: 1 },
-      { field: "income_year", headerName: "Year", flex: 1 },
+      { field: "income_month", headerName: t("columns.month"), flex: 1 },
+      { field: "income_year", headerName: t("columns.year"), flex: 1 },
       {
         field: "action_by",
-        headerName: "Action By",
+        headerName: t("columns.actionBy"),
         flex: 1,
         renderCell: (params: any) => (
           <Chip
@@ -186,12 +184,11 @@ export default function incomeTrackingPage() {
         ),
       },
     ],
-    [role]
+    [role, t]
   );
 
   return (
     <Box height="calc(100vh - 180px)">
-      {/* Header with Filter & Add */}
       <Box
         display="flex"
         justifyContent="space-between"
@@ -209,14 +206,14 @@ export default function incomeTrackingPage() {
               color: "#1e1ee4",
             }}
           >
-            Add Income
+            {t("buttons.addIncome")}
           </Button>
 
           <FormControl size="small">
-            <InputLabel>Filter Month</InputLabel>
+            <InputLabel>{t("filters.filterMonth")}</InputLabel>
             <Select
               value={selectedMonthYear}
-              label="Filter Month"
+              label={t("filters.filterMonth")}
               onChange={(e) => setSelectedMonthYear(e.target.value)}
               sx={{ minWidth: 150 }}
             >
@@ -249,24 +246,29 @@ export default function incomeTrackingPage() {
       >
         <DialogTitle>
           <Typography variant="h6" fontWeight="bold">
-            Add New Income
+            {t("dialog.title")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Enter income details below
+            {t("dialog.subtitle")}
           </Typography>
         </DialogTitle>
 
-        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit((data) => mutation.mutate(data))}
+        >
           <DialogContent
             sx={{ display: "flex", flexDirection: "column", gap: 3 }}
           >
             {role === "admin" ? (
               <Box>
-                <Typography variant="subtitle2">Society</Typography>
+                <Typography variant="subtitle2">
+                  {t("fields.society")}
+                </Typography>
                 <Chip
                   label={
                     societies.find((s: any) => s.id === adminSocietyId)?.name ||
-                    "Selected Society"
+                    t("labels.selectedSociety")
                   }
                   color="primary"
                   sx={{ mt: 1 }}
@@ -278,10 +280,21 @@ export default function incomeTrackingPage() {
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.society_id}>
-                    <InputLabel>Society</InputLabel>
-                    <Select {...field} label="Society">
+                    <InputLabel>{t("fields.society")}</InputLabel>
+                    <Select
+                      {...field}
+                      label={t("fields.society")}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            "& .MuiMenuItem-root": { fontSize: "0.875rem" },
+                          },
+                        },
+                      }}
+                    >
                       {loadingSocieties ? (
-                        <MenuItem disabled>Loading...</MenuItem>
+                        <MenuItem disabled>{t("labels.loading")}</MenuItem>
                       ) : (
                         societies.map((s: any) => (
                           <MenuItem key={s.id} value={s.id}>
@@ -307,7 +320,7 @@ export default function incomeTrackingPage() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Month"
+                  label={t("fields.month")}
                   type="number"
                   error={!!errors.income_month}
                   helperText={errors.income_month?.message}
@@ -323,7 +336,7 @@ export default function incomeTrackingPage() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Year"
+                  label={t("fields.year")}
                   type="number"
                   error={!!errors.income_year}
                   helperText={errors.income_year?.message}
@@ -338,10 +351,21 @@ export default function incomeTrackingPage() {
               control={control}
               render={({ field }) => (
                 <FormControl fullWidth error={!!errors.income_type}>
-                  <InputLabel>Income Type</InputLabel>
-                  <Select {...field} label="Income Type">
-                    <MenuItem value="fixed">Fixed</MenuItem>
-                    <MenuItem value="monthly">Monthly</MenuItem>
+                  <InputLabel>{t("fields.incomeType")}</InputLabel>
+                  <Select
+                    {...field}
+                    label={t("fields.incomeType")}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300,
+                          "& .MuiMenuItem-root": { fontSize: "0.875rem" },
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem value="fixed">{t("labels.fixed")}</MenuItem>
+                    <MenuItem value="monthly">{t("labels.monthly")}</MenuItem>
                   </Select>
                   {errors.income_type && (
                     <Typography color="error" variant="caption">
@@ -359,8 +383,8 @@ export default function incomeTrackingPage() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Reason"
-                  placeholder="e.g., Watchmen salary"
+                  label={t("fields.reason")}
+                  placeholder={t("placeholders.reason")}
                   error={!!errors.income_reason}
                   helperText={errors.income_reason?.message}
                   fullWidth
@@ -375,8 +399,8 @@ export default function incomeTrackingPage() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Amount"
-                  placeholder="e.g., 10000"
+                  label={t("fields.amount")}
+                  placeholder={t("placeholders.amount")}
                   type="number"
                   error={!!errors.income_amount}
                   helperText={errors.income_amount?.message}
@@ -391,7 +415,7 @@ export default function incomeTrackingPage() {
               onClick={() => setOpen(false)}
               disabled={mutation.isPending}
             >
-              Cancel
+              {t("buttons.cancel")}
             </Button>
             <CommonButton
               type="submit"
@@ -399,7 +423,7 @@ export default function incomeTrackingPage() {
               loading={mutation.isPending}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Save Income
+              {t("buttons.saveIncome")}
             </CommonButton>
           </DialogActions>
         </Box>
