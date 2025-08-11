@@ -24,11 +24,12 @@ import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import CommonButton from "../common/CommonButton";
+import { useTranslations } from "next-intl";
 
 const schema = z.object({
-  title: z.string().min(1, "Title required"),
-  content: z.string().min(1, "Content required"),
-  society_id: z.string().min(1, "Society is required"),
+  title: z.string().min(1, { message: "Title required" }),
+  content: z.string().min(1, { message: "Content required" }),
+  society_id: z.string().min(1, { message: "Society is required" }),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -42,6 +43,8 @@ export default function AddNoticeModal({
   onClose: () => void;
   societyId: string; // for admin
 }) {
+  const t = useTranslations("AddNoticeModal");
+
   const qc = useQueryClient();
   const [role, setRole] = useState<string>("");
 
@@ -103,10 +106,10 @@ export default function AddNoticeModal({
     >
       <DialogTitle sx={{ pb: 2 }}>
         <Typography variant="h6" fontWeight="bold">
-          New Notice
+          {t("title")}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Enter notice title and content below
+          {t("subtitle")}
         </Typography>
       </DialogTitle>
 
@@ -118,12 +121,12 @@ export default function AddNoticeModal({
           {role !== "super_admin" && adminSocietyId && (
             <Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Society
+                {t("fields.society")}
               </Typography>
               <Chip
                 label={
                   societies.find((s: any) => s.id === adminSocietyId)?.name ||
-                  "Selected Society"
+                  t("fields.selectedSociety")
                 }
                 color="primary"
                 sx={{ mt: 1 }}
@@ -136,10 +139,10 @@ export default function AddNoticeModal({
               control={control}
               render={({ field }) => (
                 <FormControl fullWidth>
-                  <InputLabel>Select Society</InputLabel>
+                  <InputLabel>{t("fields.selectSociety")}</InputLabel>
                   <Select
                     {...field}
-                    label="Select Society"
+                    label={t("fields.selectSociety")}
                     error={!!errors.society_id}
                     MenuProps={{
                       PaperProps: {
@@ -160,7 +163,7 @@ export default function AddNoticeModal({
                   </Select>
                   {errors.society_id && (
                     <Typography variant="caption" color="error">
-                      {errors.society_id.message}
+                      {t("errors.societyRequired")}
                     </Typography>
                   )}
                 </FormControl>
@@ -175,10 +178,10 @@ export default function AddNoticeModal({
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Title"
-                placeholder="e.g., Water Supply Disruption"
+                label={t("fields.title")}
+                placeholder={t("placeholders.title")}
                 error={!!errors.title}
-                helperText={errors.title?.message}
+                helperText={errors.title && t("errors.titleRequired")}
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
@@ -192,12 +195,12 @@ export default function AddNoticeModal({
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Content"
-                placeholder="Describe the notice details here..."
+                label={t("fields.content")}
+                placeholder={t("placeholders.content")}
                 multiline
                 rows={4}
                 error={!!errors.content}
-                helperText={errors.content?.message}
+                helperText={errors.content && t("errors.contentRequired")}
                 fullWidth
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
               />
@@ -211,7 +214,7 @@ export default function AddNoticeModal({
             disabled={mutation.isPending}
             sx={{ textTransform: "none" }}
           >
-            Cancel
+            {t("buttons.cancel")}
           </Button>
           <CommonButton
             type="submit"
@@ -219,7 +222,7 @@ export default function AddNoticeModal({
             loading={mutation.isPending}
             sx={{ bgcolor: "#1e1ee4" }}
           >
-            Save Notice
+            {t("buttons.save")}
           </CommonButton>
         </DialogActions>
       </Box>

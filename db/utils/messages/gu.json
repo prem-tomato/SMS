@@ -611,5 +611,45 @@
       "monthRequired": "મહિનો જરૂરી છે",
       "yearRequired": "વર્ષ જરૂરી છે"
     }
+  },
+  "NoticesPage": {
+    "columns": {
+      "title": "શીર્ષક",
+      "content": "વિષય",
+      "status": "સ્થિતિ",
+      "createdBy": "બનાવનાર",
+      "date": "તારીખ",
+      "society": "સોસાયટી",
+      "actions": "ક્રિયાઓ"
+    },
+    "buttons": {
+      "newNotice": "નવી નોટિસ",
+      "close": "બંધ કરો",
+      "reopen": "ફરીથી ખોલો"
+    }
+  },
+  "AddNoticeModal": {
+    "title": "નવી નોટિસ",
+    "subtitle": "નીચે નોટિસનું શીર્ષક અને સામગ્રી દાખલ કરો",
+    "fields": {
+      "society": "સોસાયટી",
+      "selectedSociety": "પસંદ કરેલ સોસાયટી",
+      "selectSociety": "સોસાયટી પસંદ કરો",
+      "title": "શીર્ષક",
+      "content": "સામગ્રી"
+    },
+    "placeholders": {
+      "title": "ઉદાહરણ: પાણી સપ્લાયમાં ખલેલ",
+      "content": "અહીં નોટિસની વિગતો લખો..."
+    },
+    "errors": {
+      "titleRequired": "શીર્ષક આવશ્યક છે",
+      "contentRequired": "સામગ્રી આવશ્યક છે",
+      "societyRequired": "સોસાયટી આવશ્યક છે"
+    },
+    "buttons": {
+      "cancel": "રદ કરો",
+      "save": "નોટિસ સાચવો"
+    }
   }
 }

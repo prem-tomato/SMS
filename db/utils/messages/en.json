@@ -612,5 +612,45 @@
       "monthRequired": "Month is required",
       "yearRequired": "Year is required"
     }
+  },
+  "NoticesPage": {
+    "columns": {
+      "title": "Title",
+      "content": "Content",
+      "status": "Status",
+      "createdBy": "Created By",
+      "date": "Date",
+      "society": "Society",
+      "actions": "Actions"
+    },
+    "buttons": {
+      "newNotice": "New Notice",
+      "close": "Close",
+      "reopen": "Re-Open"
+    }
+  },
+  "AddNoticeModal": {
+    "title": "New Notice",
+    "subtitle": "Enter notice title and content below",
+    "fields": {
+      "society": "Society",
+      "selectedSociety": "Selected Society",
+      "selectSociety": "Select Society",
+      "title": "Title",
+      "content": "Content"
+    },
+    "placeholders": {
+      "title": "e.g., Water Supply Disruption",
+      "content": "Describe the notice details here..."
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "contentRequired": "Content is required",
+      "societyRequired": "Society is required"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save Notice"
+    }
   }
 }

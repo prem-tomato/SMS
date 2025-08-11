@@ -13,8 +13,11 @@ import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Chip } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function NoticesPage() {
+  const t = useTranslations("NoticesPage");
+
   const [addModal, setAddModal] = useState(false);
   const [societyId, setSocietyId] = useState("");
   const [role, setRole] = useState<string | null>(null);
@@ -129,19 +132,19 @@ export default function NoticesPage() {
     return [
       {
         field: "title",
-        headerName: "Title",
+        headerName: t("columns.title"),
         flex: 1,
         minWidth: 200,
       },
       {
         field: "content",
-        headerName: "Content",
+        headerName: t("columns.content"),
         flex: 2,
         minWidth: 300,
       },
       {
         field: "status",
-        headerName: "Status",
+        headerName: t("columns.status"),
         flex: 1,
         renderCell: (params: any) => (
           <Chip
@@ -153,12 +156,12 @@ export default function NoticesPage() {
       },
       {
         field: "created_by",
-        headerName: "Created By",
+        headerName: t("columns.createdBy"),
         flex: 1,
       },
       {
         field: "created_at",
-        headerName: "Date",
+        headerName: t("columns.date"),
         flex: 1,
         renderCell: (params: any) => {
           const date = new Date(params.row.created_at);
@@ -170,14 +173,13 @@ export default function NoticesPage() {
         },
       },
       ...(role === "super_admin"
-        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        ? [{ field: "society_name", headerName: t("columns.society"), flex: 1 }]
         : []),
-
       ...(role !== "member"
         ? [
             {
               field: "actions",
-              headerName: "Actions",
+              headerName: t("columns.actions"),
               flex: 1,
               renderCell: (params: any) => {
                 const currentSocietyId = params.row.society_id; // ✅ Always fetch from row
@@ -196,7 +198,9 @@ export default function NoticesPage() {
                     }
                     sx={{ textTransform: "none", fontSize: "0.75rem" }}
                   >
-                    {params.row.status === "open" ? "Close" : "Re-Open"}
+                    {params.row.status === "open"
+                      ? t("buttons.close")
+                      : t("buttons.reopen")}
                   </Button>
                 );
               },
@@ -204,7 +208,7 @@ export default function NoticesPage() {
           ]
         : []),
     ];
-  }, [toggling, toggleStatus, role]);
+  }, [t, toggling, toggleStatus, role]);
 
   return (
     <Box height="calc(100vh - 180px)">
@@ -226,7 +230,7 @@ export default function NoticesPage() {
               color: "#1e1ee4",
             }}
           >
-            New Notice
+            {t("buttons.newNotice")}
           </Button>
         </Box>
       </Box>
