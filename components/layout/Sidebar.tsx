@@ -113,12 +113,14 @@ export default function Sidebar() {
       });
     }
 
-    // Always show Housing Units
-    items.push({
-      label: "Housing Units",
-      icon: <HouseOutlined />,
-      path: "/housing-units",
-    });
+    // Show Housing Units only if society type is housing
+    if (societyType === "housing") {
+      items.push({
+        label: "Housing Units",
+        icon: <HouseOutlined />,
+        path: "/housing-units",
+      });
+    }
 
     // Add member and assign items
     items.push({
