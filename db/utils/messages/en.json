@@ -419,5 +419,35 @@
       "markPaidFailed": "Failed to mark penalty as paid",
       "removePenaltyFailed": "Failed to remove penalty"
     }
+  },
+  "UsersPage": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "role": "Role",
+    "phone": "Phone",
+    "society": "Society",
+    "addButton": "Add {type}",
+    "shopOwner": "Shop Owner",
+    "resident": "Resident"
+  },
+  "AddUserModal": {
+    "title": "Add {type}",
+    "subtitle": "Enter details below",
+    "society": "Society",
+    "selectedSociety": "Selected Society",
+    "role": "Role",
+    "member": "Member",
+    "admin": "Admin",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "loginKey": "Login Key (max 6 digits)",
+    "phone": "Phone",
+    "cancel": "Cancel",
+    "save": "Save {type}",
+    "shopOwner": "Shop Owner",
+    "resident": "Resident",
+    "errors": {
+      "generic": "Something went wrong, please try again!"
+    }
   }
 }

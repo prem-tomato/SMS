@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CountryCode } from "libphonenumber-js/core";
+import { useTranslations } from "next-intl"; // ✅ Added
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
@@ -52,7 +53,6 @@ const superAdminSchema = inputSchema.extend({
 });
 
 type FormValues = z.infer<typeof inputSchema>;
-type SuperAdminFormValues = z.infer<typeof superAdminSchema>;
 
 export default function AddUserModal({
   open,
@@ -65,6 +65,8 @@ export default function AddUserModal({
   societyId?: string;
   societyType: string | null;
 }) {
+  const t = useTranslations("AddUserModal");
+
   const queryClient = useQueryClient();
   const [country, setCountry] = useState<CountryCode>("IN");
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -75,7 +77,7 @@ export default function AddUserModal({
     handleSubmit,
     reset,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(inputSchema),
     defaultValues: {
@@ -126,13 +128,10 @@ export default function AddUserModal({
       const targetSocietyId =
         userRole === "super_admin" ? validatedData.society_id! : adminSocietyId;
 
-      // Transform login_key to number
-      const submitData = {
+      return createUser(targetSocietyId, {
         ...validatedData,
         login_key: Number(validatedData.login_key),
-      };
-
-      return createUser(targetSocietyId, submitData as any);
+      } as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -140,10 +139,8 @@ export default function AddUserModal({
       onClose();
     },
     onError: (error: any) => {
-      if (error.message === "Validation failed") return; // Already handled
-
-      const message =
-        error?.message || "Something went wrong, please try again!";
+      if (error.message === "Validation failed") return;
+      const message = error?.message || t("errors.generic");
       toast.error(message);
       if (message.includes("login key")) {
         setError("login_key", { type: "manual", message });
@@ -151,25 +148,20 @@ export default function AddUserModal({
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    mutation.mutate(data);
-  };
+  const onSubmit = (data: FormValues) => mutation.mutate(data);
 
   return (
     <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
         <DialogTitle>
           <Typography variant="h6" fontWeight="bold">
-            Add {societyType === "commercial" ? "Shop Owner" : "Resident"}
+            {t("title", {
+              type:
+                societyType === "commercial" ? t("shopOwner") : t("resident"),
+            })}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Enter details below
+            {t("subtitle")}
           </Typography>
         </DialogTitle>
 
@@ -184,12 +176,12 @@ export default function AddUserModal({
                   color="text.secondary"
                   sx={{ mb: 1 }}
                 >
-                  Society
+                  {t("society")}
                 </Typography>
                 <Chip
                   label={
                     societies.find((s: any) => s.id === adminSocietyId)?.name ||
-                    "Selected Society"
+                    t("selectedSociety")
                   }
                   color="primary"
                   sx={{ mt: 1 }}
@@ -203,10 +195,10 @@ export default function AddUserModal({
               control={control}
               render={({ field }) => (
                 <FormControl fullWidth>
-                  <InputLabel>Role</InputLabel>
+                  <InputLabel>{t("role")}</InputLabel>
                   <Select
                     {...field}
-                    label="Role"
+                    label={t("role")}
                     MenuProps={{
                       PaperProps: {
                         sx: {
@@ -218,24 +210,24 @@ export default function AddUserModal({
                       },
                     }}
                   >
-                    <MenuItem value="member">Member</MenuItem>
-                    <MenuItem value="admin">Admin</MenuItem>
+                    <MenuItem value="member">{t("member")}</MenuItem>
+                    <MenuItem value="admin">{t("admin")}</MenuItem>
                   </Select>
                 </FormControl>
               )}
             />
 
-            {/* Society - dropdown for super_admin, chip for admin */}
+            {/* Society */}
             {userRole === "super_admin" && (
               <Controller
                 name="society_id"
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.society_id}>
-                    <InputLabel>Society</InputLabel>
+                    <InputLabel>{t("society")}</InputLabel>
                     <Select
                       {...field}
-                      label="Society"
+                      label={t("society")}
                       MenuProps={{
                         PaperProps: {
                           sx: {
@@ -270,7 +262,7 @@ export default function AddUserModal({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="First Name"
+                  label={t("firstName")}
                   error={!!errors.first_name}
                   helperText={errors.first_name?.message}
                   fullWidth
@@ -285,7 +277,7 @@ export default function AddUserModal({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Last Name"
+                  label={t("lastName")}
                   error={!!errors.last_name}
                   helperText={errors.last_name?.message}
                   fullWidth
@@ -300,7 +292,7 @@ export default function AddUserModal({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Login Key (max 6 digits)"
+                  label={t("loginKey")}
                   inputProps={{ maxLength: 6 }}
                   error={!!errors.login_key}
                   helperText={errors.login_key?.message}
@@ -335,14 +327,17 @@ export default function AddUserModal({
           </DialogContent>
 
           <DialogActions sx={{ p: 3 }}>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose}>{t("cancel")}</Button>
             <CommonButton
               type="submit"
               variant="contained"
               loading={mutation.isPending}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Save {societyType === "commercial" ? "Shop Owner" : "Resident"}
+              {t("save", {
+                type:
+                  societyType === "commercial" ? t("shopOwner") : t("resident"),
+              })}
             </CommonButton>
           </DialogActions>
         </Box>

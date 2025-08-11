@@ -12,8 +12,11 @@ import AddIcon from "@mui/icons-material/Add";
 import { Box, Button } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl"; // ✅ Added
 
 export default function UsersPage() {
+  const t = useTranslations("UsersPage"); // ✅ Namespace for translations
+
   const [role, setRole] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [selectedSociety, setSelectedSociety] = useState<string>("");
@@ -42,15 +45,15 @@ export default function UsersPage() {
 
   const columns = useMemo(
     () => [
-      { field: "first_name", headerName: "First Name", flex: 1 },
-      { field: "last_name", headerName: "Last Name", flex: 1 },
-      { field: "role", headerName: "Role", flex: 1 },
-      { field: "phone", headerName: "Phone", flex: 1 },
+      { field: "first_name", headerName: t("firstName"), flex: 1 },
+      { field: "last_name", headerName: t("lastName"), flex: 1 },
+      { field: "role", headerName: t("role"), flex: 1 },
+      { field: "phone", headerName: t("phone"), flex: 1 },
       ...(role === "super_admin"
-        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        ? [{ field: "society_name", headerName: t("society"), flex: 1 }]
         : []),
     ],
-    [role]
+    [role, t]
   );
 
   return (
@@ -66,7 +69,9 @@ export default function UsersPage() {
             color: "#1e1ee4",
           }}
         >
-          Add {societyType === "commercial" ? "Shop Owner" : "Resident"}
+          {t("addButton", {
+            type: societyType === "commercial" ? t("shopOwner") : t("resident"),
+          })}
         </Button>
       </Box>
 

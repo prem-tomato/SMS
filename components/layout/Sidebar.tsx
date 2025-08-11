@@ -114,7 +114,7 @@ export default function Sidebar() {
     }
 
     // Show Housing Units only if society type is housing
-    if (societyType === "housing") {
+    if (societyType === "housing" || role === "super_admin") {
       items.push({
         label: "Housing Units",
         icon: <HouseOutlined />,

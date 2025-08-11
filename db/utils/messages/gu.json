@@ -418,5 +418,35 @@
       "markPaidFailed": "દંડને ચૂકવેલ તરીકે નિશાન લગાવવામાં નિષ્ફળ",
       "removePenaltyFailed": "દંડ દૂર કરવામાં નિષ્ફળ"
     }
+  },
+  "UsersPage": {
+    "firstName": "પ્રથમ નામ",
+    "lastName": "અંતિમ નામ",
+    "role": "ભૂમિકા",
+    "phone": "ફોન",
+    "society": "સોસાયટી",
+    "addButton": "{type} ઉમેરો",
+    "shopOwner": "દુકાન માલિક",
+    "resident": "રહેવાસી"
+  },
+  "AddUserModal": {
+    "title": "{type} ઉમેરો",
+    "subtitle": "નીચે વિગતો દાખલ કરો",
+    "society": "સોસાયટી",
+    "selectedSociety": "પસંદ કરેલી સોસાયટી",
+    "role": "ભૂમિકા",
+    "member": "સભ્ય",
+    "admin": "એડમિન",
+    "firstName": "પ્રથમ નામ",
+    "lastName": "અંતિમ નામ",
+    "loginKey": "લૉગિન કી (મહત્તમ 6 અંક)",
+    "phone": "ફોન",
+    "cancel": "રદ કરો",
+    "save": "{type} સાચવો",
+    "shopOwner": "દુકાનદાર",
+    "resident": "રહેવાસી",
+    "errors": {
+      "generic": "કંઈક ખોટું થયું, કૃપા કરીને ફરી પ્રયાસ કરો!"
+    }
   }
 }
