@@ -16,8 +16,11 @@ import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Chip } from "@mui/material";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function AssignFlatsPage() {
+  const t = useTranslations("AssignFlatsPage");
+
   const [modalOpen, setModalOpen] = useState(false);
   const [role, setRole] = useState<string>("");
   const [adminSocietyId, setAdminSocietyId] = useState<string>("");
@@ -116,7 +119,7 @@ export default function AssignFlatsPage() {
     return [
       {
         field: "member_name",
-        headerName: "Resident/Owner",
+        headerName: t("residentOwner"),
         flex: 2,
       },
       // Housing unit fields (show for housing societies or super admin viewing all)
@@ -124,23 +127,21 @@ export default function AssignFlatsPage() {
         ? [
             {
               field: "unit_number",
-              headerName: "Unit",
+              headerName: t("unit"),
               flex: 1,
-              renderCell: (params: any) => {
-                if (!params.value) return null;
-                return (
+              renderCell: (params: any) =>
+                params.value ? (
                   <Chip label={params.value} color="success" size="small" />
-                );
-              },
+                ) : null,
             },
             {
               field: "unit_type",
-              headerName: "Unit Type",
+              headerName: t("unitType"),
               flex: 1,
-              renderCell: (params: any) => {
-                if (!params.value) return null;
-                return <Chip label={params.value} color="info" size="small" />;
-              },
+              renderCell: (params: any) =>
+                params.value ? (
+                  <Chip label={params.value} color="info" size="small" />
+                ) : null,
             },
           ]
         : []),
@@ -149,40 +150,34 @@ export default function AssignFlatsPage() {
         ? [
             {
               field: "flat_number",
-              headerName: "Flat/Shop",
+              headerName: t("flatShop"),
               flex: 1,
               renderCell: (params: any) => {
                 if (!params.value) return null;
                 const row = params.row;
                 const isCommercial = row.assignment_type === "commercial";
                 const label = isCommercial
-                  ? `Shop ${params.value}`
-                  : `Flat ${params.value}`;
+                  ? `${t("shop")} ${params.value}`
+                  : `${t("flat")} ${params.value}`;
                 return <Chip label={label} color="primary" size="small" />;
               },
             },
             {
               field: "floor_number",
-              headerName: "Floor",
+              headerName: t("floor"),
               flex: 1,
               renderCell: (params: any) => {
                 const floor = params?.value;
-
                 if (floor === null || floor === undefined) return "-";
-
-                const label = floor === 0 ? "Ground Floor" : `Floor ${floor}`;
-
+                const label =
+                  floor === 0 ? t("groundFloor") : `${t("floor")} ${floor}`;
                 return <Chip label={label} color="secondary" size="small" />;
               },
             },
             {
               field: "building_name",
-              headerName: "Building",
+              headerName: t("building"),
               flex: 1,
-              renderCell: (params: any) => {
-                if (!params.value) return null;
-                return params.value;
-              },
             },
           ]
         : []),
@@ -191,7 +186,7 @@ export default function AssignFlatsPage() {
         ? [
             {
               field: "society_name",
-              headerName: "Society",
+              headerName: t("society"),
               flex: 1.5,
               renderCell: (params: any) => (
                 <Chip
@@ -206,7 +201,7 @@ export default function AssignFlatsPage() {
         : []),
       {
         field: "move_in_date",
-        headerName: "Move-in Date",
+        headerName: t("moveInDate"),
         flex: 1,
         renderCell: (params: any) => {
           const date = new Date(params.value);
@@ -218,7 +213,7 @@ export default function AssignFlatsPage() {
         },
       },
     ];
-  }, [role, societyType]);
+  }, [role, societyType, t]);
 
   useEffect(() => {
     const userRole = getUserRole();
@@ -264,10 +259,10 @@ export default function AssignFlatsPage() {
             }}
           >
             {societyType === "commercial"
-              ? "Assign Shop"
+              ? t("assignShop")
               : societyType === "housing"
-              ? "Assign Unit"
-              : "Assign Flat"}
+              ? t("assignUnit")
+              : t("assignFlat")}
           </Button>
         )}
       </Box>

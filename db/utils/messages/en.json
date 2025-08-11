@@ -449,5 +449,68 @@
     "errors": {
       "generic": "Something went wrong, please try again!"
     }
+  },
+  "AssignFlatsPage": {
+    "residentOwner": "Resident/Owner",
+    "unit": "Unit",
+    "unitType": "Unit Type",
+    "flatShop": "Flat/Shop",
+    "shop": "Shop",
+    "flat": "Flat",
+    "floor": "Floor",
+    "groundFloor": "Ground Floor",
+    "building": "Building",
+    "society": "Society",
+    "moveInDate": "Move-in Date",
+    "assignShop": "Assign Shop",
+    "assignUnit": "Assign Unit",
+    "assignFlat": "Assign Flat"
+  },
+  "assignMemberModal": {
+    "titles": {
+      "assignUnitToResident": "Assign Unit to Resident",
+      "assignShopToOwner": "Assign Shop to Owner",
+      "assignFlatToResident": "Assign Flat to Resident"
+    },
+    "subtitles": {
+      "selectHousingUnit": "Select housing unit and residents.",
+      "selectBuildingShop": "Select Building, Shop and Owners.",
+      "selectSocietyBuilding": "Select society, building, flat and members."
+    },
+    "labels": {
+      "society": "Society",
+      "building": "Building",
+      "flat": "Flat",
+      "shop": "Shop",
+      "housingUnit": "Housing Unit",
+      "residents": "Residents",
+      "owners": "Owners",
+      "moveInDate": "Move-in Date"
+    },
+    "buttons": {
+      "assignUnitToResident": "Assign Unit to Resident",
+      "assignShopToOwner": "Assign Shop to Owner",
+      "assignFlatToResident": "Assign Flat to Resident",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "selectSociety": "Select society",
+      "selectBuilding": "Select building",
+      "selectFlat": "Select flat",
+      "selectHousingUnit": "Select housing unit",
+      "selectAtLeastOneUser": "Select at least one user",
+      "selectMoveInDate": "Select move-in date"
+    },
+    "common": {
+      "user": "User",
+      "selectedSociety": "Selected Society",
+      "loading": "Loading...",
+      "floor": "Floor",
+      "sqFt": "sq ft",
+      "noUsersAvailable": "No users available"
+    },
+    "placeholders": {
+      "selectDate": "Select date"
+    }
   }
 }

@@ -448,5 +448,68 @@
     "errors": {
       "generic": "કંઈક ખોટું થયું, કૃપા કરીને ફરી પ્રયાસ કરો!"
     }
+  },
+  "AssignFlatsPage": {
+    "residentOwner": "રહેવાસી/માલિક",
+    "unit": "યૂનિટ",
+    "unitType": "યૂનિટ પ્રકાર",
+    "flatShop": "ફ્લેટ/દુકાન",
+    "shop": "દુકાન",
+    "flat": "ફ્લેટ",
+    "floor": "માળ",
+    "groundFloor": "ભૂતલ",
+    "building": "ઈમારત",
+    "society": "સોસાયટી",
+    "moveInDate": "સ્થાનાંતરણ તારીખ",
+    "assignShop": "દુકાન ફાળવો",
+    "assignUnit": "યૂનિટ ફાળવો",
+    "assignFlat": "ફ્લેટ ફાળવો"
+  },
+  "assignMemberModal": {
+    "titles": {
+      "assignUnitToResident": "રહેવાસીને યુનિટ સોંપો",
+      "assignShopToOwner": "માલિકને દુકાન સોંપો",
+      "assignFlatToResident": "રહેવાસીને ફ્લેટ સોંપો"
+    },
+    "subtitles": {
+      "selectHousingUnit": "હાઉસિંગ યુનિટ અને રહેવાસીઓ પસંદ કરો.",
+      "selectBuildingShop": "બિલ્ડિંગ, દુકાન અને માલિકો પસંદ કરો.",
+      "selectSocietyBuilding": "સોસાયટી, બિલ્ડિંગ, ફ્લેટ અને સભ્યો પસંદ કરો."
+    },
+    "labels": {
+      "society": "સોસાયટી",
+      "building": "બિલ્ડિંગ",
+      "flat": "ફ્લેટ",
+      "shop": "દુકાન",
+      "housingUnit": "હાઉસિંગ યુનિટ",
+      "residents": "રહેવાસીઓ",
+      "owners": "માલિકો",
+      "moveInDate": "રહેવા આવવાની તારીખ"
+    },
+    "buttons": {
+      "assignUnitToResident": "રહેવાસીને યુનિટ સોંપો",
+      "assignShopToOwner": "માલિકને દુકાન સોંપો",
+      "assignFlatToResident": "રહેવાસીને ફ્લેટ સોંપો",
+      "cancel": "રદ કરો"
+    },
+    "validation": {
+      "selectSociety": "સોસાયટી પસંદ કરો",
+      "selectBuilding": "બિલ્ડિંગ પસંદ કરો",
+      "selectFlat": "ફ્લેટ પસંદ કરો",
+      "selectHousingUnit": "હાઉસિંગ યુનિટ પસંદ કરો",
+      "selectAtLeastOneUser": "ઓછામાં ઓછા એક વપરાશકર્તા પસંદ કરો",
+      "selectMoveInDate": "રહેવા આવવાની તારીખ પસંદ કરો"
+    },
+    "common": {
+      "user": "વપરાશકર્તા",
+      "selectedSociety": "પસંદ કરેલ સોસાયટી",
+      "loading": "લોડ થઈ રહ્યું છે...",
+      "floor": "માળ",
+      "sqFt": "ચો ફૂટ",
+      "noUsersAvailable": "કોઈ વપરાશકર્તાઓ ઉપલબ્ધ નથી"
+    },
+    "placeholders": {
+      "selectDate": "તારીખ પસંદ કરો"
+    }
   }
 }

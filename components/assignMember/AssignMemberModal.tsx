@@ -27,45 +27,46 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import CommonButton from "../common/CommonButton";
 
 // Schema for housing type (no building/flat needed)
-const housingSchema = z.object({
-  society_id: z.string().min(1, "Select society"),
-  housing_unit_id: z.string().min(1, "Select housing unit"),
-  user_id: z.array(z.string()).min(1, "Select at least one user"),
-  move_in_date: z.string().min(1, "Select move-in date"),
+const createHousingSchema = (t: any) => z.object({
+  society_id: z.string().min(1, t("validation.selectSociety")),
+  housing_unit_id: z.string().min(1, t("validation.selectHousingUnit")),
+  user_id: z.array(z.string()).min(1, t("validation.selectAtLeastOneUser")),
+  move_in_date: z.string().min(1, t("validation.selectMoveInDate")),
 });
 
-const superAdminSchema = z.object({
-  society_id: z.string().min(1, "Select society"),
-  building_id: z.string().min(1, "Select building"),
-  flat_id: z.string().min(1, "Select flat"),
-  user_id: z.array(z.string()).min(1, "Select at least one user"),
-  move_in_date: z.string().min(1, "Select move-in date"),
+const createSuperAdminSchema = (t: any) => z.object({
+  society_id: z.string().min(1, t("validation.selectSociety")),
+  building_id: z.string().min(1, t("validation.selectBuilding")),
+  flat_id: z.string().min(1, t("validation.selectFlat")),
+  user_id: z.array(z.string()).min(1, t("validation.selectAtLeastOneUser")),
+  move_in_date: z.string().min(1, t("validation.selectMoveInDate")),
 });
 
-const adminSchema = z.object({
-  building_id: z.string().min(1, "Select building"),
-  flat_id: z.string().min(1, "Select flat"),
-  user_id: z.array(z.string()).min(1, "Select at least one user"),
-  move_in_date: z.string().min(1, "Select move-in date"),
+const createAdminSchema = (t: any) => z.object({
+  building_id: z.string().min(1, t("validation.selectBuilding")),
+  flat_id: z.string().min(1, t("validation.selectFlat")),
+  user_id: z.array(z.string()).min(1, t("validation.selectAtLeastOneUser")),
+  move_in_date: z.string().min(1, t("validation.selectMoveInDate")),
 });
 
 // Schema for housing admin
-const housingAdminSchema = z.object({
-  housing_unit_id: z.string().min(1, "Select housing unit"),
-  user_id: z.array(z.string()).min(1, "Select at least one user"),
-  move_in_date: z.string().min(1, "Select move-in date"),
+const createHousingAdminSchema = (t: any) => z.object({
+  housing_unit_id: z.string().min(1, t("validation.selectHousingUnit")),
+  user_id: z.array(z.string()).min(1, t("validation.selectAtLeastOneUser")),
+  move_in_date: z.string().min(1, t("validation.selectMoveInDate")),
 });
 
-type SuperAdminFormValues = z.infer<typeof superAdminSchema>;
-type AdminFormValues = z.infer<typeof adminSchema>;
-type HousingFormValues = z.infer<typeof housingSchema>;
-type HousingAdminFormValues = z.infer<typeof housingAdminSchema>;
+type SuperAdminFormValues = z.infer<ReturnType<typeof createSuperAdminSchema>>;
+type AdminFormValues = z.infer<ReturnType<typeof createAdminSchema>>;
+type HousingFormValues = z.infer<ReturnType<typeof createHousingSchema>>;
+type HousingAdminFormValues = z.infer<ReturnType<typeof createHousingAdminSchema>>;
 type FormValues =
   | SuperAdminFormValues
   | AdminFormValues
@@ -87,6 +88,7 @@ export default function AssignMemberModal({
   adminSocietyId,
   societyType,
 }: AssignMemberModalProps) {
+  const t = useTranslations("assignMemberModal");
   const qc = useQueryClient();
   const isSuperAdmin = role === "super_admin";
   const isHousingSociety = societyType === "housing";
@@ -96,7 +98,7 @@ export default function AssignMemberModal({
     if (isHousingSociety) {
       if (isSuperAdmin) {
         return {
-          schema: housingSchema,
+          schema: createHousingSchema(t),
           defaults: {
             society_id: "",
             housing_unit_id: "",
@@ -106,14 +108,14 @@ export default function AssignMemberModal({
         };
       } else {
         return {
-          schema: housingAdminSchema,
+          schema: createHousingAdminSchema(t),
           defaults: { housing_unit_id: "", user_id: [], move_in_date: "" },
         };
       }
     } else {
       if (isSuperAdmin) {
         return {
-          schema: superAdminSchema,
+          schema: createSuperAdminSchema(t),
           defaults: {
             society_id: "",
             building_id: "",
@@ -124,7 +126,7 @@ export default function AssignMemberModal({
         };
       } else {
         return {
-          schema: adminSchema,
+          schema: createAdminSchema(t),
           defaults: {
             building_id: "",
             flat_id: "",
@@ -255,7 +257,7 @@ export default function AssignMemberModal({
   const getDisplayName = (user: any) =>
     user?.first_name && user?.last_name
       ? `${user.first_name} ${user.last_name}`
-      : user?.name || user?.email || `User ${user.id}`;
+      : user?.name || user?.email || `${t("common.user")} ${user.id}`;
 
   // Type-safe way to check for society_id error
   const getSocietyIdError = () => {
@@ -286,34 +288,34 @@ export default function AssignMemberModal({
   }, [buildingId, setValue, isHousingSociety]);
 
   const getTitle = () => {
-    if (isHousingSociety) return "Assign Unit to Resident";
+    if (isHousingSociety) return t("titles.assignUnitToResident");
     return societyType === "commercial"
-      ? "Assign Shop to Owner"
-      : "Assign Flat to Resident";
+      ? t("titles.assignShopToOwner")
+      : t("titles.assignFlatToResident");
   };
 
   const getSubtitle = () => {
-    if (isHousingSociety) return "Select housing unit and residents.";
+    if (isHousingSociety) return t("subtitles.selectHousingUnit");
     return societyType === "commercial"
-      ? "Select Building, Shop and Owners."
-      : "Select society, building, flat and members.";
+      ? t("subtitles.selectBuildingShop")
+      : t("subtitles.selectSocietyBuilding");
   };
 
   const getUnitLabel = () => {
-    if (isHousingSociety) return "Housing Unit";
-    return societyType === "commercial" ? "Shop" : "Flat";
+    if (isHousingSociety) return t("labels.housingUnit");
+    return societyType === "commercial" ? t("labels.shop") : t("labels.flat");
   };
 
   const getUserLabel = () => {
-    if (isHousingSociety) return "Residents";
-    return societyType === "commercial" ? "Owners" : "Residents";
+    if (isHousingSociety) return t("labels.residents");
+    return societyType === "commercial" ? t("labels.owners") : t("labels.residents");
   };
 
   const getButtonLabel = () => {
-    if (isHousingSociety) return "Assign Unit to Resident";
+    if (isHousingSociety) return t("buttons.assignUnitToResident");
     return societyType === "commercial"
-      ? "Assign Shop to Owner"
-      : "Assign Flat to Resident";
+      ? t("buttons.assignShopToOwner")
+      : t("buttons.assignFlatToResident");
   };
 
   return (
@@ -342,12 +344,12 @@ export default function AssignMemberModal({
           {role === "admin" && adminSocietyId && (
             <Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Society
+                {t("labels.society")}
               </Typography>
               <Chip
                 label={
                   societies.find((s: any) => s.id === adminSocietyId)?.name ||
-                  "Selected Society"
+                  t("common.selectedSociety")
                 }
                 color="primary"
                 sx={{ mt: 1 }}
@@ -362,10 +364,10 @@ export default function AssignMemberModal({
               control={control}
               render={({ field }) => (
                 <FormControl fullWidth error={!!getSocietyIdError()}>
-                  <InputLabel>Society</InputLabel>
+                  <InputLabel>{t("labels.society")}</InputLabel>
                   <Select
                     {...field}
-                    label="Society"
+                    label={t("labels.society")}
                     sx={{ borderRadius: 2 }}
                     MenuProps={{
                       PaperProps: {
@@ -379,7 +381,7 @@ export default function AssignMemberModal({
                     }}
                   >
                     {lsSoc ? (
-                      <MenuItem disabled>Loading...</MenuItem>
+                      <MenuItem disabled>{t("common.loading")}</MenuItem>
                     ) : (
                       societies.map((s: any) => (
                         <MenuItem key={s.id} value={s.id}>
@@ -430,12 +432,12 @@ export default function AssignMemberModal({
                     }}
                   >
                     {lsFlats ? (
-                      <MenuItem disabled>Loading...</MenuItem>
+                      <MenuItem disabled>{t("common.loading")}</MenuItem>
                     ) : (
                       vacantFlats.map((unit: any) => (
                         <MenuItem key={unit.id} value={unit.id}>
                           {unit.unit_number} - {unit.unit_type} (
-                          {unit.square_foot} sq ft)
+                          {unit.square_foot} {t("common.sqFt")})
                         </MenuItem>
                       ))
                     )}
@@ -463,10 +465,10 @@ export default function AssignMemberModal({
                     !!("building_id" in errors ? errors.building_id : undefined)
                   }
                 >
-                  <InputLabel>Building</InputLabel>
+                  <InputLabel>{t("labels.building")}</InputLabel>
                   <Select
                     {...field}
-                    label="Building"
+                    label={t("labels.building")}
                     sx={{ borderRadius: 2 }}
                     MenuProps={{
                       PaperProps: {
@@ -480,7 +482,7 @@ export default function AssignMemberModal({
                     }}
                   >
                     {lsBld ? (
-                      <MenuItem disabled>Loading...</MenuItem>
+                      <MenuItem disabled>{t("common.loading")}</MenuItem>
                     ) : (
                       buildings.map((b: any) => (
                         <MenuItem key={b.id} value={b.id}>
@@ -527,11 +529,11 @@ export default function AssignMemberModal({
                     }}
                   >
                     {lsFlats ? (
-                      <MenuItem disabled>Loading...</MenuItem>
+                      <MenuItem disabled>{t("common.loading")}</MenuItem>
                     ) : (
                       vacantFlats.map((f: any) => (
                         <MenuItem key={f.id} value={f.id}>
-                          {f.flat_number} – Floor {f.floor_number}
+                          {f.flat_number} – {t("common.floor")} {f.floor_number}
                         </MenuItem>
                       ))
                     )}
@@ -587,7 +589,7 @@ export default function AssignMemberModal({
                       </MenuItem>
                     ))
                   ) : (
-                    <MenuItem disabled>No users available</MenuItem>
+                    <MenuItem disabled>{t("common.noUsersAvailable")}</MenuItem>
                   )}
                 </Select>
                 {errors.user_id && (
@@ -606,10 +608,10 @@ export default function AssignMemberModal({
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Move-in Date"
+                label={t("labels.moveInDate")}
                 type="date"
                 InputLabelProps={{ shrink: true }}
-                placeholder="Select date"
+                placeholder={t("placeholders.selectDate")}
                 error={!!errors.move_in_date}
                 helperText={errors.move_in_date?.message}
                 fullWidth
@@ -627,7 +629,7 @@ export default function AssignMemberModal({
             disabled={isSubmitting}
             sx={{ textTransform: "none" }}
           >
-            Cancel
+            {t("buttons.cancel")}
           </Button>
 
           <CommonButton
