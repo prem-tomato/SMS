@@ -27,11 +27,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-// ✅ Zod Schemas
+// Zod Schemas
 const inputSchema = z.object({
   society_id: z.string().min(1, "Select society"),
   name: z.string().min(1, "Building name is required"),
@@ -51,16 +52,15 @@ type FormValues = z.infer<typeof inputSchema>;
 type OutputValues = z.infer<typeof outputSchema>;
 
 export default function BuildingsPage() {
+  const t = useTranslations("building");
   const queryClient = useQueryClient();
 
   const [role, setRole] = useState<string | null>(null);
   const [adminSocietyId, setAdminSocietyId] = useState<string | null>(null);
 
   useEffect(() => {
-    const userRole = getUserRole();
-    const society = getSocietyIdFromLocalStorage();
-    setRole(userRole);
-    setAdminSocietyId(society);
+    setRole(getUserRole());
+    setAdminSocietyId(getSocietyIdFromLocalStorage());
   }, []);
 
   const { data: buildings = [], isLoading: loadingBuildings } = useQuery({
@@ -117,14 +117,14 @@ export default function BuildingsPage() {
 
   const columns = useMemo(
     () => [
-      { field: "name", headerName: "Building Name", flex: 1 },
+      { field: "name", headerName: t("buildingName"), flex: 1 },
       ...(role === "super_admin"
-        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        ? [{ field: "society_name", headerName: t("society"), flex: 1 }]
         : []),
-      { field: "total_floors", headerName: "Total Floors", flex: 1 },
+      { field: "total_floors", headerName: t("totalFloors"), flex: 1 },
       {
         field: "action_by",
-        headerName: "Action By",
+        headerName: t("actionBy"),
         flex: 1,
         renderCell: (params: any) => (
           <Chip
@@ -136,7 +136,7 @@ export default function BuildingsPage() {
         ),
       },
     ],
-    [role]
+    [role, t]
   );
 
   const handleOpen = () => {
@@ -172,7 +172,7 @@ export default function BuildingsPage() {
             color: "#1e1ee4",
           }}
         >
-          Add Building
+          {t("addBuilding")}
         </Button>
       </Box>
 
@@ -195,30 +195,25 @@ export default function BuildingsPage() {
       >
         <DialogTitle sx={{ pb: 2 }}>
           <Typography variant="h6" fontWeight="bold">
-            Add New Building
+            {t("addNewBuilding")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Fill in the building details below
+            {t("fillDetails")}
           </Typography>
         </DialogTitle>
 
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
           <DialogContent
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 3,
-              pb: 2,
-            }}
+            sx={{ display: "flex", flexDirection: "column", gap: 3, pb: 2 }}
           >
             {/* Society Field */}
             {role === "admin" ? (
               <Box>
-                <Typography variant="subtitle2">Society</Typography>
+                <Typography variant="subtitle2">{t("society")}</Typography>
                 <Chip
                   label={
                     societies.find((s: any) => s.id === adminSocietyId)?.name ||
-                    "Selected Society"
+                    t("selectedSociety")
                   }
                   color="primary"
                   sx={{ mt: 1 }}
@@ -230,23 +225,21 @@ export default function BuildingsPage() {
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.society_id}>
-                    <InputLabel>Society</InputLabel>
+                    <InputLabel>{t("society")}</InputLabel>
                     <Select
                       {...field}
-                      label="Society"
+                      label={t("society")}
                       MenuProps={{
                         PaperProps: {
                           sx: {
                             maxHeight: 300,
-                            "& .MuiMenuItem-root": {
-                              fontSize: "0.875rem",
-                            },
+                            "& .MuiMenuItem-root": { fontSize: "0.875rem" },
                           },
                         },
                       }}
                     >
                       {loadingSocieties ? (
-                        <MenuItem disabled>Loading...</MenuItem>
+                        <MenuItem disabled>{t("loading")}</MenuItem>
                       ) : (
                         societies.map((s: any) => (
                           <MenuItem key={s.id} value={s.id}>
@@ -272,14 +265,12 @@ export default function BuildingsPage() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Building Name"
-                  placeholder="e.g., A Wing"
+                  label={t("buildingName")}
+                  placeholder={t("buildingNamePlaceholder")}
                   error={!!errors.name}
                   helperText={errors.name?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
               )}
             />
@@ -291,15 +282,13 @@ export default function BuildingsPage() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Total Floors"
-                  placeholder="e.g., 10"
+                  label={t("totalFloors")}
+                  placeholder={t("totalFloorsPlaceholder")}
                   type="number"
                   error={!!errors.total_floors}
                   helperText={errors.total_floors?.message}
                   fullWidth
-                  sx={{
-                    "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                  }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
               )}
             />
@@ -311,7 +300,7 @@ export default function BuildingsPage() {
               disabled={mutation.isPending}
               sx={{ textTransform: "none" }}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <CommonButton
               type="submit"
@@ -319,7 +308,7 @@ export default function BuildingsPage() {
               loading={mutation.isPending}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Save Building
+              {t("saveBuilding")}
             </CommonButton>
           </DialogActions>
         </Box>

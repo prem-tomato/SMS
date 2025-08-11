@@ -131,5 +131,20 @@
     "updateEndDateFailed": "Failed to update end date. Please try again.",
     "societyInUse": "Society already in use.",
     "societyDeletedSuccess": "Society deleted successfully."
+  },
+  "building": {
+    "addBuilding": "Add Building",
+    "buildingName": "Building Name",
+    "society": "Society",
+    "totalFloors": "Total Floors",
+    "actionBy": "Action By",
+    "addNewBuilding": "Add New Building",
+    "fillDetails": "Fill in the building details below",
+    "loading": "Loading...",
+    "selectedSociety": "Selected Society",
+    "cancel": "Cancel",
+    "saveBuilding": "Save Building",
+    "buildingNamePlaceholder": "e.g., A Wing",
+    "totalFloorsPlaceholder": "e.g., 10"
   }
 }

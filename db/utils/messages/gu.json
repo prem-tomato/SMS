@@ -130,5 +130,20 @@
     "updateEndDateFailed": "અંતિમ તારીખ અપડેટ કરવામાં નિષ્ફળ. ફરી પ્રયત્ન કરો.",
     "societyInUse": "સોસાયટી પહેલેથી ઉપયોગમાં છે.",
     "societyDeletedSuccess": "સોસાયટી સફળતાપૂર્વક કાઢી નાખવામાં આવ્યો છે."
+  },
+  "building": {
+    "addBuilding": "બિલ્ડિંગ ઉમેરો",
+    "buildingName": "બિલ્ડિંગનું નામ",
+    "society": "સોસાયટી",
+    "totalFloors": "કુલ માળ",
+    "actionBy": "ક્રિયા દ્વારા",
+    "addNewBuilding": "નવી બિલ્ડિંગ ઉમેરો",
+    "fillDetails": "નીચે બિલ્ડિંગની વિગતો ભરો",
+    "loading": "લોડ થઈ રહ્યું છે...",
+    "selectedSociety": "પસંદ કરેલ સોસાયટી",
+    "cancel": "રદ્દ કરો",
+    "saveBuilding": "બિલ્ડિંગ સાચવો",
+    "buildingNamePlaceholder": "જેમ કે, A Wing",
+    "totalFloorsPlaceholder": "જેમ કે, 10"
   }
 }
