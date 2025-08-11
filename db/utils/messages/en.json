@@ -146,5 +146,171 @@
     "saveBuilding": "Save Building",
     "buildingNamePlaceholder": "e.g., A Wing",
     "totalFloorsPlaceholder": "e.g., 10"
+  },
+  "FlatsPage": {
+    "columns": {
+      "shopNo": "Shop No",
+      "flatNo": "Flat No",
+      "floor": "Floor",
+      "status": "Status",
+      "building": "Building",
+      "society": "Society",
+      "currentMaintenance": "Current Maintenance",
+      "actions": "Actions"
+    },
+    "status": {
+      "occupied": "Occupied",
+      "vacant": "Vacant"
+    },
+    "buttons": {
+      "addShop": "Add Shop",
+      "addFlat": "Add Flat"
+    },
+    "menu": {
+      "viewShop": "View Shop",
+      "viewFlat": "View Flat",
+      "addPenalty": "Add Penalty",
+      "maintenanceSettings": "Maintenance Settings",
+      "maintenanceOverview": "Maintenance Overview"
+    },
+    "penaltyDialog": {
+      "title": "Add Penalty",
+      "amount": "Amount",
+      "reason": "Reason",
+      "add": "Add Penalty"
+    },
+    "common": {
+      "cancel": "Cancel",
+      "saving": "Saving..."
+    },
+    "errors": {
+      "failedAddPenalty": "Failed to add penalty"
+    }
+  },
+  "ViewFlatModal": {
+    "shopDetail": "Shop Detail",
+    "flatDetail": "Flat Detail",
+    "basicInfo": "Basic Information",
+    "shopNumber": "Shop Number",
+    "flatNumber": "Flat Number",
+    "floor": "Floor",
+    "status": "Status",
+    "occupied": "Occupied",
+    "vacant": "Vacant",
+    "area": "Area",
+    "sqFt": "sq ft",
+    "na": "N/A",
+    "propertyInfo": "Property Information",
+    "building": "Building",
+    "society": "Society",
+    "currentMaintenance": "Current Maintenance",
+    "penalties": "Penalties",
+    "noPenalties": "No penalties",
+    "markAsPaid": "Mark as Paid",
+    "markAsDeleted": "Mark as Deleted",
+    "close": "Close"
+  },
+  "maintenance": {
+    "history": "Maintenance History",
+    "failedLoad": "Failed to load maintenance details",
+    "noRecords": "No maintenance records found.",
+    "type": "Type",
+    "amount": "Amount",
+    "reason": "Reason",
+    "created": "Created",
+    "settlements": "Settlements",
+    "on": "on",
+    "paid": "Paid",
+    "paidStatus": "Paid",
+    "unpaidStatus": "Unpaid",
+    "marking": "Marking...",
+    "markAsPaid": "Mark as Paid",
+    "monthlyDeductions": "Monthly Deductions",
+    "month": "Month",
+    "close": "Close"
+  },
+  "ManagePendingMaintenanceModal": {
+    "title": "Manage Pending Maintenance",
+    "flat": "Flat",
+    "shop": "Shop",
+    "building": "Building",
+    "selectRecordWarning": "Please select a maintenance record to manage.",
+    "invalidSettlementAmount": "Please enter a valid settlement amount.",
+    "provideAllMonths": "Please provide valid amounts for all {count} months.",
+    "updateSuccess": "Maintenance updated successfully!",
+    "updateError": "Failed to update maintenance.",
+    "loadingRecords": "Loading maintenance records...",
+    "errorTitle": "Error",
+    "loadError": "Failed to load {type} maintenance records.",
+    "noDataTitle": "No Data",
+    "noDataMsg": "No {type} data available. Please try again.",
+    "noRecordsTitle": "No Maintenance Records",
+    "noRecordsMsg": "No maintenance records found for this {type}. Cannot manage pending maintenance.",
+    "close": "Close",
+    "cancel": "Cancel",
+    "next": "Next",
+    "updateMaintenance": "Update Maintenance",
+    "resident": "Resident"
+  },
+  "maintenance-modal": {
+    "titles": {
+      "managePendingMaintenance": "Manage Pending Maintenance",
+      "error": "Error",
+      "noData": "No Data",
+      "noMaintenanceRecords": "No Maintenance Records"
+    },
+    "labels": {
+      "building": "Building",
+      "id": "ID",
+      "by": "By",
+      "editingMaintenanceId": "Editing Maintenance ID",
+      "originalAmount": "Original Amount",
+      "settlementAmount": "Settlement Amount",
+      "total": "Total",
+      "month": "Month {month}",
+      "enterAmountsForMonths": "Enter Amounts for {count} Months"
+    },
+    "steps": {
+      "selectMaintenanceRecord": "Select Maintenance Record"
+    },
+    "amountTypes": {
+      "settlement": "Settlement",
+      "quarterly": "Quarterly",
+      "halfYearly": "Half-Yearly",
+      "yearly": "Yearly"
+    },
+    "actions": {
+      "close": "Close",
+      "cancel": "Cancel",
+      "next": "Next",
+      "updateMaintenance": "Update Maintenance"
+    },
+    "states": {
+      "loadingMaintenanceRecords": "Loading maintenance records..."
+    },
+    "messages": {
+      "noDataAvailable": "No {type} data available. Please try again.",
+      "noMaintenanceRecords": "No maintenance records found for this {type}. Cannot manage pending maintenance.",
+      "maintenanceUpdatedSuccess": "Maintenance updated successfully!"
+    },
+    "errors": {
+      "selectMaintenanceRecord": "Please select a maintenance record to manage.",
+      "validSettlementAmount": "Please enter a valid settlement amount.",
+      "validAmountsForMonths": "Please provide valid amounts for all {count} months.",
+      "updateFailed": "Error: {error}",
+      "failedToLoadRecords": "Failed to load {type} maintenance records.",
+      "generic": "Failed to update maintenance"
+    },
+    "placeholders": {
+      "settlementAmount": "e.g. 2500"
+    },
+    "common": {
+      "notAvailable": "N/A",
+      "noReasonProvided": "No reason provided",
+      "unknown": "Unknown"
+    },
+    "flat": "Flat",
+    "shop": "Shop",
+    "resident": "Resident"
   }
 }

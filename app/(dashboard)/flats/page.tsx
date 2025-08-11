@@ -3,7 +3,7 @@
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddFlatModal from "@/components/flat/FlatModel";
 import { ManagePendingMaintenanceModal } from "@/components/flat/ManagePendingMaintenanceModal";
-import { ViewFlatModal } from "@/components/flat/ViewFlatModal"; // Import the ViewFlatModal
+import { ViewFlatModal } from "@/components/flat/ViewFlatModal";
 import { ViewMaintenanceModal } from "@/components/flat/ViewMaintenanceModal";
 import {
   getSocietyIdFromLocalStorage,
@@ -31,19 +31,22 @@ import {
   TextField,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
 export default function FlatsPage() {
+  const t = useTranslations("FlatsPage");
+
   const [addModal, setAddModal] = useState(false);
   const [societyId, setSocietyId] = useState("");
   const [role, setRole] = useState("");
+  const [societyType, setSocietyType] = useState<string | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFlat, setSelectedFlat] = useState<any>(null);
   const [penaltyDialogOpen, setPenaltyDialogOpen] = useState(false);
   const [penaltyAmount, setPenaltyAmount] = useState("");
   const [penaltyReason, setPenaltyReason] = useState("");
-  const [societyType, setSocietyType] = useState<string | null>(null);
 
   // Updated view dialog state to work with ViewFlatModal
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -108,7 +111,7 @@ export default function FlatsPage() {
       queryClient.invalidateQueries(["flats", societyId] as any);
     },
     onError: (error: any) => {
-      alert(error.message || "Failed to add penalty");
+      alert(error.message || t("errors.failedAddPenalty"));
     },
   });
 
@@ -169,29 +172,32 @@ export default function FlatsPage() {
     () => [
       {
         field: "flat_number",
-        headerName: societyType === "commercial" ? "Shop No" : "Flat No",
+        headerName:
+          societyType === "commercial"
+            ? t("columns.shopNo")
+            : t("columns.flatNo"),
         flex: 1,
       },
-      { field: "floor_number", headerName: "Floor", flex: 1 },
+      { field: "floor_number", headerName: t("columns.floor"), flex: 1 },
       {
         field: "is_occupied",
-        headerName: "Status",
+        headerName: t("columns.status"),
         flex: 1,
         renderCell: (params: any) => (
           <Chip
-            label={params.value ? "Occupied" : "Vacant"}
+            label={params.value ? t("status.occupied") : t("status.vacant")}
             color={params.value ? "success" : "warning"}
             size="small"
           />
         ),
       },
-      { field: "building_name", headerName: "Building", flex: 1 },
+      { field: "building_name", headerName: t("columns.building"), flex: 1 },
       ...(role === "super_admin"
-        ? [{ field: "society_name", headerName: "Society", flex: 1 }]
+        ? [{ field: "society_name", headerName: t("columns.society"), flex: 1 }]
         : []),
       {
         field: "current_maintenance",
-        headerName: "Current Maintenance",
+        headerName: t("columns.currentMaintenance"),
         flex: 1,
         renderCell: (params: any) => {
           const value = Number(params.value) || 0;
@@ -205,7 +211,7 @@ export default function FlatsPage() {
       },
       {
         field: "actions",
-        headerName: "Actions",
+        headerName: t("columns.actions"),
         sortable: false,
         renderCell: (params: any) => (
           <>
@@ -217,7 +223,7 @@ export default function FlatsPage() {
         ),
       },
     ],
-    [role]
+    [role, societyType, t]
   );
 
   return (
@@ -229,7 +235,9 @@ export default function FlatsPage() {
           startIcon={<AddIcon />}
           sx={{ borderRadius: 1, borderColor: "#1e1ee4", color: "#1e1ee4" }}
         >
-          {societyType === "commercial" ? "Add Shop" : "Add Flat"}
+          {societyType === "commercial"
+            ? t("buttons.addShop")
+            : t("buttons.addFlat")}
         </Button>
       </Box>
 
@@ -254,13 +262,19 @@ export default function FlatsPage() {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleViewFlat}>{societyType === "commercial" ? "View Shop" : "View Flat"}</MenuItem>
-        <MenuItem onClick={handleOpenPenaltyDialog}>Add Penalty</MenuItem>
+        <MenuItem onClick={handleViewFlat}>
+          {societyType === "commercial"
+            ? t("menu.viewShop")
+            : t("menu.viewFlat")}
+        </MenuItem>
+        <MenuItem onClick={handleOpenPenaltyDialog}>
+          {t("menu.addPenalty")}
+        </MenuItem>
         <MenuItem onClick={handleManageMaintenance}>
-          Maintenance Settings
+          {t("menu.maintenanceSettings")}
         </MenuItem>
         <MenuItem onClick={handleViewMaintenance}>
-          Maintenance Overview
+          {t("menu.maintenanceOverview")}
         </MenuItem>
       </Menu>
 
@@ -269,10 +283,10 @@ export default function FlatsPage() {
         open={penaltyDialogOpen}
         onClose={() => setPenaltyDialogOpen(false)}
       >
-        <DialogTitle>Add Penalty</DialogTitle>
+        <DialogTitle>{t("penaltyDialog.title")}</DialogTitle>
         <DialogContent>
           <TextField
-            label="Amount"
+            label={t("penaltyDialog.amount")}
             type="number"
             fullWidth
             value={penaltyAmount}
@@ -280,14 +294,16 @@ export default function FlatsPage() {
             sx={{ mb: 2, mt: 1 }}
           />
           <TextField
-            label="Reason"
+            label={t("penaltyDialog.reason")}
             fullWidth
             value={penaltyReason}
             onChange={(e) => setPenaltyReason(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPenaltyDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setPenaltyDialogOpen(false)}>
+            {t("common.cancel")}
+          </Button>
           <Button
             variant="contained"
             disabled={isPending}
@@ -304,7 +320,7 @@ export default function FlatsPage() {
               })
             }
           >
-            {isPending ? "Saving..." : "Add Penalty"}
+            {isPending ? t("common.saving") : t("penaltyDialog.add")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -312,7 +328,7 @@ export default function FlatsPage() {
       {/* View Flat Modal */}
       <ViewFlatModal
         open={viewDialogOpen}
-        onClose={handleCloseViewModal}
+        onClose={() => setViewDialogOpen(false)}
         selectedFlat={viewFlatData}
         societyType={societyType}
       />

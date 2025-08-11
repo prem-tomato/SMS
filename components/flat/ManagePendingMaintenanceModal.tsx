@@ -20,6 +20,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { getParticularFlat } from "@/services/flats";
@@ -63,6 +64,7 @@ export const ManagePendingMaintenanceModal = ({
   selectedFlat,
   societyType,
 }: Props) => {
+  const t = useTranslations("maintenance-modal");
   const queryClient = useQueryClient();
 
   // Step 1: Select maintenance record
@@ -95,6 +97,14 @@ export const ManagePendingMaintenanceModal = ({
   // Helper function to close toast
   const handleCloseToast = () => {
     setToast((prev) => ({ ...prev, open: false }));
+  };
+
+  // Helper function to get society type label
+  const getSocietyTypeLabel = (type: string | null) => {
+    if (type === "residential") {
+      return { singular: t("flat"), plural: t("resident") };
+    }
+    return { singular: t("shop"), plural: t("shop") };
   };
 
   // Fetch flat data - simplified to match ViewFlatModal pattern
@@ -155,7 +165,7 @@ export const ManagePendingMaintenanceModal = ({
 
   const handleConfirmSelection = () => {
     if (!selectedMaintenanceId) {
-      showToast("Please select a maintenance record to manage.", "warning");
+      showToast(t("errors.selectMaintenanceRecord"), "warning");
       return;
     }
 
@@ -176,7 +186,7 @@ export const ManagePendingMaintenanceModal = ({
     if (amountType === "settlement") {
       const amount = Number(settlementAmount);
       if (isNaN(amount) || amount <= 0) {
-        showToast("Please enter a valid settlement amount.", "error");
+        showToast(t("errors.validSettlementAmount"), "error");
         return;
       }
       payload = {
@@ -193,7 +203,7 @@ export const ManagePendingMaintenanceModal = ({
 
       if (filled.length !== requiredCount) {
         showToast(
-          `Please provide valid amounts for all ${requiredCount} months.`,
+          t("errors.validAmountsForMonths", { count: requiredCount }),
           "error"
         );
         return;
@@ -216,7 +226,7 @@ export const ManagePendingMaintenanceModal = ({
         queryKey: ["flats", selectedFlat.societyId],
       });
 
-      showToast("Maintenance updated successfully!", "success");
+      showToast(t("messages.maintenanceUpdatedSuccess"), "success");
 
       // Close modal after a short delay to show the success message
       setTimeout(() => {
@@ -225,10 +235,21 @@ export const ManagePendingMaintenanceModal = ({
     } catch (err: any) {
       console.error("Error updating maintenance:", err);
       showToast(
-        `Error: ${err?.message || "Failed to update maintenance"}`,
+        t("errors.updateFailed", {
+          error: err?.message || t("errors.generic"),
+        }),
         "error"
       );
     }
+  };
+
+  // Get month count for current amount type
+  const getMonthCount = () => {
+    return amountType === "quarterly"
+      ? 3
+      : amountType === "halfyearly"
+      ? 6
+      : 12;
   };
 
   // Loading state
@@ -236,7 +257,7 @@ export const ManagePendingMaintenanceModal = ({
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogContent>
-          <Typography>Loading maintenance records...</Typography>
+          <Typography>{t("states.loadingMaintenanceRecords")}</Typography>
         </DialogContent>
       </Dialog>
     );
@@ -246,15 +267,16 @@ export const ManagePendingMaintenanceModal = ({
   if (error) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Error</DialogTitle>
+        <DialogTitle>{t("titles.error")}</DialogTitle>
         <DialogContent>
           <Alert severity="error">
-            Failed to load {societyType === "residential" ? "Resident" : "Shop"}{" "}
-            maintenance records.
+            {t("errors.failedToLoadRecords", {
+              type: getSocietyTypeLabel(societyType).plural,
+            })}
           </Alert>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose}>{t("actions.close")}</Button>
         </DialogActions>
       </Dialog>
     );
@@ -264,15 +286,16 @@ export const ManagePendingMaintenanceModal = ({
   if (!data?.data) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>No Data</DialogTitle>
+        <DialogTitle>{t("titles.noData")}</DialogTitle>
         <DialogContent>
           <Alert severity="warning">
-            No {societyType === "residential" ? "Resident" : "Shop"} data
-            available. Please try again.
+            {t("messages.noDataAvailable", {
+              type: getSocietyTypeLabel(societyType).plural,
+            })}
           </Alert>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose}>{t("actions.close")}</Button>
         </DialogActions>
       </Dialog>
     );
@@ -282,12 +305,12 @@ export const ManagePendingMaintenanceModal = ({
   if (maintenances.length === 0) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>No Maintenance Records</DialogTitle>
+        <DialogTitle>{t("titles.noMaintenanceRecords")}</DialogTitle>
         <DialogContent>
           <Alert severity="info">
-            No maintenance records found for this{" "}
-            {societyType === "residential" ? "Resident" : "Shop"}. Cannot manage
-            pending maintenance.
+            {t("messages.noMaintenanceRecords", {
+              type: getSocietyTypeLabel(societyType).singular,
+            })}
           </Alert>
         </DialogContent>
         <DialogActions>
@@ -302,7 +325,7 @@ export const ManagePendingMaintenanceModal = ({
               },
             }}
           >
-            Close
+            {t("actions.close")}
           </Button>
         </DialogActions>
       </Dialog>
@@ -313,19 +336,22 @@ export const ManagePendingMaintenanceModal = ({
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Manage Pending Maintenance</DialogTitle>
+        <DialogTitle>{t("titles.managePendingMaintenance")}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {societyType === "residential" ? "Flat" : "Shop"}:{" "}
-            <strong>{data.data.flat_number || "N/A"}</strong> | Building:{" "}
-            <strong>{data.data.building_name || "N/A"}</strong>
+            {getSocietyTypeLabel(societyType).singular}:{" "}
+            <strong>{data.data.flat_number || t("common.notAvailable")}</strong>{" "}
+            | {t("labels.building")}:{" "}
+            <strong>
+              {data.data.building_name || t("common.notAvailable")}
+            </strong>
           </Typography>
 
           {/* Step 1: Select Maintenance Record */}
           {!selectedMaintenanceId ? (
             <>
               <Typography variant="h6" sx={{ mb: 1 }}>
-                Select Maintenance Record
+                {t("steps.selectMaintenanceRecord")}
               </Typography>
               <List
                 sx={{
@@ -353,16 +379,18 @@ export const ManagePendingMaintenanceModal = ({
                           <strong>
                             ₹{(record.amount || 0).toLocaleString()}
                           </strong>{" "}
-                          - {record.reason || "No reason provided"}
+                          - {record.reason || t("common.noReasonProvided")}
                         </Box>
                       }
                       secondary={
                         <>
-                          ID: {record.id?.slice(0, 8) || "N/A"}... | By:{" "}
-                          {record.action_by || "Unknown"} |{" "}
+                          {t("labels.id")}:{" "}
+                          {record.id?.slice(0, 8) || t("common.notAvailable")}
+                          ... | {t("labels.by")}:{" "}
+                          {record.action_by || t("common.unknown")} |{" "}
                           {record.created_at
                             ? new Date(record.created_at).toLocaleDateString()
-                            : "N/A"}
+                            : t("common.notAvailable")}
                         </>
                       }
                     />
@@ -374,10 +402,10 @@ export const ManagePendingMaintenanceModal = ({
             /* Step 2: Edit Maintenance Type */
             <>
               <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-                Editing Maintenance ID:{" "}
+                {t("labels.editingMaintenanceId")}:{" "}
                 <strong>{selectedMaintenanceId.slice(0, 8)}...</strong>
                 <br />
-                Original Amount:{" "}
+                {t("labels.originalAmount")}:{" "}
                 <strong>
                   ₹
                   {maintenances
@@ -396,61 +424,50 @@ export const ManagePendingMaintenanceModal = ({
                 <FormControlLabel
                   value="settlement"
                   control={<Radio />}
-                  label="Settlement"
+                  label={t("amountTypes.settlement")}
                 />
                 <FormControlLabel
                   value="quarterly"
                   control={<Radio />}
-                  label="Quarterly"
+                  label={t("amountTypes.quarterly")}
                 />
                 <FormControlLabel
                   value="halfyearly"
                   control={<Radio />}
-                  label="Half-Yearly"
+                  label={t("amountTypes.halfYearly")}
                 />
                 <FormControlLabel
                   value="yearly"
                   control={<Radio />}
-                  label="Yearly"
+                  label={t("amountTypes.yearly")}
                 />
               </RadioGroup>
 
               {amountType === "settlement" ? (
                 <TextField
-                  label="Settlement Amount"
+                  label={t("labels.settlementAmount")}
                   type="number"
                   fullWidth
                   value={settlementAmount}
                   onChange={(e) => setSettlementAmount(e.target.value)}
-                  placeholder="e.g. 2500"
+                  placeholder={t("placeholders.settlementAmount")}
                   InputProps={{ inputProps: { min: 0 } }}
                 />
               ) : (
                 <Box>
                   <Typography variant="body1" fontWeight="500" sx={{ mb: 1 }}>
-                    Enter Amounts for{" "}
-                    {amountType === "quarterly"
-                      ? 3
-                      : amountType === "halfyearly"
-                      ? 6
-                      : 12}{" "}
-                    Months
+                    {t("labels.enterAmountsForMonths", {
+                      count: getMonthCount(),
+                    })}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
                     sx={{ mb: 2 }}
                   >
-                    Total: ₹
+                    {t("labels.total")}: ₹
                     {monthlyAmounts
-                      .slice(
-                        0,
-                        amountType === "quarterly"
-                          ? 3
-                          : amountType === "halfyearly"
-                          ? 6
-                          : 12
-                      )
+                      .slice(0, getMonthCount())
                       .reduce(
                         (sum, item) => sum + (Number(item.amount) || 0),
                         0
@@ -465,35 +482,26 @@ export const ManagePendingMaintenanceModal = ({
                       gap: 1,
                     }}
                   >
-                    {monthlyAmounts
-                      .slice(
-                        0,
-                        amountType === "quarterly"
-                          ? 3
-                          : amountType === "halfyearly"
-                          ? 6
-                          : 12
-                      )
-                      .map((item) => (
-                        <TextField
-                          key={item.month}
-                          label={`Month ${item.month}`}
-                          type="number"
-                          size="small"
-                          value={item.amount || ""}
-                          onChange={(e) => {
-                            const newVal = Number(e.target.value);
-                            setMonthlyAmounts((prev) =>
-                              prev.map((m) =>
-                                m.month === item.month
-                                  ? { ...m, amount: isNaN(newVal) ? 0 : newVal }
-                                  : m
-                              )
-                            );
-                          }}
-                          InputProps={{ inputProps: { min: 0 } }}
-                        />
-                      ))}
+                    {monthlyAmounts.slice(0, getMonthCount()).map((item) => (
+                      <TextField
+                        key={item.month}
+                        label={t("labels.month", { month: item.month })}
+                        type="number"
+                        size="small"
+                        value={item.amount || ""}
+                        onChange={(e) => {
+                          const newVal = Number(e.target.value);
+                          setMonthlyAmounts((prev) =>
+                            prev.map((m) =>
+                              m.month === item.month
+                                ? { ...m, amount: isNaN(newVal) ? 0 : newVal }
+                                : m
+                            )
+                          );
+                        }}
+                        InputProps={{ inputProps: { min: 0 } }}
+                      />
+                    ))}
                   </Box>
                 </Box>
               )}
@@ -501,7 +509,7 @@ export const ManagePendingMaintenanceModal = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("actions.cancel")}</Button>
 
           {/* Conditional Button */}
           {!selectedMaintenanceId ? (
@@ -511,7 +519,7 @@ export const ManagePendingMaintenanceModal = ({
               disabled={!selectedMaintenanceId}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Next
+              {t("actions.next")}
             </Button>
           ) : (
             <Button
@@ -519,7 +527,7 @@ export const ManagePendingMaintenanceModal = ({
               onClick={handleConfirmUpdate}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              Update Maintenance
+              {t("actions.updateMaintenance")}
             </Button>
           )}
         </DialogActions>

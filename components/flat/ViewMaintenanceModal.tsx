@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import { useTranslations } from "next-intl"; // ✅ Added
 
 export function ViewMaintenanceModal({
   open,
@@ -34,6 +35,8 @@ export function ViewMaintenanceModal({
     flatId: string;
   } | null;
 }) {
+  const t = useTranslations("maintenance"); // ✅ Namespace
+
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
@@ -93,16 +96,14 @@ export function ViewMaintenanceModal({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Maintenance History</DialogTitle>
+      <DialogTitle>{t("history")}</DialogTitle>
       <DialogContent dividers>
         {isLoading ? (
           <CircularProgress />
         ) : isError ? (
-          <Typography color="error">
-            Failed to load maintenance details
-          </Typography>
+          <Typography color="error">{t("failedLoad")}</Typography>
         ) : data?.data?.length === 0 ? (
-          <Typography>No maintenance records found.</Typography>
+          <Typography>{t("noRecords")}</Typography>
         ) : (
           <Stack spacing={2}>
             {Array.isArray(data?.data) &&
@@ -110,22 +111,25 @@ export function ViewMaintenanceModal({
                 <Box key={item.maintenance_id}>
                   {item.amount_type && (
                     <Typography variant="subtitle1" fontWeight="bold">
-                      Type: {item.amount_type.toUpperCase()}
+                      {t("type")}: {item.amount_type.toUpperCase()}
                     </Typography>
                   )}
                   <Typography>
-                    Amount: ₹
+                    {t("amount")}: ₹
                     {Number(item.maintenance_amount).toLocaleString("en-IN")}
                   </Typography>
-                  <Typography>Reason: {item.reason}</Typography>
                   <Typography>
-                    Created: {dayjs(item.created_at).format("DD MMM YYYY")}
+                    {t("reason")}: {item.reason}
+                  </Typography>
+                  <Typography>
+                    {t("created")}:{" "}
+                    {dayjs(item.created_at).format("DD MMM YYYY")}
                   </Typography>
 
                   {item.settlements.length > 0 && (
                     <>
                       <Typography fontWeight="bold" mt={1}>
-                        Settlements:
+                        {t("settlements")}:
                       </Typography>
                       <Stack spacing={1} mt={1}>
                         {item.settlements.map((s: any) => (
@@ -145,7 +149,7 @@ export function ViewMaintenanceModal({
                             {/* Left section: Info */}
                             <Box>
                               <Typography variant="body2" fontWeight={500}>
-                                ₹{s.settlement_amount} on{" "}
+                                ₹{s.settlement_amount} {t("on")}{" "}
                                 {dayjs(s.created_at).format("DD MMM YYYY")}
                               </Typography>
 
@@ -154,7 +158,7 @@ export function ViewMaintenanceModal({
                                   variant="caption"
                                   color="text.secondary"
                                 >
-                                  Paid:{" "}
+                                  {t("paid")}:{" "}
                                   {dayjs(s.paid_at).format(
                                     "DD MMM YYYY, hh:mm A"
                                   )}
@@ -162,10 +166,13 @@ export function ViewMaintenanceModal({
                               )}
                             </Box>
 
-                            {/* Right section: Status + Action */}
                             <Box display="flex" alignItems="center" gap={1}>
                               <Chip
-                                label={s.is_paid ? "Paid" : "Unpaid"}
+                                label={
+                                  s.is_paid
+                                    ? t("paidStatus")
+                                    : t("unpaidStatus")
+                                }
                                 color={s.is_paid ? "success" : "warning"}
                                 size="small"
                               />
@@ -185,8 +192,8 @@ export function ViewMaintenanceModal({
                                   }
                                 >
                                   {markSettlementAsPaidMutation.isPending
-                                    ? "Marking..."
-                                    : "Mark as Paid"}
+                                    ? t("marking")
+                                    : t("markAsPaid")}
                                 </Button>
                               )}
                             </Box>
@@ -199,7 +206,7 @@ export function ViewMaintenanceModal({
                   {item.monthly_maintenance.length > 0 && (
                     <>
                       <Typography fontWeight="bold" mt={1}>
-                        Monthly Deductions:
+                        {t("monthlyDeductions")}:
                       </Typography>
                       <Stack spacing={1} mt={1}>
                         {item.monthly_maintenance
@@ -218,13 +225,13 @@ export function ViewMaintenanceModal({
                             >
                               <Box>
                                 <Typography variant="body2">
-                                  Month {m.month}: ₹{m.amount}
+                                  {t("month")} {m.month}: ₹{m.amount}
                                 </Typography>
                                 <Typography
                                   variant="caption"
                                   color="text.secondary"
                                 >
-                                  Created:{" "}
+                                  {t("created")}:{" "}
                                   {dayjs(m.created_at).format("DD MMM YYYY")}
                                 </Typography>
                                 {m.paid && m.paid_at && (
@@ -233,7 +240,7 @@ export function ViewMaintenanceModal({
                                     color="text.secondary"
                                     display="block"
                                   >
-                                    Paid:{" "}
+                                    {t("paid")}:{" "}
                                     {dayjs(m.paid_at).format(
                                       "DD MMM YYYY, hh:mm A"
                                     )}
@@ -248,7 +255,9 @@ export function ViewMaintenanceModal({
                                 }}
                               >
                                 <Chip
-                                  label={m.paid ? "Paid" : "Unpaid"}
+                                  label={
+                                    m.paid ? t("paidStatus") : t("unpaidStatus")
+                                  }
                                   color={m.paid ? "success" : "warning"}
                                   size="small"
                                 />
@@ -265,8 +274,8 @@ export function ViewMaintenanceModal({
                                     disabled={markAsPaidMutation.isPending}
                                   >
                                     {markAsPaidMutation.isPending
-                                      ? "Marking..."
-                                      : "Mark as Paid"}
+                                      ? t("marking")
+                                      : t("markAsPaid")}
                                   </Button>
                                 )}
                               </Box>
@@ -293,7 +302,7 @@ export function ViewMaintenanceModal({
             },
           }}
         >
-          Close
+          {t("close")}
         </Button>
       </DialogActions>
     </Dialog>

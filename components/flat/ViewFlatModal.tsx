@@ -5,10 +5,9 @@ import {
   markFlatPenaltyDeleted,
   markFlatPenaltyPaid,
 } from "@/services/flats";
+import { Close as CloseIcon } from "@mui/icons-material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-
-import { Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -29,6 +28,7 @@ import {
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 interface ViewFlatModalProps {
@@ -48,9 +48,11 @@ export const ViewFlatModal = ({
   selectedFlat,
   societyType,
 }: ViewFlatModalProps) => {
+  const t = useTranslations("ViewFlatModal");
+
   const enabled = open && !!selectedFlat;
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["particular-flat", selectedFlat?.flatId],
     queryFn: () =>
       getParticularFlat(
@@ -61,51 +63,30 @@ export const ViewFlatModal = ({
     enabled,
   });
 
-  // Preserve the flat data even when modal is closing
   const [preservedFlat, setPreservedFlat] = useState(null);
 
   useEffect(() => {
-    // Preserve the flat data
     if (data?.data) {
       setPreservedFlat(data.data);
     }
   }, [data?.data]);
 
-  // Use preserved data if available, otherwise use current data
   const flat = preservedFlat || data?.data;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="md"
-      TransitionProps={{
-        timeout: {
-          enter: 200,
-          exit: 150, // Faster exit, smooth enter
-        },
-      }}
-      PaperProps={{
-        sx: {
-          borderRadius: 1,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-        },
-      }}
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="h6" fontWeight="600" color="text.primary">
-            {societyType === "residential" ? "Resident Detail" : "Shop Detail"}
+            {societyType === "commercial" ? t("shopDetail") : t("flatDetail")}
           </Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
@@ -130,43 +111,45 @@ export const ViewFlatModal = ({
             {/* Basic Info */}
             <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
-                Basic Information
+                {t("basicInfo")}
               </Typography>
               <Table size="small">
                 <TableBody>
                   <TableRow>
                     <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                       <Typography variant="body2" color="text.secondary">
-                        {societyType === "residential" ? "Flat Number" : "Shop Number"}
+                        {societyType === "commercial"
+                          ? t("shopNumber")
+                          : t("flatNumber")}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ border: 0, py: 1 }}>
+                    <TableCell>
                       <Typography variant="body2" fontWeight="600">
                         {flat.flat_number}
                       </Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
+                    <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        Floor
+                        {t("floor")}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ border: 0, py: 1 }}>
+                    <TableCell>
                       <Typography variant="body2">
                         {flat.floor_number}
                       </Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
+                    <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        Status
+                        {t("status")}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ border: 0, py: 1 }}>
+                    <TableCell>
                       <Chip
-                        label={flat.is_occupied ? "Occupied" : "Vacant"}
+                        label={flat.is_occupied ? t("occupied") : t("vacant")}
                         color={flat.is_occupied ? "success" : "default"}
                         size="small"
                         variant="outlined"
@@ -174,14 +157,16 @@ export const ViewFlatModal = ({
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
+                    <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        Area
+                        {t("area")}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ border: 0, py: 1 }}>
+                    <TableCell>
                       <Typography variant="body2">
-                        {flat.square_foot ? `${flat.square_foot} sq ft` : "N/A"}
+                        {flat.square_foot
+                          ? `${flat.square_foot} ${t("sqFt")}`
+                          : t("na")}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -192,41 +177,41 @@ export const ViewFlatModal = ({
             {/* Property Details */}
             <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
-                Property Information
+                {t("propertyInfo")}
               </Typography>
               <Table size="small">
                 <TableBody>
                   <TableRow>
-                    <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
+                    <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        Building
+                        {t("building")}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ border: 0, py: 1 }}>
+                    <TableCell>
                       <Typography variant="body2">
                         {flat.building_name}
                       </Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
+                    <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        Society
+                        {t("society")}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ border: 0, py: 1 }}>
+                    <TableCell>
                       <Typography variant="body2">
                         {flat.society_name}
                       </Typography>
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
+                    <TableCell>
                       <Typography variant="body2" color="text.secondary">
-                        Current Maintenance
+                        {t("currentMaintenance")}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ border: 0, py: 1 }}>
+                    <TableCell>
                       <Typography
                         variant="body2"
                         fontWeight="600"
@@ -239,23 +224,20 @@ export const ViewFlatModal = ({
                 </TableBody>
               </Table>
             </Paper>
-
-            {/* Penalties */}
             <Paper variant="outlined" sx={{ p: 2 }}>
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
-                Penalties
+                {t("penalties")}
               </Typography>
               {!flat.penalties || flat.penalties.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
-                  No penalties
+                  {t("noPenalties")}
                 </Typography>
               ) : (
                 <Table size="small">
                   <TableBody>
                     {flat.penalties.map((penalty: any) => (
                       <TableRow key={penalty.id}>
-                        {/* Amount */}
-                        <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
+                        <TableCell>
                           <Typography
                             variant="body2"
                             fontWeight="600"
@@ -264,74 +246,51 @@ export const ViewFlatModal = ({
                             {formatCurrency(penalty.amount)}
                           </Typography>
                         </TableCell>
-
-                        {/* Reason + Metadata */}
-                        <TableCell sx={{ border: 0, py: 1 }}>
+                        <TableCell>
                           <Typography variant="body2" color="text.secondary">
                             {penalty.reason}
                           </Typography>
                         </TableCell>
-
-                        {/* Created At */}
-                        <TableCell sx={{ border: 0, py: 1 }}>
+                        <TableCell>
                           <Typography variant="body2" color="text.secondary">
                             {dayjs(penalty.created_at).format("DD-MM-YYYY")}
                           </Typography>
                         </TableCell>
-
-                        {/* Action By */}
-                        <TableCell sx={{ border: 0, py: 1 }}>
+                        <TableCell>
                           <Typography variant="body2" color="text.secondary">
                             {penalty.action_by}
                           </Typography>
                         </TableCell>
-
-                        {/* Action Buttons */}
-                        <TableCell sx={{ border: 0, py: 1 }}>
-                          <Tooltip title="Mark as Paid">
+                        <TableCell>
+                          <Tooltip title={t("markAsPaid")}>
                             <IconButton
                               size="small"
                               color="success"
                               onClick={async () => {
-                                try {
-                                  await markFlatPenaltyPaid(
-                                    flat.society_id,
-                                    flat.building_id,
-                                    flat.id,
-                                    penalty.id
-                                  );
-                                  await refetch();
-                                } catch (error: any) {
-                                  alert(
-                                    error.message ||
-                                      "Failed to mark penalty as paid"
-                                  );
-                                }
+                                await markFlatPenaltyPaid(
+                                  flat.society_id,
+                                  flat.building_id,
+                                  flat.id,
+                                  penalty.id
+                                );
+                                await refetch();
                               }}
                             >
                               <CheckCircleOutlineIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-
-                          <Tooltip title="Mark as Deleted">
+                          <Tooltip title={t("markAsDeleted")}>
                             <IconButton
                               size="small"
                               color="error"
                               onClick={async () => {
-                                try {
-                                  await markFlatPenaltyDeleted(
-                                    flat.society_id,
-                                    flat.building_id,
-                                    flat.id,
-                                    penalty.id
-                                  );
-                                  await refetch();
-                                } catch (error: any) {
-                                  alert(
-                                    error.message ||
-                                      "Failed to mark penalty as deleted"
-                                  );
-                                }
+                                await markFlatPenaltyDeleted(
+                                  flat.society_id,
+                                  flat.building_id,
+                                  flat.id,
+                                  penalty.id
+                                );
+                                await refetch();
                               }}
                             >
                               <DeleteOutlineIcon fontSize="small" />
@@ -360,7 +319,7 @@ export const ViewFlatModal = ({
             },
           }}
         >
-          Close
+          {t("close")}
         </Button>
       </DialogActions>
     </Dialog>

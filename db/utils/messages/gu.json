@@ -145,5 +145,171 @@
     "saveBuilding": "બિલ્ડિંગ સાચવો",
     "buildingNamePlaceholder": "જેમ કે, A Wing",
     "totalFloorsPlaceholder": "જેમ કે, 10"
+  },
+  "FlatsPage": {
+    "columns": {
+      "shopNo": "દુકાન નંબર",
+      "flatNo": "ફ્લેટ નંબર",
+      "floor": "માળો",
+      "status": "સ્થિતિ",
+      "building": "મકાન",
+      "society": "સોસાયટી",
+      "currentMaintenance": "વર્તમાન મેન્ટેનન્સ",
+      "actions": "ક્રિયાઓ"
+    },
+    "status": {
+      "occupied": "ભરાયેલ",
+      "vacant": "ખાલી"
+    },
+    "buttons": {
+      "addShop": "દુકાન ઉમેરો",
+      "addFlat": "ફ્લેટ ઉમેરો"
+    },
+    "menu": {
+      "viewShop": "દુકાન જુઓ",
+      "viewFlat": "ફ્લેટ જુઓ",
+      "addPenalty": "દંડ ઉમેરો",
+      "maintenanceSettings": "મેન્ટેનન્સ સેટિંગ્સ",
+      "maintenanceOverview": "મેન્ટેનન્સ વિગતો"
+    },
+    "penaltyDialog": {
+      "title": "દંડ ઉમેરો",
+      "amount": "રકમ",
+      "reason": "કારણ",
+      "add": "દંડ ઉમેરો"
+    },
+    "common": {
+      "cancel": "રદ કરો",
+      "saving": "સાચવી રહ્યું છે..."
+    },
+    "errors": {
+      "failedAddPenalty": "દંડ ઉમેરવામાં નિષ્ફળ"
+    }
+  },
+  "ViewFlatModal": {
+    "shopDetail": "દુકાન વિગતો",
+    "flatDetail": "ફ્લેટ વિગતો",
+    "basicInfo": "મૂળભૂત માહિતી",
+    "shopNumber": "દુકાન નંબર",
+    "flatNumber": "ફ્લેટ નંબર",
+    "floor": "માળ",
+    "status": "સ્થિતિ",
+    "occupied": "વસવાટ કરાયેલ",
+    "vacant": "ખાલી",
+    "area": "વિસ્તાર",
+    "sqFt": "ચો. ફુટ",
+    "na": "લાગુ નથી",
+    "propertyInfo": "માલમત્તાની માહિતી",
+    "building": "ઇમારત",
+    "society": "સોસાયટી",
+    "currentMaintenance": "હાલનું મેઇન્ટેનન્સ",
+    "penalties": "દંડ",
+    "noPenalties": "કોઈ દંડ નથી",
+    "markAsPaid": "ચૂકવેલ તરીકે માર્ક કરો",
+    "markAsDeleted": "કાઢી નાખેલ તરીકે માર્ક કરો",
+    "close": "બંધ કરો"
+  },
+  "maintenance": {
+    "history": "માંટેનન્સ ઇતિહાસ",
+    "failedLoad": "માંટેનન્સ વિગતો લોડ કરવામાં નિષ્ફળ",
+    "noRecords": "કોઈમાંટેનન્સ રેકોર્ડ મળ્યા નથી.",
+    "type": "પ્રકાર",
+    "amount": "રકમ",
+    "reason": "કારણ",
+    "created": "બનાવેલ",
+    "settlements": "સેટલમેન્ટ્સ",
+    "on": "ના રોજ",
+    "paid": "ચૂકવેલ",
+    "paidStatus": "ચૂકવેલ",
+    "unpaidStatus": "બાકી",
+    "marking": "માર્ક કરી રહ્યા છીએ...",
+    "markAsPaid": "ચૂકવેલ તરીકે માર્ક કરો",
+    "monthlyDeductions": "માસિક કપાત",
+    "month": "મહિનો",
+    "close": "બંધ કરો"
+  },
+  "ManagePendingMaintenanceModal": {
+    "title": "બાકી જાળવણી મેનેજ કરો",
+    "flat": "ફ્લેટ",
+    "shop": "દુકાન",
+    "building": "બિલ્ડિંગ",
+    "selectRecordWarning": "કૃપા કરીને મેનેજ કરવા માટે જાળવણી રેકોર્ડ પસંદ કરો.",
+    "invalidSettlementAmount": "કૃપા કરીને માન્ય સેટલમેન્ટ રકમ દાખલ કરો.",
+    "provideAllMonths": "કૃપા કરીને {count} મહિનાની માન્ય રકમ દાખલ કરો.",
+    "updateSuccess": "જાળવણી સફળતાપૂર્વક અપડેટ થઈ!",
+    "updateError": "જાળવણી અપડેટ કરવામાં નિષ્ફળ.",
+    "loadingRecords": "જાળવણી રેકોર્ડ લોડ થઈ રહ્યા છે...",
+    "errorTitle": "ભૂલ",
+    "loadError": "{type} જાળવણી રેકોર્ડ લોડ કરવામાં નિષ્ફળ.",
+    "noDataTitle": "કોઈ ડેટા નથી",
+    "noDataMsg": "કોઈ {type} ડેટા ઉપલબ્ધ નથી. કૃપા કરીને ફરી પ્રયાસ કરો.",
+    "noRecordsTitle": "કોઈ જાળવણી રેકોર્ડ નથી",
+    "noRecordsMsg": "આ {type} માટે કોઈ જાળવણી રેકોર્ડ મળ્યા નથી. બાકી જાળવણી મેનેજ કરી શકાતા નથી.",
+    "close": "બંધ કરો",
+    "cancel": "રદ કરો",
+    "next": "આગળ",
+    "updateMaintenance": "જાળવણી અપડેટ કરો",
+    "resident": "રહેવાસી"
+  },
+  "maintenance-modal": {
+    "titles": {
+      "managePendingMaintenance": "બાકી જાળવણીનું સંચાલન",
+      "error": "ભૂલ",
+      "noData": "કોઈ ડેટા નથી",
+      "noMaintenanceRecords": "કોઈ જાળવણી રેકોર્ડ નથી"
+    },
+    "labels": {
+      "building": "મકાન",
+      "id": "આઇડી",
+      "by": "દ્વારા",
+      "editingMaintenanceId": "જાળવણી આઇડીનું સંપાદન",
+      "originalAmount": "મૂળ રકમ",
+      "settlementAmount": "સમાધાન રકમ",
+      "total": "કુલ",
+      "month": "મહિનો {month}",
+      "enterAmountsForMonths": "{count} મહિના માટે રકમ દાખલ કરો"
+    },
+    "steps": {
+      "selectMaintenanceRecord": "જાળવણી રેકોર્ડ પસંદ કરો"
+    },
+    "amountTypes": {
+      "settlement": "સમાધાન",
+      "quarterly": "ત્રિમાસિક",
+      "halfYearly": "અર્ધવાર્ષિક",
+      "yearly": "વાર્ષિક"
+    },
+    "actions": {
+      "close": "બંધ કરો",
+      "cancel": "રદ કરો",
+      "next": "આગળ",
+      "updateMaintenance": "જાળવણી અપડેટ કરો"
+    },
+    "states": {
+      "loadingMaintenanceRecords": "જાળવણી રેકોર્ડ લોડ થઈ રહ્યા છે..."
+    },
+    "messages": {
+      "noDataAvailable": "કોઈ {type} ડેટા ઉપલબ્ધ નથી. કૃપા કરીને ફરી પ્રયાસ કરો.",
+      "noMaintenanceRecords": "આ {type} માટે કોઈ જાળવણી રેકોર્ડ મળ્યા નથી. બાકી જાળવણીનું સંચાલન કરી શકાતું નથી.",
+      "maintenanceUpdatedSuccess": "જાળવણી સફળતાપૂર્વક અપડેટ થઈ!"
+    },
+    "errors": {
+      "selectMaintenanceRecord": "કૃપા કરીને સંચાલન માટે જાળવણી રેકોર્ડ પસંદ કરો.",
+      "validSettlementAmount": "કૃપા કરીને માન્ય સમાધાન રકમ દાખલ કરો.",
+      "validAmountsForMonths": "કૃપા કરીને બધા {count} મહિના માટે માન્ય રકમ પ્રદાન કરો.",
+      "updateFailed": "ભૂલ: {error}",
+      "failedToLoadRecords": "{type} જાળવણી રેકોર્ડ લોડ કરવામાં નિષ્ફળ.",
+      "generic": "જાળવણી અપડેટ કરવામાં નિષ્ફળ"
+    },
+    "placeholders": {
+      "settlementAmount": "દા.ત. 2500"
+    },
+    "common": {
+      "notAvailable": "ઉપલબ્ધ નથી",
+      "noReasonProvided": "કોઈ કારણ આપવામાં આવ્યું નથી",
+      "unknown": "અજાણ"
+    },
+    "flat": "ફ્લેટ",
+    "shop": "દુકાન",
+    "resident": "રહેવાસી"
   }
 }
