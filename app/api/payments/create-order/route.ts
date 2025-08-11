@@ -8,9 +8,9 @@ import { getRazorPayConfigBySocietyId } from "../verify/verify.model";
 export async function POST(req: Request) {
   const body = await req.json();
 
-  const { amount, maintenance_ids, societyId } = body;
+  const { amount, maintenance_ids, society_id } = body;
 
-  if (!societyId) {
+  if (!society_id) {
     return NextResponse.json(
       { error: "society_id is required" },
       { status: 400 }
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   }
 
   // Step 1: Fetch society-specific Razorpay credentials
-  const config = await getRazorPayConfigBySocietyId(societyId);
+  const config = await getRazorPayConfigBySocietyId(society_id);
 
   if (!config || !config.razorpay_key_id || !config.razorpay_key_secret) {
     return NextResponse.json(
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         maintenance_ids: Array.isArray(maintenance_ids)
           ? maintenance_ids.join(",")
           : maintenance_ids || "",
-        societyId,
+        society_id,
       },
     });
 

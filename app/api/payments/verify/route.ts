@@ -20,18 +20,18 @@ export async function POST(req: NextRequest) {
     razorpay_signature,
     maintenance_id,
     maintenance_ids,
-    societyId, // Must be sent from frontend or derived from auth
+    society_id, // Must be sent from frontend or derived from auth
   } = body;
 
-  if (!societyId) {
+  if (!society_id) {
     return NextResponse.json(
-      { success: false, error: "societyId is required" },
+      { success: false, error: "society_id is required" },
       { status: 400 }
     );
   }
 
   // Step 1: Fetch society-specific Razorpay config
-  const config = await getRazorPayConfigBySocietyId(societyId);
+  const config = await getRazorPayConfigBySocietyId(society_id);
 
   if (!config || !config.razorpay_key_id || !config.razorpay_key_secret) {
     return NextResponse.json(
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       maintenance_ids:
         maintenance_ids || (maintenance_id ? [maintenance_id] : []),
       raw_payload: paymentDetails,
-      societyId, // Include societyId in stored data
+      society_id, // Include societyId in stored data
     };
 
     console.log("Payment Data:", paymentData);

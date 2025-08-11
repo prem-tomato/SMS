@@ -30,6 +30,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface MaintenanceRecord {
   id: string;
@@ -76,6 +77,8 @@ const PaymentDetailsDialog = ({
   onClose: () => void;
   record: MaintenanceRecord | null;
 }) => {
+  const t = useTranslations("duesSummary");
+  
   if (!record) return null;
 
   const isPaid = record.maintenance_paid;
@@ -94,10 +97,10 @@ const PaymentDetailsDialog = ({
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">
-            {isPaid ? "Payment Details" : "Maintenance Details"}
+            {isPaid ? t("paymentDetails") : t("maintenanceDetails")}
           </Typography>
           <Chip
-            label={isPaid ? "Paid" : "Pending"}
+            label={isPaid ? t("paid") : t("pending")}
             color={isPaid ? "success" : "error"}
             size="small"
           />
@@ -111,7 +114,7 @@ const PaymentDetailsDialog = ({
           gutterBottom
           sx={{ fontWeight: "bold", mb: 2 }}
         >
-          Maintenance Information
+          {t("maintenanceInformation")}
         </Typography>
 
         <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
@@ -119,7 +122,7 @@ const PaymentDetailsDialog = ({
             <Box display="flex" justifyContent="space-between">
               <Box>
                 <Typography variant="body2" color="text.secondary">
-                  Amount
+                  {t("amount")}
                 </Typography>
                 <Typography variant="body1" fontWeight="medium">
                   ₹{record.maintenance_amount}
@@ -127,7 +130,7 @@ const PaymentDetailsDialog = ({
               </Box>
               <Box>
                 <Typography variant="body2" color="text.secondary">
-                  Unit/Flat
+                  {t("unitFlat")}
                 </Typography>
                 <Typography variant="body1" fontWeight="medium">
                   {record.housing_unit_number ||
@@ -137,7 +140,7 @@ const PaymentDetailsDialog = ({
             </Box>
             <Box>
               <Typography variant="body2" color="text.secondary">
-                Members
+                {t("members")}
               </Typography>
               <Box sx={{ mt: 0.5 }}>
                 {record.member_names?.map((name: string, index: number) => (
@@ -164,7 +167,7 @@ const PaymentDetailsDialog = ({
               gutterBottom
               sx={{ fontWeight: "bold", mb: 2 }}
             >
-              Razorpay Payment Details
+              {t("razorpayPaymentDetails")}
             </Typography>
 
             <Paper elevation={1} sx={{ p: 2 }}>
@@ -173,18 +176,18 @@ const PaymentDetailsDialog = ({
                 <Stack direction="row" spacing={4}>
                   <Box flex={1}>
                     <Typography variant="body2" color="text.secondary">
-                      Payment ID
+                      {t("paymentId")}
                     </Typography>
                     <Typography variant="body1" fontWeight="medium">
-                      {record.razorpay_payment_id_full || "N/A"}
+                      {record.razorpay_payment_id_full || t("notAvailable")}
                     </Typography>
                   </Box>
                   <Box flex={1}>
                     <Typography variant="body2" color="text.secondary">
-                      Order ID
+                      {t("orderId")}
                     </Typography>
                     <Typography variant="body1" fontWeight="medium">
-                      {record.razorpay_order_id || "N/A"}
+                      {record.razorpay_order_id || t("notAvailable")}
                     </Typography>
                   </Box>
                 </Stack>
@@ -192,15 +195,15 @@ const PaymentDetailsDialog = ({
                 <Stack direction="row" spacing={4}>
                   <Box flex={1}>
                     <Typography variant="body2" color="text.secondary">
-                      Payment Method
+                      {t("paymentMethod")}
                     </Typography>
                     <Typography variant="body1" fontWeight="medium">
-                      {record.payment_method || "N/A"}
+                      {record.payment_method || t("notAvailable")}
                     </Typography>
                   </Box>
                   <Box flex={1}>
                     <Typography variant="body2" color="text.secondary">
-                      Payment Date
+                      {t("paymentDate")}
                     </Typography>
                     <Typography variant="body1" fontWeight="medium">
                       {record.payment_created_at
@@ -211,7 +214,7 @@ const PaymentDetailsDialog = ({
                         ? dayjs(record.maintenance_paid_at).format(
                             "DD MMM YYYY, hh:mm A"
                           )
-                        : "N/A"}
+                        : t("notAvailable")}
                     </Typography>
                   </Box>
                 </Stack>
@@ -222,7 +225,7 @@ const PaymentDetailsDialog = ({
                     {record.bank_rrn && (
                       <Box flex={1}>
                         <Typography variant="body2" color="text.secondary">
-                          Bank RRN
+                          {t("bankRrn")}
                         </Typography>
                         <Typography variant="body1" fontWeight="medium">
                           {record.bank_rrn}
@@ -232,7 +235,7 @@ const PaymentDetailsDialog = ({
                     {record.payer_upi_id && (
                       <Box flex={1}>
                         <Typography variant="body2" color="text.secondary">
-                          UPI ID
+                          {t("upiId")}
                         </Typography>
                         <Typography variant="body1" fontWeight="medium">
                           {record.payer_upi_id}
@@ -248,7 +251,7 @@ const PaymentDetailsDialog = ({
                     {record.customer_contact && (
                       <Box flex={1}>
                         <Typography variant="body2" color="text.secondary">
-                          Contact
+                          {t("contact")}
                         </Typography>
                         <Typography variant="body1" fontWeight="medium">
                           {record.customer_contact}
@@ -258,7 +261,7 @@ const PaymentDetailsDialog = ({
                     {record.customer_email && (
                       <Box flex={1}>
                         <Typography variant="body2" color="text.secondary">
-                          Email
+                          {t("email")}
                         </Typography>
                         <Typography variant="body1" fontWeight="medium">
                           {record.customer_email}
@@ -277,13 +280,13 @@ const PaymentDetailsDialog = ({
                       gutterBottom
                       sx={{ fontWeight: "bold" }}
                     >
-                      Fee Breakdown
+                      {t("feeBreakdown")}
                     </Typography>
                     <Stack direction="row" spacing={4}>
                       {record.total_fee && (
                         <Box flex={1}>
                           <Typography variant="body2" color="text.secondary">
-                            Total Fee
+                            {t("totalFee")}
                           </Typography>
                           <Typography variant="body1" fontWeight="medium">
                             ₹{record.total_fee}
@@ -293,7 +296,7 @@ const PaymentDetailsDialog = ({
                       {record.razorpay_fee && (
                         <Box flex={1}>
                           <Typography variant="body2" color="text.secondary">
-                            Razorpay Fee
+                            {t("razorpayFee")}
                           </Typography>
                           <Typography variant="body1" fontWeight="medium">
                             ₹{record.razorpay_fee}
@@ -303,7 +306,7 @@ const PaymentDetailsDialog = ({
                       {record.gst && (
                         <Box flex={1}>
                           <Typography variant="body2" color="text.secondary">
-                            GST
+                            {t("gst")}
                           </Typography>
                           <Typography variant="body1" fontWeight="medium">
                             ₹{record.gst}
@@ -323,20 +326,20 @@ const PaymentDetailsDialog = ({
               gutterBottom
               sx={{ fontWeight: "bold", mb: 2 }}
             >
-              Payment Status
+              {t("paymentStatus")}
             </Typography>
             <Paper elevation={1} sx={{ p: 3, textAlign: "center" }}>
-              <Chip label="Payment Completed" color="success" sx={{ mb: 2 }} />
+              <Chip label={t("paymentCompleted")} color="success" sx={{ mb: 2 }} />
               <Typography variant="body1">
-                Paid on:{" "}
+                {t("paidOn")}:{" "}
                 {record.maintenance_paid_at
                   ? dayjs(record.maintenance_paid_at).format(
                       "DD MMM YYYY, hh:mm A"
                     )
-                  : "N/A"}
+                  : t("notAvailable")}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Payment gateway details not available
+                {t("paymentGatewayDetailsNotAvailable")}
               </Typography>
             </Paper>
           </>
@@ -347,15 +350,15 @@ const PaymentDetailsDialog = ({
               gutterBottom
               sx={{ fontWeight: "bold", mb: 2 }}
             >
-              Payment Status
+              {t("paymentStatus")}
             </Typography>
             <Paper elevation={1} sx={{ p: 3, textAlign: "center" }}>
-              <Chip label="Payment Pending" color="error" sx={{ mb: 2 }} />
+              <Chip label={t("paymentPending")} color="error" sx={{ mb: 2 }} />
               <Typography variant="body1" color="text.secondary">
-                Maintenance payment is still pending
+                {t("maintenancePaymentStillPending")}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                Amount: ₹{record.maintenance_amount}
+                {t("amount")}: ₹{record.maintenance_amount}
               </Typography>
             </Paper>
           </>
@@ -363,13 +366,14 @@ const PaymentDetailsDialog = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose}>{t("close")}</Button>
       </DialogActions>
     </Dialog>
   );
 };
 
 export default function DuesSummary() {
+  const t = useTranslations("duesSummary");
   const [societyId, setSocietyId] = useState<string>("");
   const [selectedMonthYear, setSelectedMonthYear] = useState<string>("");
   const [societyType, setSocietyType] = useState<string>("");
@@ -461,17 +465,17 @@ export default function DuesSummary() {
     const baseColumns = [
       {
         field: "maintenance_amount",
-        headerName: "Amount",
+        headerName: t("amount"),
         flex: 1,
         renderCell: (params: any) => `₹${params?.value || "0"}`,
       },
       {
         field: "maintenance_paid",
-        headerName: "Status",
+        headerName: t("status"),
         flex: 1,
         renderCell: (params: any) => (
           <Chip
-            label={params?.value ? "Paid" : "Pending"}
+            label={params?.value ? t("paid") : t("pending")}
             size="small"
             color={params?.value ? "success" : "error"}
             sx={{ fontSize: "0.75rem" }}
@@ -480,7 +484,7 @@ export default function DuesSummary() {
       },
       {
         field: "maintenance_paid_at",
-        headerName: "Paid At",
+        headerName: t("paidAt"),
         flex: 1.5,
         renderCell: (params: any) =>
           params?.value
@@ -489,7 +493,7 @@ export default function DuesSummary() {
       },
       {
         field: "member_names",
-        headerName: "Members",
+        headerName: t("members"),
         flex: 2,
         renderCell: (params: any) => (
           <Box>
@@ -507,7 +511,7 @@ export default function DuesSummary() {
       },
       {
         field: "actions",
-        headerName: "Actions",
+        headerName: t("actions"),
         flex: 0.8,
         sortable: false,
         renderCell: (params: any) => (
@@ -533,7 +537,7 @@ export default function DuesSummary() {
       return [
         {
           field: "housing_unit_number",
-          headerName: "Unit Number",
+          headerName: t("unitNumber"),
           flex: 1,
         },
         ...baseColumns,
@@ -542,12 +546,12 @@ export default function DuesSummary() {
       return [
         {
           field: "building_name",
-          headerName: "Building",
+          headerName: t("building"),
           flex: 1,
         },
         {
           field: "flat_number",
-          headerName: "Flat Number",
+          headerName: t("flatNumber"),
           flex: 1,
         },
         ...baseColumns,
@@ -558,22 +562,22 @@ export default function DuesSummary() {
     return [
       {
         field: "building_name",
-        headerName: "Building",
+        headerName: t("building"),
         flex: 1,
       },
       {
         field: "flat_number",
-        headerName: "Flat Number",
+        headerName: t("flatNumber"),
         flex: 1,
       },
       {
         field: "housing_unit_number",
-        headerName: "Unit Number",
+        headerName: t("unitNumber"),
         flex: 1,
       },
       ...baseColumns,
     ];
-  }, [societyType]);
+  }, [societyType, t]);
 
   return (
     <Box height="calc(100vh - 180px)">
@@ -586,10 +590,10 @@ export default function DuesSummary() {
       >
         {/* Month-Year Filter */}
         <FormControl size="small">
-          <InputLabel>Month</InputLabel>
+          <InputLabel>{t("month")}</InputLabel>
           <Select
             value={selectedMonthYear}
-            label="Month"
+            label={t("month")}
             onChange={(e) => setSelectedMonthYear(e.target.value)}
             sx={{ minWidth: 150 }}
           >

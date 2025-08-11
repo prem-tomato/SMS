@@ -36,6 +36,7 @@ import {
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -47,6 +48,7 @@ const formatMonthYear = (value: string) => {
 };
 
 export default function MemberMaintenancePage() {
+  const t = useTranslations("MemberMaintenance");
   const [societyId, setSocietyId] = useState<string>("");
   const [societyType, setSocietyType] = useState<string>("");
   const [isMultiMonthMode, setIsMultiMonthMode] = useState<boolean>(false);
@@ -292,7 +294,7 @@ export default function MemberMaintenancePage() {
 
     const res = await loadRazorpayScript();
     if (!res) {
-      alert("Failed to load Razorpay SDK");
+      alert(t("alerts.failedToLoadRazorpay"));
       return;
     }
 
@@ -303,13 +305,13 @@ export default function MemberMaintenancePage() {
         amount: selectedMaintenance.maintenance_amount,
         currency: "INR",
         receipt: `maint-${selectedMaintenance.id?.slice(0, 20) || "unknown"}`,
-        societyId,
+        society_id: societyId,
       }),
     });
 
     const result = await orderResponse.json();
     if (!result.order) {
-      toast("Please check your razor pay configuration.");
+      toast(t("alerts.checkRazorpayConfig"));
       return;
     }
 
@@ -322,7 +324,7 @@ export default function MemberMaintenancePage() {
         societyType === "housing"
           ? selectedUnit?.unit_number
           : selectedFlat?.flat_number,
-      description: "Maintenance Payment",
+      description: t("payment.description"),
       order_id: order.id,
       handler: async (response: any) => {
         const verifyRes = await fetch("/api/payments/verify", {
@@ -333,15 +335,15 @@ export default function MemberMaintenancePage() {
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             maintenance_id: selectedMaintenance.id,
-            societyId,
+            society_id: societyId,
           }),
         });
         const verifyData = await verifyRes.json();
         if (verifyData.success) {
-          alert("Payment Successful!");
+          alert(t("alerts.paymentSuccessful"));
           window.location.reload();
         } else {
-          alert("Payment Failed. Please contact support.");
+          alert(t("alerts.paymentFailed"));
         }
       },
       prefill: {
@@ -362,7 +364,7 @@ export default function MemberMaintenancePage() {
 
     const res = await loadRazorpayScript();
     if (!res) {
-      alert("Failed to load Razorpay SDK");
+      alert(t("alerts.failedToLoadRazorpay"));
       return;
     }
 
@@ -372,7 +374,7 @@ export default function MemberMaintenancePage() {
     );
 
     if (unpaidMaintenances.length === 0) {
-      alert("All selected months are already paid!");
+      alert(t("alerts.allMonthsPaid"));
       return;
     }
 
@@ -384,12 +386,13 @@ export default function MemberMaintenancePage() {
         currency: "INR",
         receipt: `multi-maint-${Date.now()}`,
         maintenance_ids: unpaidMaintenances.map((m) => m.id), // Send all maintenance IDs
+        society_id: societyId,
       }),
     });
 
     const result = await orderResponse.json();
     if (!result.order) {
-      toast("Failed to create order.");
+      toast(t("alerts.failedToCreateOrder"));
       return;
     }
 
@@ -402,7 +405,9 @@ export default function MemberMaintenancePage() {
         societyType === "housing"
           ? selectedUnit?.unit_number
           : selectedFlat?.flat_number,
-      description: `Maintenance Payment (${unpaidMaintenances.length} months)`,
+      description: t("payment.multiDescription", {
+        count: unpaidMaintenances.length,
+      }),
       order_id: order.id,
       handler: async (response: any) => {
         // Verify payment for all unpaid maintenance records
@@ -414,15 +419,16 @@ export default function MemberMaintenancePage() {
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             maintenance_ids: unpaidMaintenances.map((m) => m.id), // Send all maintenance IDs
+            society_id: societyId,
           }),
         });
 
         const verifyData = await verifyResponse.json();
         if (verifyData.success) {
-          alert("Payment Successful for all months!");
+          alert(t("alerts.multiPaymentSuccessful"));
           window.location.reload();
         } else {
-          alert("Payment Failed. Please contact support.");
+          alert(t("alerts.paymentFailed"));
         }
       },
       prefill: {
@@ -442,7 +448,7 @@ export default function MemberMaintenancePage() {
       <Box p={3} maxWidth="800px" mx="auto">
         {/* Header */}
         <Typography variant="h5" fontWeight="200" mb={3}>
-          Maintenance Management
+          {t("title")}
         </Typography>
 
         {/* Multi-month toggle */}
@@ -454,17 +460,17 @@ export default function MemberMaintenancePage() {
                 onChange={(e) => setIsMultiMonthMode(e.target.checked)}
               />
             }
-            label="Pay for multiple months"
+            label={t("payMultipleMonths")}
           />
         </Box>
 
         {/* Month Selector */}
         {!isMultiMonthMode ? (
           <FormControl fullWidth size="small" sx={{ mb: 3 }}>
-            <InputLabel>Month</InputLabel>
+            <InputLabel>{t("month")}</InputLabel>
             <Select
               value={selectedMonthYear}
-              label="Month"
+              label={t("month")}
               onChange={(e) => setSelectedMonthYear(e.target.value)}
               disabled={isMonthLoading}
             >
@@ -477,12 +483,12 @@ export default function MemberMaintenancePage() {
           </FormControl>
         ) : (
           <FormControl fullWidth size="small" sx={{ mb: 3 }}>
-            <InputLabel>Select Months</InputLabel>
+            <InputLabel>{t("selectMonths")}</InputLabel>
             <Select
               multiple
               value={selectedMonths}
               onChange={handleMultiMonthChange}
-              input={<OutlinedInput label="Select Months" />}
+              input={<OutlinedInput label={t("selectMonths")} />}
               renderValue={(selected) =>
                 selected.map((month) => formatMonthYear(month)).join(", ")
               }
@@ -507,19 +513,19 @@ export default function MemberMaintenancePage() {
             flexDirection={{ xs: "column", sm: "row" }}
           >
             <FormControl fullWidth>
-              <InputLabel>Building</InputLabel>
+              <InputLabel>{t("building")}</InputLabel>
               <Select
                 value={buildingId}
-                label="Building"
+                label={t("building")}
                 onChange={(e) => setBuildingId(e.target.value)}
                 disabled={isBuildingLoading}
               >
                 {isBuildingLoading ? (
-                  <MenuItem disabled>Loading...</MenuItem>
+                  <MenuItem disabled>{t("loading")}</MenuItem>
                 ) : (
                   buildings.map((b: any) => (
                     <MenuItem key={b.id} value={b.id}>
-                      {b.name} ({b.total_floors} floors)
+                      {b.name} ({b.total_floors} {t("floors")})
                     </MenuItem>
                   ))
                 )}
@@ -527,16 +533,20 @@ export default function MemberMaintenancePage() {
             </FormControl>
 
             <FormControl fullWidth disabled={!buildingId}>
-              <InputLabel>Flat</InputLabel>
-              <Select value={flatId} label="Flat" onChange={handleFlatChange}>
+              <InputLabel>{t("flat")}</InputLabel>
+              <Select
+                value={flatId}
+                label={t("flat")}
+                onChange={handleFlatChange}
+              >
                 {isFlatLoading ? (
-                  <MenuItem disabled>Loading flats...</MenuItem>
+                  <MenuItem disabled>{t("loadingFlats")}</MenuItem>
                 ) : flats.length === 0 ? (
-                  <MenuItem disabled>No flats</MenuItem>
+                  <MenuItem disabled>{t("noFlats")}</MenuItem>
                 ) : (
                   flats.map((f: any) => (
                     <MenuItem key={f.id} value={f.id}>
-                      {f.flat_number} (Floor {f.floor_number})
+                      {f.flat_number} ({t("floor")} {f.floor_number})
                     </MenuItem>
                   ))
                 )}
@@ -548,14 +558,14 @@ export default function MemberMaintenancePage() {
         {societyType === "housing" && (
           <Box mb={4}>
             <FormControl fullWidth>
-              <InputLabel>Unit Number</InputLabel>
+              <InputLabel>{t("unitNumber")}</InputLabel>
               <Select
                 value={unitId}
-                label="Unit Number"
+                label={t("unitNumber")}
                 onChange={handleUnitChange}
               >
                 {isUnitLoading ? (
-                  <MenuItem disabled>Loading...</MenuItem>
+                  <MenuItem disabled>{t("loading")}</MenuItem>
                 ) : (
                   units.map((u: any) => (
                     <MenuItem key={u.id} value={u.id}>
@@ -576,8 +586,9 @@ export default function MemberMaintenancePage() {
             (isMultiMonthMode &&
               matchedMultiMonthMaintenances.length === 0)) && (
             <Alert severity="info" sx={{ mb: 3 }}>
-              No maintenance record found for this{" "}
-              {societyType === "housing" ? "unit" : "flat"}.
+              {t("noRecord", {
+                type: societyType === "housing" ? t("unit") : t("flat"),
+              })}
             </Alert>
           )}
 
@@ -586,7 +597,7 @@ export default function MemberMaintenancePage() {
           <Card elevation={2} sx={{ mb: 4 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Maintenance Details
+                {t("maintenanceDetails")}
               </Typography>
 
               <Box
@@ -597,7 +608,7 @@ export default function MemberMaintenancePage() {
               >
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Month/Year
+                    {t("monthYear")}
                   </Typography>
                   <Typography variant="body1">
                     {formatMonthYear(selectedMonthYear)}
@@ -606,7 +617,7 @@ export default function MemberMaintenancePage() {
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Amount
+                    {t("amount")}
                   </Typography>
                   <Typography variant="h6" color="primary">
                     ₹{matchedMaintenance.maintenance_amount}
@@ -616,7 +627,7 @@ export default function MemberMaintenancePage() {
                 {societyType === "housing" && selectedUnit && (
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      Unit Number
+                      {t("unitNumber")}
                     </Typography>
                     <Typography variant="body1">
                       {selectedUnit.unit_number}
@@ -630,7 +641,7 @@ export default function MemberMaintenancePage() {
                     <>
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Building
+                          {t("building")}
                         </Typography>
                         <Typography variant="body1">
                           {selectedFlat.building_name}
@@ -638,7 +649,7 @@ export default function MemberMaintenancePage() {
                       </Box>
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Flat Number
+                          {t("flatNumber")}
                         </Typography>
                         <Typography variant="body1">
                           {selectedFlat.flat_number}
@@ -650,11 +661,13 @@ export default function MemberMaintenancePage() {
 
               <Box>
                 <Typography variant="body2" color="text.secondary">
-                  Status
+                  {t("status")}
                 </Typography>
                 <Chip
                   label={
-                    matchedMaintenance.maintenance_paid ? "Paid" : "Pending"
+                    matchedMaintenance.maintenance_paid
+                      ? t("paid")
+                      : t("pending")
                   }
                   color={
                     matchedMaintenance.maintenance_paid ? "success" : "error"
@@ -673,7 +686,7 @@ export default function MemberMaintenancePage() {
             <Card elevation={2} sx={{ mb: 4 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Multi-Month Maintenance Details
+                  {t("multiMonthDetails")}
                 </Typography>
 
                 <Box mb={3}>
@@ -682,15 +695,17 @@ export default function MemberMaintenancePage() {
                     color="text.secondary"
                     gutterBottom
                   >
-                    Total Amount (Unpaid)
+                    {t("totalAmountUnpaid")}
                   </Typography>
                   <Typography variant="h4" color="primary">
                     ₹{totalAmount.toFixed(2)}
                   </Typography>
                   {unpaidCount < matchedMultiMonthMaintenances.length && (
                     <Typography variant="body2" color="text.secondary" mt={1}>
-                      {unpaidCount} of {matchedMultiMonthMaintenances.length}{" "}
-                      months pending
+                      {t("pendingMonths", {
+                        unpaid: unpaidCount,
+                        total: matchedMultiMonthMaintenances.length,
+                      })}
                     </Typography>
                   )}
                 </Box>
@@ -698,7 +713,7 @@ export default function MemberMaintenancePage() {
                 <Divider sx={{ mb: 2 }} />
 
                 <Typography variant="body1" gutterBottom fontWeight="medium">
-                  Monthly Breakdown:
+                  {t("monthlyBreakdown")}
                 </Typography>
 
                 {matchedMultiMonthMaintenances.map((maintenance, index) => (
@@ -720,7 +735,9 @@ export default function MemberMaintenancePage() {
                         </Typography>
                         <Chip
                           label={
-                            maintenance.maintenance_paid ? "Paid" : "Pending"
+                            maintenance.maintenance_paid
+                              ? t("paid")
+                              : t("pending")
                           }
                           color={
                             maintenance.maintenance_paid ? "success" : "error"
@@ -735,7 +752,9 @@ export default function MemberMaintenancePage() {
                 {societyType === "housing" && selectedUnit && (
                   <Box mt={2}>
                     <Typography variant="body2" color="text.secondary">
-                      Unit Number: {selectedUnit.unit_number}
+                      {t("unitNumberLabel", {
+                        number: selectedUnit.unit_number,
+                      })}
                     </Typography>
                   </Box>
                 )}
@@ -745,8 +764,10 @@ export default function MemberMaintenancePage() {
                   selectedFlat && (
                     <Box mt={2}>
                       <Typography variant="body2" color="text.secondary">
-                        Building: {selectedFlat.building_name} | Flat:{" "}
-                        {selectedFlat.flat_number}
+                        {t("buildingFlatLabel", {
+                          building: selectedFlat.building_name,
+                          flat: selectedFlat.flat_number,
+                        })}
                       </Typography>
                     </Box>
                   )}
@@ -774,13 +795,14 @@ export default function MemberMaintenancePage() {
           >
             {isMultiMonthMode
               ? unpaidCount > 0
-                ? `Pay ${unpaidCount} Month${
-                    unpaidCount > 1 ? "s" : ""
-                  } (₹${totalAmount.toFixed(2)})`
-                : "All Months Paid"
+                ? t("payMonthsButton", {
+                    count: unpaidCount,
+                    amount: totalAmount.toFixed(2),
+                  })
+                : "All months paid"
               : matchedMaintenance?.maintenance_paid
-              ? "View Payment"
-              : "Pay Maintenance"}
+              ? t("viewPayment")
+              : t("payMaintenance")}
           </Button>
         )}
 
@@ -793,19 +815,19 @@ export default function MemberMaintenancePage() {
         >
           <DialogTitle>
             {isMultiMonthMode
-              ? "Confirm Multi-Month Payment"
+              ? t("confirmMultiPayment")
               : selectedMaintenance?.maintenance_paid
-              ? "Payment Details"
-              : "Confirm Payment"}
+              ? t("paymentDetails")
+              : t("confirmPayment")}
           </DialogTitle>
           <DialogContent>
             {isMultiMonthMode ? (
               <Box mt={2}>
                 <Typography variant="h6" gutterBottom>
-                  Total Amount: ₹{totalAmount.toFixed(2)}
+                  {t("totalAmount")} ₹{totalAmount.toFixed(2)}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                  Unpaid Months: {unpaidCount}
+                  {t("unpaidMonths")} {unpaidCount}
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 {matchedMultiMonthMaintenances
@@ -830,16 +852,16 @@ export default function MemberMaintenancePage() {
               selectedMaintenance && (
                 <Box mt={2}>
                   <Typography variant="body1">
-                    <strong>Amount:</strong> ₹
+                    <strong>{t("amount")}:</strong> ₹
                     {selectedMaintenance.maintenance_amount}
                   </Typography>
                   <Typography variant="body1" mt={1}>
-                    <strong>Status:</strong>{" "}
+                    <strong>{t("status")}:</strong>{" "}
                     <Chip
                       label={
                         selectedMaintenance.maintenance_paid
-                          ? "Paid"
-                          : "Pending"
+                          ? t("paid")
+                          : t("pending")
                       }
                       color={
                         selectedMaintenance.maintenance_paid
@@ -851,7 +873,7 @@ export default function MemberMaintenancePage() {
                   </Typography>
                   {selectedMaintenance.maintenance_paid_at && (
                     <Typography variant="body1" mt={1}>
-                      <strong>Paid On:</strong>{" "}
+                      <strong>{t("paidOn")}:</strong>{" "}
                       {dayjs(selectedMaintenance.maintenance_paid_at).format(
                         "DD MMM YYYY, hh:mm A"
                       )}
@@ -862,7 +884,9 @@ export default function MemberMaintenancePage() {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowPaymentDialog(false)}>Close</Button>
+            <Button onClick={() => setShowPaymentDialog(false)}>
+              {t("close")}
+            </Button>
             {isMultiMonthMode
               ? unpaidCount > 0 && (
                   <Button
@@ -871,7 +895,7 @@ export default function MemberMaintenancePage() {
                     color="primary"
                     sx={{ bgcolor: "#C62828" }}
                   >
-                    Pay ₹{totalAmount.toFixed(2)}
+                    {t("payAmount", { amount: totalAmount.toFixed(2) })}
                   </Button>
                 )
               : !selectedMaintenance?.maintenance_paid && (
@@ -881,7 +905,7 @@ export default function MemberMaintenancePage() {
                     color="primary"
                     sx={{ bgcolor: "#C62828" }}
                   >
-                    Pay Now
+                    {t("payNow")}
                   </Button>
                 )}
           </DialogActions>
