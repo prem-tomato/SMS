@@ -312,5 +312,112 @@
     "flat": "Flat",
     "shop": "Shop",
     "resident": "Resident"
+  },
+  "housing-units": {
+    "table": {
+      "headers": {
+        "unitNumber": "Unit Number",
+        "unitType": "Unit Type",
+        "squareFeet": "Sq. Ft",
+        "status": "Status",
+        "maintenance": "Maintenance",
+        "actions": "Actions",
+        "society": "Society"
+      }
+    },
+    "status": {
+      "occupied": "Occupied",
+      "vacant": "Vacant"
+    },
+    "actions": {
+      "addHousingUnit": "Add Housing Unit",
+      "cancel": "Cancel",
+      "addPenalty": "Add Penalty",
+      "saving": "Saving..."
+    },
+    "menu": {
+      "viewUnit": "View Unit",
+      "addPenalty": "Add Penalty"
+    },
+    "penalty": {
+      "title": "Add Penalty",
+      "amount": "Amount",
+      "reason": "Reason",
+      "amountPlaceholder": "Enter penalty amount",
+      "reasonPlaceholder": "Enter reason for penalty",
+      "unitInfo": "Unit: {unitNumber} | Society: {society}"
+    },
+    "warnings": {
+      "superAdminNoSociety": "Warning: Society information not available for this unit. Please ensure the unit data is complete."
+    },
+    "errors": {
+      "failedToAddPenalty": "Failed to add penalty",
+      "noSocietyId": "Society ID not found. Please select a valid housing unit or contact administrator.",
+      "fillAllFields": "Please fill in all required fields.",
+      "validAmount": "Please enter a valid amount greater than 0",
+      "validReason": "Please enter a valid reason"
+    },
+    "common": {
+      "unknown": "Unknown"
+    }
+  },
+  "AddHousingUnitDialog": {
+    "title": "Add New Housing Unit",
+    "subtitle": "Fill in the unit details below",
+    "society": "Society",
+    "loading": "Loading...",
+    "selectedSociety": "Selected Society",
+    "unitNumber": "Unit Number",
+    "unitNumberPlaceholder": "e.g., A-101, B-205",
+    "unitType": "Unit Type",
+    "bungalows": "Bungalows",
+    "rawHouse": "Raw House",
+    "villas": "Villas",
+    "squareFoot": "Square Foot",
+    "currentMaintenance": "Current Maintenance",
+    "cancel": "Cancel",
+    "addUnit": "Add Unit"
+  },
+  "ViewHousingUnitModal": {
+    "title": "Housing Unit Detail",
+    "sections": {
+      "basicInfo": "Basic Information",
+      "propertyInfo": "Property Information",
+      "penalties": "Penalties"
+    },
+    "fields": {
+      "unitNumber": "Unit Number",
+      "unitType": "Unit Type",
+      "status": "Status",
+      "area": "Area",
+      "building": "Building",
+      "society": "Society",
+      "currentMaintenance": "Current Maintenance"
+    },
+    "status": {
+      "occupied": "Occupied",
+      "vacant": "Vacant"
+    },
+    "units": {
+      "sqFt": "sq ft"
+    },
+    "penalties": {
+      "noPenalties": "No penalties",
+      "paid": "PAID",
+      "paidOn": "Paid"
+    },
+    "actions": {
+      "close": "Close",
+      "markAsPaid": "Mark as Paid",
+      "markAsDeleted": "Mark as Deleted"
+    },
+    "common": {
+      "notAvailable": "N/A",
+      "system": "System"
+    },
+    "errors": {
+      "markPaidFailed": "Failed to mark penalty as paid",
+      "removePenaltyFailed": "Failed to remove penalty"
+    }
   }
 }

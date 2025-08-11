@@ -6,6 +6,7 @@ import {
   removeAccessToken,
   removeSocietyId,
   removeSocietyType,
+  removeUserId,
   removeUserRole,
 } from "@/lib/auth";
 import { useLocaleContext } from "@/lib/LocaleContext";
@@ -100,6 +101,7 @@ export default function Topbar() {
 
   const handleLogout = async () => {
     try {
+      removeUserId();
       removeAccessToken();
       removeUserRole();
       removeSocietyId();

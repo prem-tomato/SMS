@@ -29,6 +29,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface HousingUnit {
   id: string;
@@ -56,6 +57,8 @@ export function ViewHousingUnitModal({
   onClose,
   selectedUnit,
 }: ViewHousingUnitModalProps) {
+  const t = useTranslations("ViewHousingUnitModal");
+  
   const enabled = open && !!selectedUnit;
 
   const {
@@ -84,6 +87,8 @@ export function ViewHousingUnitModal({
   >([]);
   const [preservedUnit, setPreservedUnit] = useState<HousingUnit | null>(null);
 
+  // Fix: Use penaltiesResponse and selectedUnit.housingUnitId as dependencies
+  // This ensures consistent dependency array size
   useEffect(() => {
     // Preserve the penalties data
     if (penalties && penalties.length >= 0) {
@@ -93,7 +98,7 @@ export function ViewHousingUnitModal({
     if (selectedUnit?.unitData) {
       setPreservedUnit(selectedUnit.unitData);
     }
-  }, [penalties, selectedUnit?.unitData]);
+  }, [penaltiesResponse, selectedUnit?.housingUnitId]);
 
   // Use preserved data if available, otherwise use current data
   const displayPenalties = preservedPenalties || penalties;
@@ -110,7 +115,7 @@ export function ViewHousingUnitModal({
       refetch();
     },
     onError: (error: any) => {
-      alert(error.message || "Failed to mark penalty as paid");
+      alert(error.message || t("errors.markPaidFailed"));
     },
   });
 
@@ -125,7 +130,7 @@ export function ViewHousingUnitModal({
       refetch();
     },
     onError: (error: any) => {
-      alert(error.message || "Failed to remove penalty");
+      alert(error.message || t("errors.removePenaltyFailed"));
     },
   });
 
@@ -169,7 +174,7 @@ export function ViewHousingUnitModal({
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="h6" fontWeight="600" color="text.primary">
-            Housing Unit Detail
+            {t("title")}
           </Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
@@ -183,14 +188,14 @@ export function ViewHousingUnitModal({
             {/* Basic Info */}
             <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
-                Basic Information
+                {t("sections.basicInfo")}
               </Typography>
               <Table size="small">
                 <TableBody>
                   <TableRow>
                     <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Unit Number
+                        {t("fields.unitNumber")}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ border: 0, py: 1 }}>
@@ -202,7 +207,7 @@ export function ViewHousingUnitModal({
                   <TableRow>
                     <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Unit Type
+                        {t("fields.unitType")}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ border: 0, py: 1 }}>
@@ -212,12 +217,12 @@ export function ViewHousingUnitModal({
                   <TableRow>
                     <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Status
+                        {t("fields.status")}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ border: 0, py: 1 }}>
                       <Chip
-                        label={unit.is_occupied ? "Occupied" : "Vacant"}
+                        label={unit.is_occupied ? t("status.occupied") : t("status.vacant")}
                         color={unit.is_occupied ? "success" : "default"}
                         size="small"
                         variant="outlined"
@@ -227,12 +232,12 @@ export function ViewHousingUnitModal({
                   <TableRow>
                     <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Area
+                        {t("fields.area")}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ border: 0, py: 1 }}>
                       <Typography variant="body2">
-                        {unit.square_foot ? `${unit.square_foot} sq ft` : "N/A"}
+                        {unit.square_foot ? `${unit.square_foot} ${t("units.sqFt")}` : t("common.notAvailable")}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -243,7 +248,7 @@ export function ViewHousingUnitModal({
             {/* Property Details */}
             <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
-                Property Information
+                {t("sections.propertyInfo")}
               </Typography>
               <Table size="small">
                 <TableBody>
@@ -251,7 +256,7 @@ export function ViewHousingUnitModal({
                     <TableRow>
                       <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                         <Typography variant="body2" color="text.secondary">
-                          Building
+                          {t("fields.building")}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: 0, py: 1 }}>
@@ -265,7 +270,7 @@ export function ViewHousingUnitModal({
                     <TableRow>
                       <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                         <Typography variant="body2" color="text.secondary">
-                          Society
+                          {t("fields.society")}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ border: 0, py: 1 }}>
@@ -278,7 +283,7 @@ export function ViewHousingUnitModal({
                   <TableRow>
                     <TableCell sx={{ border: 0, py: 1, pl: 0 }}>
                       <Typography variant="body2" color="text.secondary">
-                        Current Maintenance
+                        {t("fields.currentMaintenance")}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ border: 0, py: 1 }}>
@@ -298,11 +303,11 @@ export function ViewHousingUnitModal({
             {/* Penalties */}
             <Paper variant="outlined" sx={{ p: 2 }}>
               <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2 }}>
-                Penalties
+                {t("sections.penalties")}
               </Typography>
               {!displayPenalties || displayPenalties.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
-                  No penalties
+                  {t("penalties.noPenalties")}
                 </Typography>
               ) : (
                 <Table size="small">
@@ -330,7 +335,7 @@ export function ViewHousingUnitModal({
                                 color="success.main"
                                 display="block"
                               >
-                                PAID
+                                {t("penalties.paid")}
                               </Typography>
                             )}
                           </TableCell>
@@ -353,7 +358,7 @@ export function ViewHousingUnitModal({
                                 color="text.secondary"
                                 display="block"
                               >
-                                Paid:{" "}
+                                {t("penalties.paidOn")}:{" "}
                                 {dayjs(penalty.paid_at).format("DD-MM-YYYY")}
                               </Typography>
                             )}
@@ -362,14 +367,14 @@ export function ViewHousingUnitModal({
                           {/* Action By */}
                           <TableCell sx={{ border: 0, py: 1 }}>
                             <Typography variant="body2" color="text.secondary">
-                              {penalty.action_by || "System"}
+                              {penalty.action_by || t("common.system")}
                             </Typography>
                           </TableCell>
 
                           {/* Action Buttons */}
                           <TableCell sx={{ border: 0, py: 1 }}>
                             {!penalty.is_paid && (
-                              <Tooltip title="Mark as Paid">
+                              <Tooltip title={t("actions.markAsPaid")}>
                                 <IconButton
                                   size="small"
                                   color="success"
@@ -381,7 +386,7 @@ export function ViewHousingUnitModal({
                               </Tooltip>
                             )}
 
-                            <Tooltip title="Mark as Deleted">
+                            <Tooltip title={t("actions.markAsDeleted")}>
                               <IconButton
                                 size="small"
                                 color="error"
@@ -414,7 +419,7 @@ export function ViewHousingUnitModal({
             },
           }}
         >
-          Close
+          {t("actions.close")}
         </Button>
       </DialogActions>
     </Dialog>

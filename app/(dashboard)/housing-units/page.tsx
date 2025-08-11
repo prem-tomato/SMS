@@ -3,12 +3,13 @@
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddHousingUnitModal from "@/components/housing/AddHousingUnitModal";
 import { ViewHousingUnitModal } from "@/components/housing/ViewHousingUnitPenaltiesModal";
-import { getSocietyIdFromLocalStorage } from "@/lib/auth";
+import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import { fetchAllHousingUnits } from "@/services/housing";
 import { addPenaltyForUnit } from "@/services/housing-unit-penalty";
 import AddIcon from "@mui/icons-material/Add";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -22,13 +23,31 @@ import {
   TextField,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
+interface HousingUnit {
+  id: string;
+  unit_number: string;
+  unit_type: string;
+  square_foot: number;
+  is_occupied: boolean;
+  current_maintenance: number;
+  society_id?: string;
+  society?: {
+    id: string;
+    name: string;
+  };
+}
+
 export default function HousingUnitsPage() {
+  const t = useTranslations("housing-units");
+
   const [open, setOpen] = useState(false);
   const [societyId, setSocietyId] = useState("");
+  const [userRole, setUserRole] = useState("");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedUnit, setSelectedUnit] = useState<any>(null);
+  const [selectedUnit, setSelectedUnit] = useState<HousingUnit | null>(null);
   const [penaltyDialogOpen, setPenaltyDialogOpen] = useState(false);
   const [penaltyAmount, setPenaltyAmount] = useState("");
   const [penaltyReason, setPenaltyReason] = useState("");
@@ -48,8 +67,13 @@ export default function HousingUnitsPage() {
 
   useEffect(() => {
     const storedSocietyId = getSocietyIdFromLocalStorage();
+    const role = getUserRole(); // Assume this function exists in your auth utils
+
     if (storedSocietyId) {
       setSocietyId(storedSocietyId);
+    }
+    if (role) {
+      setUserRole(role);
     }
   }, []);
 
@@ -79,11 +103,14 @@ export default function HousingUnitsPage() {
       queryClient.invalidateQueries(["housing-units"] as any);
     },
     onError: (error: any) => {
-      alert(error.message || "Failed to add penalty");
+      alert(error.message || t("errors.failedToAddPenalty"));
     },
   });
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, unit: any) => {
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    unit: HousingUnit
+  ) => {
     setAnchorEl(event.currentTarget);
     setSelectedUnit(unit);
   };
@@ -97,10 +124,18 @@ export default function HousingUnitsPage() {
 
   const handleViewUnit = () => {
     handleMenuClose();
-    if (!selectedUnit || !societyId) return;
+    if (!selectedUnit) return;
+
+    // Get the appropriate society ID for the selected unit
+    const targetSocietyId = getSocietyIdForUnit(selectedUnit);
+
+    if (!targetSocietyId) {
+      alert(t("errors.noSocietyId"));
+      return;
+    }
 
     setViewUnitData({
-      societyId: societyId,
+      societyId: targetSocietyId,
       housingUnitId: selectedUnit.id,
       unitData: selectedUnit,
     });
@@ -117,18 +152,58 @@ export default function HousingUnitsPage() {
     setViewPenaltiesData(null);
   };
 
+  // Helper function to get society ID for a unit
+  const getSocietyIdForUnit = (unit: HousingUnit): string | null => {
+    // Priority order:
+    // 1. Direct society_id from unit
+    // 2. society.id from nested society object
+    // 3. localStorage societyId (for regular users)
+    return (
+      unit.society_id ||
+      unit.society?.id ||
+      (userRole !== "super_admin" ? societyId : null)
+    );
+  };
+
   const columns = useMemo(
     () => [
-      { field: "unit_number", headerName: "Unit Number", flex: 1 },
-      { field: "unit_type", headerName: "Unit Type", flex: 1 },
-      { field: "square_foot", headerName: "Sq. Ft", flex: 1 },
+      {
+        field: "unit_number",
+        headerName: t("table.headers.unitNumber"),
+        flex: 1,
+      },
+      {
+        field: "unit_type",
+        headerName: t("table.headers.unitType"),
+        flex: 1,
+      },
+      {
+        field: "square_foot",
+        headerName: t("table.headers.squareFeet"),
+        flex: 1,
+      },
+      // Show society name for super_admin
+      ...(userRole === "super_admin"
+        ? [
+            {
+              field: "society",
+              headerName: t("table.headers.society"),
+              flex: 1,
+              renderCell: (params: any) => {
+                const societyName =
+                  params.row.society_name || t("common.unknown");
+                return <span>{societyName}</span>;
+              },
+            },
+          ]
+        : []),
       {
         field: "is_occupied",
-        headerName: "Status",
+        headerName: t("table.headers.status"),
         flex: 1,
         renderCell: (params: any) => (
           <Chip
-            label={params.value ? "Occupied" : "Vacant"}
+            label={params.value ? t("status.occupied") : t("status.vacant")}
             color={params.value ? "success" : "warning"}
             size="small"
           />
@@ -136,7 +211,7 @@ export default function HousingUnitsPage() {
       },
       {
         field: "current_maintenance",
-        headerName: "Maintenance",
+        headerName: t("table.headers.maintenance"),
         flex: 1,
         renderCell: (params: any) => {
           const value = Number(params.value) || 0;
@@ -150,7 +225,7 @@ export default function HousingUnitsPage() {
       },
       {
         field: "actions",
-        headerName: "Actions",
+        headerName: t("table.headers.actions"),
         sortable: false,
         renderCell: (params: any) => (
           <IconButton onClick={(e) => handleMenuOpen(e, params.row)}>
@@ -159,11 +234,46 @@ export default function HousingUnitsPage() {
         ),
       },
     ],
-    []
+    [t, userRole]
   );
 
   const handleOpen = () => {
     setOpen(true);
+  };
+
+  const handleAddPenalty = () => {
+    if (!penaltyAmount || !penaltyReason || !selectedUnit) {
+      alert(t("errors.fillAllFields"));
+      return;
+    }
+
+    // Get the appropriate society ID for the selected unit
+    const targetSocietyId = getSocietyIdForUnit(selectedUnit);
+
+    if (!targetSocietyId) {
+      alert(t("errors.noSocietyId"));
+      return;
+    }
+
+    addPenalty({
+      societyId: targetSocietyId,
+      housingUnitId: selectedUnit.id,
+      payload: {
+        amount: Number(penaltyAmount),
+        reason: penaltyReason,
+      },
+    });
+  };
+
+  // Validation for penalty form
+  const isPenaltyFormValid = () => {
+    const amount = Number(penaltyAmount);
+    return (
+      amount > 0 &&
+      penaltyReason.trim().length > 0 &&
+      selectedUnit &&
+      getSocietyIdForUnit(selectedUnit)
+    );
   };
 
   return (
@@ -185,7 +295,7 @@ export default function HousingUnitsPage() {
               color: "#1e1ee4",
             }}
           >
-            Add Housing Unit
+            {t("actions.addHousingUnit")}
           </Button>
         </Box>
 
@@ -197,7 +307,12 @@ export default function HousingUnitsPage() {
           pageSize={20}
         />
 
-        <AddHousingUnitModal open={open} onClose={() => setOpen(false)} />
+        <AddHousingUnitModal
+          open={open}
+          onClose={() => setOpen(false)}
+          societyId={societyId}
+          role={userRole}
+        />
 
         {/* 3-dot Action Menu */}
         <Menu
@@ -205,50 +320,75 @@ export default function HousingUnitsPage() {
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
         >
-          <MenuItem onClick={handleViewUnit}>View Unit</MenuItem>
-          <MenuItem onClick={handleOpenPenaltyDialog}>Add Penalty</MenuItem>
+          <MenuItem onClick={handleViewUnit}>{t("menu.viewUnit")}</MenuItem>
+          <MenuItem
+            onClick={handleOpenPenaltyDialog}
+            disabled={!selectedUnit || !getSocietyIdForUnit(selectedUnit)}
+          >
+            {t("menu.addPenalty")}
+          </MenuItem>
         </Menu>
 
         {/* Penalty Dialog */}
         <Dialog
           open={penaltyDialogOpen}
           onClose={() => setPenaltyDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
         >
-          <DialogTitle>Add Penalty</DialogTitle>
+          <DialogTitle>{t("penalty.title")}</DialogTitle>
           <DialogContent>
+            {/* Show warning for super admin if no society ID */}
+            {userRole === "super_admin" &&
+              selectedUnit &&
+              !getSocietyIdForUnit(selectedUnit) && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  {t("warnings.superAdminNoSociety")}
+                </Alert>
+              )}
             <TextField
-              label="Amount"
+              label={t("penalty.amount")}
               type="number"
               fullWidth
               value={penaltyAmount}
               onChange={(e) => setPenaltyAmount(e.target.value)}
               sx={{ mb: 2, mt: 1 }}
+              placeholder={t("penalty.amountPlaceholder")}
+              InputProps={{ inputProps: { min: 0 } }}
+              error={penaltyAmount !== "" && Number(penaltyAmount) <= 0}
+              helperText={
+                penaltyAmount !== "" && Number(penaltyAmount) <= 0
+                  ? t("errors.validAmount")
+                  : ""
+              }
             />
             <TextField
-              label="Reason"
+              label={t("penalty.reason")}
               fullWidth
+              multiline
+              rows={3}
               value={penaltyReason}
               onChange={(e) => setPenaltyReason(e.target.value)}
+              placeholder={t("penalty.reasonPlaceholder")}
+              error={penaltyReason !== "" && penaltyReason.trim().length === 0}
+              helperText={
+                penaltyReason !== "" && penaltyReason.trim().length === 0
+                  ? t("errors.validReason")
+                  : ""
+              }
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setPenaltyDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => setPenaltyDialogOpen(false)}>
+              {t("actions.cancel")}
+            </Button>
             <Button
               variant="contained"
-              disabled={isPending || !penaltyAmount || !penaltyReason}
+              disabled={isPending || !isPenaltyFormValid()}
               sx={{ bgcolor: "#1e1ee4" }}
-              onClick={() =>
-                addPenalty({
-                  societyId: societyId,
-                  housingUnitId: selectedUnit.id,
-                  payload: {
-                    amount: Number(penaltyAmount),
-                    reason: penaltyReason,
-                  },
-                })
-              }
+              onClick={handleAddPenalty}
             >
-              {isPending ? "Saving..." : "Add Penalty"}
+              {isPending ? t("actions.saving") : t("actions.addPenalty")}
             </Button>
           </DialogActions>
         </Dialog>

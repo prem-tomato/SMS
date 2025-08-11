@@ -311,5 +311,112 @@
     "flat": "ફ્લેટ",
     "shop": "દુકાન",
     "resident": "રહેવાસી"
+  },
+  "housing-units": {
+    "table": {
+      "headers": {
+        "unitNumber": "યુનિટ નંબર",
+        "unitType": "યુનિટનો પ્રકાર",
+        "squareFeet": "ચો. ફૂટ",
+        "status": "સ્થિતિ",
+        "maintenance": "જાળવણી",
+        "actions": "ક્રિયાઓ",
+        "society": "સોસાયટી"
+      }
+    },
+    "status": {
+      "occupied": "કબજામાં",
+      "vacant": "ખાલી"
+    },
+    "actions": {
+      "addHousingUnit": "હાઉસિંગ યુનિટ ઉમેરો",
+      "cancel": "રદ કરો",
+      "addPenalty": "દંડ ઉમેરો",
+      "saving": "સાચવી રહ્યા છે..."
+    },
+    "menu": {
+      "viewUnit": "યુનિટ જુઓ",
+      "addPenalty": "દંડ ઉમેરો"
+    },
+    "penalty": {
+      "title": "દંડ ઉમેરો",
+      "amount": "રકમ",
+      "reason": "કારણ",
+      "amountPlaceholder": "દંડની રકમ દાખલ કરો",
+      "reasonPlaceholder": "દંડનું કારણ દાખલ કરો",
+      "unitInfo": "યુનિટ: {unitNumber} | સોસાયટી: {society}"
+    },
+    "warnings": {
+      "superAdminNoSociety": "ચેતવણી: આ યુનિટ માટે સોસાયટીની માહિતી ઉપલબ્ધ નથી. કૃપા કરીને ખાતરી કરો કે યુનિટનો ડેટા સંપૂર્ણ છે."
+    },
+    "errors": {
+      "failedToAddPenalty": "દંડ ઉમેરવામાં નિષ્ફળ",
+      "noSocietyId": "સોસાયટી આઇડી મળી નથી. કૃપા કરીને માન્ય હાઉસિંગ યુનિટ પસંદ કરો અથવા એડમિનિસ્ટ્રેટરનો સંપર્ક કરો.",
+      "fillAllFields": "કૃપા કરીને બધા જરૂરી ક્ષેત્રો ભરો.",
+      "validAmount": "કૃપા કરીને 0 થી વધુ માન્ય રકમ દાખલ કરો",
+      "validReason": "કૃપા કરીને માન્ય કારણ દાખલ કરો"
+    },
+    "common": {
+      "unknown": "અજાણ"
+    }
+  },
+  "AddHousingUnitDialog": {
+    "title": "નવું હાઉસિંગ યુનિટ ઉમેરો",
+    "subtitle": "નીચે યુનિટની વિગતો ભરો",
+    "society": "સોસાયટી",
+    "loading": "લોડ થઈ રહ્યું છે...",
+    "selectedSociety": "પસંદ કરેલી સોસાયટી",
+    "unitNumber": "યુનિટ નંબર",
+    "unitNumberPlaceholder": "જેમ કે A-101, B-205",
+    "unitType": "યુનિટ પ્રકાર",
+    "bungalows": "બંગલોઝ",
+    "rawHouse": "રૉ હાઉસ",
+    "villas": "વિલાજ",
+    "squareFoot": "ચોરસ ફૂટ",
+    "currentMaintenance": "હાલની જાળવણી",
+    "cancel": "રદ કરો",
+    "addUnit": "યુનિટ ઉમેરો"
+  },
+  "ViewHousingUnitModal": {
+    "title": "હાઉસિંગ યુનિટ વિગત",
+    "sections": {
+      "basicInfo": "મૂળભૂત માહિતી",
+      "propertyInfo": "મિલ્કતની માહિતી",
+      "penalties": "દંડ"
+    },
+    "fields": {
+      "unitNumber": "યુનિટ નંબર",
+      "unitType": "યુનિટ પ્રકાર",
+      "status": "સ્થિતિ",
+      "area": "વિસ્તાર",
+      "building": "ઇમારત",
+      "society": "સોસાયટી",
+      "currentMaintenance": "વર્તમાન મેન્ટેનન્સ"
+    },
+    "status": {
+      "occupied": "કબજામાં",
+      "vacant": "ખાલી"
+    },
+    "units": {
+      "sqFt": "ચો.ફુટ"
+    },
+    "penalties": {
+      "noPenalties": "કોઈ દંડ નથી",
+      "paid": "ચૂકવેલ",
+      "paidOn": "ચૂકવણી તારીખ"
+    },
+    "actions": {
+      "close": "બંધ કરો",
+      "markAsPaid": "ચૂકવેલ તરીકે નિશાન લગાવો",
+      "markAsDeleted": "કાઢી નાખેલ તરીકે નિશાન લગાવો"
+    },
+    "common": {
+      "notAvailable": "ઉપલબ્ધ નથી",
+      "system": "સિસ્ટમ"
+    },
+    "errors": {
+      "markPaidFailed": "દંડને ચૂકવેલ તરીકે નિશાન લગાવવામાં નિષ્ફળ",
+      "removePenaltyFailed": "દંડ દૂર કરવામાં નિષ્ફળ"
+    }
   }
 }

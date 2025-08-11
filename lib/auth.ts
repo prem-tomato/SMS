@@ -57,3 +57,7 @@ export const saveUserId = (id: string) => {
 export const getLoggedInUserId = () => {
   return localStorage.getItem("id");
 };
+
+export const removeUserId = () => {
+  localStorage.removeItem("id");
+};
