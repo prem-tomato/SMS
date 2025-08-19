@@ -124,7 +124,7 @@ export const getAdminDashboard = async (societyId: string): Promise<any> => {
           ),
           'recent_notices', (
             SELECT COALESCE(json_agg(row_to_json(notices)), '[]') FROM (
-              SELECT n.id, n.title, n.description, n.created_at, n.status
+              SELECT n.id, n.title, n.content, n.created_at, n.status
               FROM public.notices n
               JOIN public.societies s ON n.society_id = s.id
               WHERE n.is_deleted = false AND s.is_deleted = false
