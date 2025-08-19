@@ -300,7 +300,7 @@ export default function Sidebar() {
           <ApartmentOutlined sx={{ color: "white", fontSize: 20 }} />
         </Box>
         <Typography variant="h6" fontWeight="bold" fontSize="18px" color="#333">
-          SocietyManager
+          SocietyPro
         </Typography>
       </Box>
 

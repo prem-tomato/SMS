@@ -137,7 +137,7 @@ export default function LoginPage() {
               <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.5L18 11h-1v6h-2v-6H9v6H7v-6H6l6-5.5z" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Society Manager</h1>
+          <h1 className="text-xl font-bold text-gray-800">SocietyPro</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
