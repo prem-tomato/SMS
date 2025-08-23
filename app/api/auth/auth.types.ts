@@ -23,6 +23,8 @@ export type LoginResponse = {
   societyId: string;
   societyType: (typeof societyType)[keyof typeof societyType] | undefined;
   user: Pick<User, "id" | "first_name" | "last_name" | "phone">;
+  societyKey: string;
+
 };
 
 export interface UserAgentData {

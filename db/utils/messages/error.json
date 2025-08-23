@@ -59,5 +59,6 @@
   "RAZORPAY_CONFIG_ADDED_SUCCESSFULLY": "razor pay config added successfully",
   "RAZORPAY_CONFIG_RETRIEVED_SUCCESSFULLY": "razor pay config retrieved successfully",
   "RAZORPAY_CONFIG_NOT_FOUND": "razor pay config not found",
-  "SOCIETY_KEY_MISMATCH": "society key mismatch"
+  "SOCIETY_KEY_MISMATCH": "society key mismatch",
+  "UNAUTHORIZED_ACCESS": "unauthorized access"
 }

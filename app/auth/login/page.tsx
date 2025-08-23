@@ -27,7 +27,7 @@ export default function LoginPage() {
     try {
       const { access_token, role, societyId, societyType, user } =
         await loginUser({
-          societyKey: societyKey,
+          societyKey: societyKey || "SUPERA",
           login_key: Number(login_key),
         });
       console.log(access_token, role, societyId, societyType, user.id);

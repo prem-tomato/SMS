@@ -16,6 +16,7 @@ import authLogger from "./auth.logger";
 import {
   addToken,
   findSocietyBySocietyKey,
+  findSuperAdminByLoginKey,
   findUserById,
   findUserByLoginKeyAndSociety,
   removeOtherTokens,
@@ -25,6 +26,128 @@ import { LoginBody, LoginResponse, User, UserAgentData } from "./auth.types";
 const JWT_SECRET: string = config.JWT_SECRET!;
 const JWT_ACCESS_TOKEN_LIFE_TIME: string = config.JWT_ACCESS_TOKEN_LIFE_TIME!;
 const JWT_REFRESH_TOKEN_LIFE_TIME: string = config.JWT_REFRESH_TOKEN_LIFE_TIME!;
+
+// export const loginController = async (
+//   request: Request,
+//   reqBody: LoginBody
+// ): Promise<Response<LoginResponse>> => {
+//   const transaction: Transaction = await startTransaction();
+//   const { client } = transaction;
+
+//   try {
+//     const clientIp: string =
+//       request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+
+//     const userAgent = request.headers.get("user-agent") || "";
+
+//     // First, find the society by society key
+//     const society: Societies | undefined = await findSocietyBySocietyKey(
+//       reqBody.societyKey
+//     );
+
+//     if (!society) {
+//       await rollbackTransaction(transaction);
+//       return generateResponseJSON(
+//         StatusCodes.NOT_FOUND,
+//         getMessage("SOCIETY_NOT_FOUND")
+//       );
+//     }
+
+//     // Check if society subscription has ended
+//     if (
+//       society.end_date &&
+//       dayjs(society.end_date).endOf("day").isBefore(dayjs())
+//     ) {
+//       await rollbackTransaction(transaction);
+//       return generateResponseJSON(
+//         StatusCodes.FORBIDDEN,
+//         getMessage("SOCIETY_SUBSCRIPTION_ENDED")
+//       );
+//     }
+
+//     // Find user by login key within the found society
+//     const user: User | undefined = await findUserByLoginKeyAndSociety(
+//       reqBody.login_key,
+//       society.id
+//     );
+
+//     if (!user) {
+//       await rollbackTransaction(transaction);
+//       return generateResponseJSON(
+//         StatusCodes.NOT_FOUND,
+//         getMessage("LOGIN_KEY_NOT_FOUND")
+//       );
+//     }
+
+//     console.log("society?.society_key", society?.society_key);
+
+//     const tokenPayload = {
+//       login_key: reqBody.login_key,
+//       userId: user.id,
+//       role: user.role,
+//       societyId: user.society_id,
+//       societyType: society.society_type,
+//     };
+
+//     const accessToken: string = authorizeServices.createToken(
+//       tokenPayload,
+//       JWT_SECRET,
+//       JWT_ACCESS_TOKEN_LIFE_TIME
+//     );
+
+//     const refreshToken: string = authorizeServices.createToken(
+//       tokenPayload,
+//       JWT_SECRET,
+//       JWT_REFRESH_TOKEN_LIFE_TIME
+//     );
+
+//     await removeOtherTokens(client, user.id);
+
+//     const { browser, os, device } = parseUserAgent(userAgent);
+
+//     // Get geo location info
+//     const res = await fetch(`https://ipwho.is/${clientIp}`)
+//       .then((res) => res.json())
+//       .catch(() => null);
+
+//     const userAgentData: UserAgentData = {
+//       browser,
+//       os,
+//       device,
+//       clientIp,
+//       latitude: res.latitude,
+//       longitude: res.longitude,
+//       location: res ? `${res.city}, ${res.country}` : "",
+//     };
+
+//     // Store session with token and metadata
+//     await addToken(client, refreshToken, user.id, userAgentData);
+
+//     await commitTransaction(transaction);
+
+//     return generateResponseJSON(StatusCodes.OK, getMessage("LOGIN_SUCCESS"), {
+//       access_token: accessToken,
+//       role: user.role,
+//       societyId: user.society_id,
+//       societyType: society.society_type,
+//       societyKey: society.society_key,
+//       user: {
+//         id: user.id,
+//         first_name: user.first_name,
+//         last_name: user.last_name,
+//         phone: user.phone,
+//       },
+//     });
+//   } catch (error: any) {
+//     authLogger.error(`Error from login controller => ${error}`);
+//     await rollbackTransaction(transaction);
+//     return generateResponseJSON(
+//       StatusCodes.INTERNAL_SERVER_ERROR,
+//       error.message,
+//       error
+//     );
+//   }
+// };
 
 export const loginController = async (
   request: Request,
@@ -39,23 +162,71 @@ export const loginController = async (
 
     const userAgent = request.headers.get("user-agent") || "";
 
-    // First, find the society by society key
-    const society: Societies | undefined = await findSocietyBySocietyKey(
-      reqBody.societyKey
-    );
+    // Check if this is a super admin login
+    const isSuperAdminLogin = reqBody.societyKey === "SUPERA";
 
-    if (!society) {
-      await rollbackTransaction(transaction);
-      return generateResponseJSON(
-        StatusCodes.NOT_FOUND,
-        getMessage("SOCIETY_NOT_FOUND")
-      );
+    let society: Societies | undefined;
+    let user: User | undefined;
+    console.log("reqBody", reqBody);
+    if (isSuperAdminLogin) {
+      // Handle super admin login
+      user = await findSuperAdminByLoginKey(reqBody.login_key);
+
+      if (!user) {
+        await rollbackTransaction(transaction);
+        return generateResponseJSON(
+          StatusCodes.NOT_FOUND,
+          getMessage("LOGIN_KEY_NOT_FOUND")
+        );
+      }
+
+      if (user.role !== "super_admin") {
+        await rollbackTransaction(transaction);
+        return generateResponseJSON(
+          StatusCodes.FORBIDDEN,
+          getMessage("UNAUTHORIZED_ACCESS")
+        );
+      }
+    } else {
+      // Handle regular user login
+      society = await findSocietyBySocietyKey(reqBody.societyKey);
+
+      if (!society) {
+        await rollbackTransaction(transaction);
+        return generateResponseJSON(
+          StatusCodes.NOT_FOUND,
+          getMessage("SOCIETY_NOT_FOUND")
+        );
+      }
+
+      // Check if society subscription has ended
+      if (
+        society.end_date &&
+        dayjs(society.end_date).endOf("day").isBefore(dayjs())
+      ) {
+        await rollbackTransaction(transaction);
+        return generateResponseJSON(
+          StatusCodes.FORBIDDEN,
+          getMessage("SOCIETY_SUBSCRIPTION_ENDED")
+        );
+      }
+
+      // Find user by login key within the found society
+      user = await findUserByLoginKeyAndSociety(reqBody.login_key, society.id);
+
+      if (!user) {
+        await rollbackTransaction(transaction);
+        return generateResponseJSON(
+          StatusCodes.NOT_FOUND,
+          getMessage("LOGIN_KEY_NOT_FOUND")
+        );
+      }
     }
 
     // Check if society subscription has ended
     if (
-      society.end_date &&
-      dayjs(society.end_date).endOf("day").isBefore(dayjs())
+      society?.end_date &&
+      dayjs(society?.end_date).endOf("day").isBefore(dayjs())
     ) {
       await rollbackTransaction(transaction);
       return generateResponseJSON(
@@ -65,12 +236,12 @@ export const loginController = async (
     }
 
     // Find user by login key within the found society
-    const user: User | undefined = await findUserByLoginKeyAndSociety(
+    const users: User | undefined = await findUserByLoginKeyAndSociety(
       reqBody.login_key,
-      society.id
+      society?.id
     );
 
-    if (!user) {
+    if (!users) {
       await rollbackTransaction(transaction);
       return generateResponseJSON(
         StatusCodes.NOT_FOUND,
@@ -82,10 +253,10 @@ export const loginController = async (
 
     const tokenPayload = {
       login_key: reqBody.login_key,
-      userId: user.id,
-      role: user.role,
-      societyId: user.society_id,
-      societyType: society.society_type,
+      userId: users.id,
+      role: users.role,
+      societyId: users.society_id || null, // null for super_admin
+      societyType: society?.society_type || null,
     };
 
     const accessToken: string = authorizeServices.createToken(
@@ -128,8 +299,8 @@ export const loginController = async (
       access_token: accessToken,
       role: user.role,
       societyId: user.society_id,
-      societyType: society.society_type,
-      societyKey: society.society_key,
+      societyType: society?.society_type,
+      societyKey: society?.society_key || "SUPERA",
       user: {
         id: user.id,
         first_name: user.first_name,

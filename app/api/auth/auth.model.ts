@@ -122,23 +122,58 @@ export const findSocietyBySocietyKey = async (
 
 export const findUserByLoginKeyAndSociety = async (
   loginKey: number,
-  societyId: string
+  societyId: string | null | undefined
 ): Promise<User | undefined> => {
   try {
-    const queryText = `
+    let queryText: string;
+    let params: any[];
+
+    if (societyId === null || societyId === undefined) {
+      // Handle NULL society_id case (for super admins)
+      queryText = `
+        SELECT * FROM users
+        WHERE login_key = $1 
+        AND society_id IS NULL
+        AND is_deleted = false
+      `;
+      params = [loginKey];
+    } else {
+      // Handle regular users with society_id
+      queryText = `
         SELECT * FROM users
         WHERE login_key = $1 
         AND society_id = $2
         AND is_deleted = false
-    `;
+      `;
+      params = [loginKey, societyId];
+    }
 
-    const res: QueryResult<User> = await query<User>(queryText, [
-      loginKey,
-      societyId,
-    ]);
+    const res: QueryResult<User> = await query<User>(queryText, params);
 
     return res.rows.length > 0 ? res.rows[0] : undefined;
   } catch (error) {
     throw new Error(`Error finding user by login key and society: ${error}`);
+  }
+};
+
+export const findSuperAdminByLoginKey = async (
+  loginKey: number
+): Promise<User | undefined> => {
+  try {
+    console.log("loginKey", loginKey);
+
+    const queryText = `
+        SELECT * FROM users
+        WHERE login_key = $1 
+        AND role = 'super_admin'
+        AND society_id IS NULL
+        AND is_deleted = false
+    `;
+
+    const res: QueryResult<User> = await query<User>(queryText, [loginKey]);
+
+    return res.rows.length > 0 ? res.rows[0] : undefined;
+  } catch (error) {
+    throw new Error(`Error finding super admin by login key: ${error}`);
   }
 };
