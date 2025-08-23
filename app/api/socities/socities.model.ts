@@ -57,12 +57,12 @@ export const findSocityByName = async (
 };
 
 export const addSocieties = async (
-  society: AddSocietyReqBody & { created_by: string }
+  society: AddSocietyReqBody & { created_by: string; society_key: string }
 ): Promise<Societies> => {
   try {
     const queryText: string = `
-        INSERT INTO societies (name, address, city, state, country, created_by, created_at, opening_balance, society_type)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8)
+        INSERT INTO societies (name, address, city, state, country, created_by, created_at, opening_balance, society_type, society_key)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, $8, $9)
         RETURNING *
     `;
 
@@ -75,6 +75,7 @@ export const addSocieties = async (
       society.created_by,
       society.opening_balance,
       society.society_type,
+      society.society_key,
     ]);
 
     return res.rows[0];
@@ -129,15 +130,23 @@ export const addAdmin = async (
 };
 
 export const checkLoginKeyUnique = async (
-  loginKey: number
+  loginKey: number,
+  societyId: string,
+  societyKey: string
 ): Promise<string | undefined> => {
   try {
     const queryText = `
-      SELECT id FROM users
-      WHERE login_key = $1
+      SELECT u.id 
+      FROM users u
+      LEFT JOIN societies s ON u.society_id = s.id
+      WHERE u.login_key = $1 AND u.society_id = $2 AND s.society_key = $3
     `;
 
-    const res: QueryResult<{ id: string }> = await query(queryText, [loginKey]);
+    const res: QueryResult<{ id: string }> = await query(queryText, [
+      loginKey,
+      societyId,
+      societyKey,
+    ]);
 
     // Return user id if exists, otherwise undefined
     return res.rows.length > 0 ? res.rows[0].id : undefined;

@@ -1,5 +1,6 @@
 import { query, queryWithClient } from "@/db/database-connect";
 import { PoolClient, QueryResult } from "pg";
+import { Societies } from "../socities/socities.types";
 import { User, UserAgentData } from "./auth.types";
 
 export const findUserByLoginKey = async (
@@ -96,5 +97,48 @@ export const removeOtherTokens = async (
     await queryWithClient(client, queryText, [userId]);
   } catch (error) {
     throw new Error(`Error deleting user sessions: ${error}`);
+  }
+};
+
+export const findSocietyBySocietyKey = async (
+  societyKey: string
+): Promise<Societies | undefined> => {
+  try {
+    const queryText = `
+        SELECT * FROM societies
+        WHERE society_key = $1
+        AND is_deleted = false
+    `;
+
+    const res: QueryResult<Societies> = await query<Societies>(queryText, [
+      societyKey,
+    ]);
+
+    return res.rows.length > 0 ? res.rows[0] : undefined;
+  } catch (error) {
+    throw new Error(`Error finding society by society key: ${error}`);
+  }
+};
+
+export const findUserByLoginKeyAndSociety = async (
+  loginKey: number,
+  societyId: string
+): Promise<User | undefined> => {
+  try {
+    const queryText = `
+        SELECT * FROM users
+        WHERE login_key = $1 
+        AND society_id = $2
+        AND is_deleted = false
+    `;
+
+    const res: QueryResult<User> = await query<User>(queryText, [
+      loginKey,
+      societyId,
+    ]);
+
+    return res.rows.length > 0 ? res.rows[0] : undefined;
+  } catch (error) {
+    throw new Error(`Error finding user by login key and society: ${error}`);
   }
 };

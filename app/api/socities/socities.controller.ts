@@ -123,9 +123,13 @@ export const addSocietyController = async (
       );
     }
 
+    // generate unique society key 6 characters long
+    const societyKey = Math.random().toString(36).substring(2, 8).toUpperCase();
+
     const addSocietiesPayload = {
       ...reqBody,
       created_by: userId,
+      society_key: societyKey,
     };
 
     const society = await addSocieties(addSocietiesPayload);
@@ -164,7 +168,9 @@ export const addAdminController = async (
     }
 
     const loginKeyUnique: string | undefined = await checkLoginKeyUnique(
-      reqBody.login_key
+      reqBody.login_key,
+      society.id,
+      society.society_key
     );
     if (loginKeyUnique) {
       return generateResponseJSON(
@@ -217,7 +223,9 @@ export const addMemberController = async (
     }
 
     const loginKeyUnique: string | undefined = await checkLoginKeyUnique(
-      reqBody.login_key
+      reqBody.login_key,
+      society.id,
+      society.society_key
     );
     if (loginKeyUnique) {
       return generateResponseJSON(

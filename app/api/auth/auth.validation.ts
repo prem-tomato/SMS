@@ -1,8 +1,8 @@
-import { object, number } from "zod";
+import { number, object, string } from "zod";
 
 export const loginValidation = object({
-    body: object({
-      login_key: number().int(),
-    }),
-  });
-  
+  body: object({
+    societyKey: string(),
+    login_key: number().int(),
+  }),
+});

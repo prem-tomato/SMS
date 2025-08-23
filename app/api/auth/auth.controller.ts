@@ -11,13 +11,13 @@ import config from "@/services/config";
 import { parseUserAgent } from "@/utils/parseUserAgent";
 import dayjs from "dayjs";
 import { StatusCodes } from "http-status-codes";
-import { findSocietyById } from "../socities/socities.model";
 import { Societies } from "../socities/socities.types";
 import authLogger from "./auth.logger";
 import {
   addToken,
+  findSocietyBySocietyKey,
   findUserById,
-  findUserByLoginKey,
+  findUserByLoginKeyAndSociety,
   removeOtherTokens,
 } from "./auth.model";
 import { LoginBody, LoginResponse, User, UserAgentData } from "./auth.types";
@@ -39,20 +39,22 @@ export const loginController = async (
 
     const userAgent = request.headers.get("user-agent") || "";
 
-    const user: User | undefined = await findUserByLoginKey(reqBody.login_key);
-    if (!user) {
+    // First, find the society by society key
+    const society: Societies | undefined = await findSocietyBySocietyKey(
+      reqBody.societyKey
+    );
+
+    if (!society) {
       await rollbackTransaction(transaction);
       return generateResponseJSON(
         StatusCodes.NOT_FOUND,
-        getMessage("LOGIN_KEY_NOT_FOUND")
+        getMessage("SOCIETY_NOT_FOUND")
       );
     }
 
-    const society: Societies | undefined = await findSocietyById(
-      user.society_id
-    );
+    // Check if society subscription has ended
     if (
-      society?.end_date &&
+      society.end_date &&
       dayjs(society.end_date).endOf("day").isBefore(dayjs())
     ) {
       await rollbackTransaction(transaction);
@@ -62,12 +64,28 @@ export const loginController = async (
       );
     }
 
+    // Find user by login key within the found society
+    const user: User | undefined = await findUserByLoginKeyAndSociety(
+      reqBody.login_key,
+      society.id
+    );
+
+    if (!user) {
+      await rollbackTransaction(transaction);
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("LOGIN_KEY_NOT_FOUND")
+      );
+    }
+
+    console.log("society?.society_key", society?.society_key);
+
     const tokenPayload = {
       login_key: reqBody.login_key,
       userId: user.id,
       role: user.role,
-      societyId: user?.society_id,
-      societyType: society?.society_type
+      societyId: user.society_id,
+      societyType: society.society_type,
     };
 
     const accessToken: string = authorizeServices.createToken(
@@ -110,7 +128,8 @@ export const loginController = async (
       access_token: accessToken,
       role: user.role,
       societyId: user.society_id,
-      societyType: society?.society_type,
+      societyType: society.society_type,
+      societyKey: society.society_key,
       user: {
         id: user.id,
         first_name: user.first_name,
