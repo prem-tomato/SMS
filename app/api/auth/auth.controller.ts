@@ -163,7 +163,7 @@ export const loginController = async (
     const userAgent = request.headers.get("user-agent") || "";
 
     // Check if this is a super admin login
-    const isSuperAdminLogin = reqBody.societyKey === "SUPERA";
+    const isSuperAdminLogin = reqBody.society_key === "SUPERA";
 
     let society: Societies | undefined;
     let user: User | undefined;
@@ -189,7 +189,7 @@ export const loginController = async (
       }
     } else {
       // Handle regular user login
-      society = await findSocietyBySocietyKey(reqBody.societyKey);
+      society = await findSocietyBySocietyKey(reqBody.society_key);
 
       if (!society) {
         await rollbackTransaction(transaction);
