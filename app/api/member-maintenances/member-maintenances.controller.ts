@@ -13,8 +13,6 @@ export const getMemberMaintenancesController = async (
   monthYear: string,
 ): Promise<Response<GetMemberMaintenance[]>> => {
   try {
-    const userId = request.headers.get("userId");
-
     const society: Societies | undefined = await findSocietyById(societyId);
     if (!society) {
       return generateResponseJSON(
