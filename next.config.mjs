@@ -1,7 +1,3 @@
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {};
-
-// export default nextConfig;
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -12,12 +8,11 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'none'; base-uri 'none';",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; script-src-elem 'self' 'unsafe-inline' https:; object-src 'none';",
           },
         ],
       },
     ];
   },
 };
-
 export default nextConfig;
