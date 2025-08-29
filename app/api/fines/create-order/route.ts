@@ -2,15 +2,21 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+import { getRazorPayConfigBySocietyId } from "../../payments/verify/verify.model";
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, fineId, currency = "INR" } = await request.json();
+    const {
+      amount,
+      fineId,
+      currency = "INR",
+      society_id,
+    } = await request.json();
+    const config = await getRazorPayConfigBySocietyId(society_id);
+    const razorpay = new Razorpay({
+      key_id: config?.razorpay_key_id!,
+      key_secret: config?.razorpay_key_secret!,
+    });
 
     if (!amount || !fineId) {
       return NextResponse.json(

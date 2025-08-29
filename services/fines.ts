@@ -26,13 +26,13 @@ export interface Fine {
   razorpay_signature?: string;
 }
 
-export const createPaymentOrder = async (fineId: string, amount: number) => {
+export const createPaymentOrder = async (fineId: string, amount: number, society_id: string) => {
   const response = await fetch('/api/fines/create-order', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fineId, amount }),
+    body: JSON.stringify({ fineId, amount, society_id }),
   });
   
   if (!response.ok) {

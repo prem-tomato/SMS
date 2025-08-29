@@ -38,6 +38,7 @@ export default function Fines() {
       buildingName: fine.building_name,
       flatNumber: fine.flat_number,
       reason: fine.reason,
+      society_id: societyId,
       onSuccess: () => {
         setPaymentAlert({
           open: true,

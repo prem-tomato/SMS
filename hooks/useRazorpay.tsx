@@ -17,6 +17,7 @@ export interface PaymentOptions {
   reason: string;
   onSuccess?: () => void;
   onFailure?: (error: any) => void;
+  society_id: string;
 }
 
 export const useRazorpay = () => {
@@ -33,7 +34,7 @@ export const useRazorpay = () => {
       }
 
       // Create order
-      const orderData = await createPaymentOrder(options.fineId, options.amount);
+      const orderData = await createPaymentOrder(options.fineId, options.amount, options.society_id);
 
       const razorpayOptions = {
         key: orderData.key,
