@@ -104,7 +104,12 @@ export default function Fines() {
       flex: 1,
       minWidth: 120,
       renderCell: (params: any) => (
-        <Typography variant="body2" fontWeight="medium" color="text.primary">
+        <Typography
+          variant="body2"
+          fontWeight="medium"
+          color="text.primary"
+          sx={{ mt: 2 }}
+        >
           {formatCurrency(params.value)}
         </Typography>
       ),
@@ -189,19 +194,12 @@ export default function Fines() {
   ];
 
   return (
-    <Box
-      sx={{
-        height: "calc(100vh - 180px)",
-        p: 2,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box height="calc(100vh - 180px)">
       <CommonDataGrid
         rows={fines}
         columns={columns}
         loading={loadingFines}
-        height="100%"
+        height="calc(100vh - 110px)"
         pageSize={20}
       />
 
