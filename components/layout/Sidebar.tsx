@@ -175,6 +175,11 @@ export default function Sidebar() {
       icon: <MonetizationOnOutlinedIcon />,
       path: "/dues-summary",
     },
+    {
+      label: "Fines",                    // ✅ New tab
+      icon: <MoneyOffIcon />,            // using existing fine icon
+      path: "/fines",
+    },
   ];
 
   // Filter dues items based on role
