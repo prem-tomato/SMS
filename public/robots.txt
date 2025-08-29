@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: smartmanager.co.in
+
+# Sitemaps
+Sitemap: https://smartmanager.co.in/sitemap.xml
