@@ -2,14 +2,19 @@
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
 import { useRazorpay } from "@/hooks/useRazorpay";
-import { getSocietyIdFromLocalStorage } from "@/lib/auth";
+import {
+  getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
+} from "@/lib/auth";
 import { fetchFinesBySocietyId } from "@/services/fines";
+import { fetchSocietyById } from "@/services/societies";
 import { Alert, Box, Button, Chip, Snackbar, Typography } from "@mui/material";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 export default function Fines() {
   const [societyId, setSocietyId] = useState<string>("");
+  const [societyType, setSocietyType] = useState<string>("");
   const [paymentAlert, setPaymentAlert] = useState<{
     open: boolean;
     message: string;
@@ -19,7 +24,10 @@ export default function Fines() {
   const queryClient = useQueryClient();
   const { initiatePayment, isLoading: isPaymentLoading } = useRazorpay();
 
+  console.log("societyType", societyType);
+
   useEffect(() => {
+    setSocietyType(getSocietyTypeFromLocalStorage()!);
     setSocietyId(getSocietyIdFromLocalStorage()!);
   }, []);
 
@@ -31,14 +39,19 @@ export default function Fines() {
     enabled: !!societyId,
   });
 
+  const { data: societyInfo } = useQuery({
+    queryKey: ["society", societyId],
+    queryFn: () => fetchSocietyById(societyId),
+    enabled: !!societyId,
+  });
+
   const handlePayment = async (fine: any) => {
     await initiatePayment({
       fineId: fine.id,
       amount: fine.amount,
-      buildingName: fine.building_name,
-      flatNumber: fine.flat_number,
       reason: fine.reason,
       society_id: societyId,
+      society_type: societyInfo!.society_type,
       onSuccess: () => {
         setPaymentAlert({
           open: true,
@@ -84,20 +97,35 @@ export default function Fines() {
   };
 
   const columns = [
-    {
-      field: "building_name",
-      headerName: "Building",
-      width: 180,
-      flex: 1,
-      minWidth: 120,
-    },
-    {
-      field: "flat_number",
-      headerName: "Flat",
-      width: 120,
-      flex: 0.8,
-      minWidth: 80,
-    },
+    ...(societyType !== "housing"
+      ? [
+          {
+            field: "building_name",
+            headerName: "Building",
+            width: 180,
+            flex: 1,
+            minWidth: 120,
+          },
+          {
+            field: "flat_number",
+            headerName: "Flat",
+            width: 120,
+            flex: 0.8,
+            minWidth: 80,
+          },
+        ]
+      : []),
+    ...(societyType === "housing"
+      ? [
+          {
+            field: "unit_number",
+            headerName: "Unit",
+            width: 120,
+            flex: 0.8,
+            minWidth: 80,
+          },
+        ]
+      : []),
     {
       field: "amount",
       headerName: "Amount",
@@ -147,6 +175,7 @@ export default function Fines() {
         <Typography
           variant="body2"
           color={params.value ? "text.primary" : "text.secondary"}
+          sx={{ mt: 2 }}
         >
           {formatDate(params.value)}
         </Typography>
@@ -162,6 +191,7 @@ export default function Fines() {
       filterable: false,
       renderCell: (params: any) => {
         const fine = params.row;
+        console.log("fine", fine);
 
         if (fine.is_paid) {
           return (

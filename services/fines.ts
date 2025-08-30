@@ -26,19 +26,23 @@ export interface Fine {
   razorpay_signature?: string;
 }
 
-export const createPaymentOrder = async (fineId: string, amount: number, society_id: string) => {
-  const response = await fetch('/api/fines/create-order', {
-    method: 'POST',
+export const createPaymentOrder = async (
+  fineId: string,
+  amount: number,
+  society_id: string
+) => {
+  const response = await fetch("/api/fines/create-order", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ fineId, amount, society_id }),
   });
-  
+
   if (!response.ok) {
-    throw new Error('Failed to create payment order');
+    throw new Error("Failed to create payment order");
   }
-  
+
   return response.json();
 };
 
@@ -47,18 +51,20 @@ export const verifyPayment = async (paymentData: {
   razorpay_payment_id: string;
   razorpay_signature: string;
   fineId: string;
+  society_id: string;
+  society_type: string;
 }) => {
-  const response = await fetch('/api/fines/verify-payment', {
-    method: 'POST',
+  const response = await fetch("/api/fines/verify-payment", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(paymentData),
   });
-  
+
   if (!response.ok) {
-    throw new Error('Payment verification failed');
+    throw new Error("Payment verification failed");
   }
-  
+
   return response.json();
 };

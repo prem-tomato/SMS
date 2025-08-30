@@ -1,7 +1,7 @@
 // hooks/useRazorpay.ts
-import { useState } from 'react';
-import { loadRazorpayScript } from '@/lib/loadRazorpay';
-import { createPaymentOrder, verifyPayment } from '@/services/fines';
+import { loadRazorpayScript } from "@/lib/loadRazorpay";
+import { createPaymentOrder, verifyPayment } from "@/services/fines";
+import { useState } from "react";
 
 declare global {
   interface Window {
@@ -12,12 +12,11 @@ declare global {
 export interface PaymentOptions {
   fineId: string;
   amount: number;
-  buildingName: string;
-  flatNumber: string;
   reason: string;
   onSuccess?: () => void;
   onFailure?: (error: any) => void;
   society_id: string;
+  society_type: string;
 }
 
 export const useRazorpay = () => {
@@ -30,11 +29,16 @@ export const useRazorpay = () => {
       // Load Razorpay script
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        throw new Error('Failed to load Razorpay script');
+        throw new Error("Failed to load Razorpay script");
       }
 
       // Create order
-      const orderData = await createPaymentOrder(options.fineId, options.amount, options.society_id);
+      const orderData = await createPaymentOrder(
+        options.fineId,
+        options.amount,
+        options.society_id
+      );
+      console.log('orderData', orderData);
 
       const razorpayOptions = {
         key: orderData.key,
@@ -43,24 +47,24 @@ export const useRazorpay = () => {
         name: "Society Management",
         description: `Fine Payment - ${options.reason}`,
         order_id: orderData.orderId,
-        prefill: {
-          name: `${options.buildingName} - ${options.flatNumber}`,
-        },
         theme: {
           color: "#3f51b5",
         },
         handler: async (response: any) => {
+          console.log('response', response);
           try {
             await verifyPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               fineId: options.fineId,
+              society_id: options.society_id,
+              society_type: options.society_type,
             });
-            
+
             options.onSuccess?.();
           } catch (error) {
-            console.error('Payment verification failed:', error);
+            console.error("Payment verification failed:", error);
             options.onFailure?.(error);
           }
         },
@@ -73,9 +77,8 @@ export const useRazorpay = () => {
 
       const razorpay = new window.Razorpay(razorpayOptions);
       razorpay.open();
-
     } catch (error) {
-      console.error('Payment initiation failed:', error);
+      console.error("Payment initiation failed:", error);
       options.onFailure?.(error);
     } finally {
       setIsLoading(false);

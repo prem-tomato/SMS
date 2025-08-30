@@ -1,6 +1,11 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { updateFinePaymentStatus } from "../fines.model";
+import Razorpay from "razorpay";
+import { getRazorPayConfigBySocietyId } from "../../payments/verify/verify.model";
+import {
+  updateFinePaymentStatus,
+  updateFinePaymentStatusForUnitPenalties,
+} from "../fines.model";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +14,33 @@ export async function POST(request: NextRequest) {
       razorpay_payment_id,
       razorpay_signature,
       fineId,
+      society_id,
+      society_type,
     } = await request.json();
+
+    console.log("societyType from verify-payment", society_type);
+
+    const config = await getRazorPayConfigBySocietyId(society_id);
+
+    if (!config || !config.razorpay_key_id || !config.razorpay_key_secret) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Razorpay configuration not found for this society",
+        },
+        { status: 400 }
+      );
+    }
+
+    const { razorpay_key_id, razorpay_key_secret } = config;
+
+    // Step 2: Create dynamic Razorpay instance
+    const razorpay = new Razorpay({
+      key_id: razorpay_key_id,
+      key_secret: razorpay_key_secret,
+    });
+
+    const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
 
     // Verify signature
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
@@ -26,14 +57,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Update database
-    await updateFinePaymentStatus(
-      fineId,
-      true,
-      new Date(),
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    );
+    if (society_type === "housing") {
+      await updateFinePaymentStatusForUnitPenalties(
+        fineId,
+        true,
+        new Date(),
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        paymentDetails.method
+      );
+    } else {
+      await updateFinePaymentStatus(
+        fineId,
+        true,
+        new Date(),
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        paymentDetails.method
+      );
+    }
 
     return NextResponse.json({
       success: true,

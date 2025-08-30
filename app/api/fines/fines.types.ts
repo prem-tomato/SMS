@@ -11,3 +11,15 @@ export type Fines = {
   flat_number: string;
   society_name: string;
 };
+
+export type HousingFines = {
+  id: string;
+  society_id: string;
+  unit_id: string;
+  amount: number;
+  reason: string;
+  is_paid: boolean;
+  paid_at: Date;
+  society_name: string;
+  unit_number: string;
+};

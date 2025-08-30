@@ -30,7 +30,7 @@ export const GET = async (
   if (authResult instanceof Response) return authResult;
 
   const { status, ...responseData }: Response<Fines[]> =
-    await getFinesController(params.societyId);
+    await getFinesController(request,params.societyId);
 
   // Return the response with the appropriate status code
   return NextResponse.json(responseData, { status });
