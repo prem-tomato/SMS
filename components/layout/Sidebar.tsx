@@ -31,6 +31,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material";
+import { VoteIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -176,8 +177,8 @@ export default function Sidebar() {
       path: "/dues-summary",
     },
     {
-      label: "Fines",                    // ✅ New tab
-      icon: <MoneyOffIcon />,            // using existing fine icon
+      label: "Fines",
+      icon: <MoneyOffIcon />,
       path: "/fines",
     },
   ];
@@ -199,6 +200,11 @@ export default function Sidebar() {
       label: "Notices",
       icon: <CampaignOutlined />,
       path: "/notices",
+    },
+    {
+      label: "Polls",
+      icon: <VoteIcon />,
+      path: "/polls",
     },
     {
       label: "Login History",
@@ -232,9 +238,17 @@ export default function Sidebar() {
     role === "super_admin"
       ? [...commonItems, ...superAdminExtra, ...adminItems]
       : role === "admin"
-      ? [...commonItems, ...adminItems]
+      ? [
+          ...commonItems,
+          ...adminItems,
+          { label: "Polls", icon: <VoteIcon />, path: "/polls" },
+        ]
       : role === "member"
-      ? [...commonItems, miscItems[0]] // Only notices for members
+      ? [
+          ...commonItems,
+          miscItems[0],
+          { label: "Polls", icon: <VoteIcon />, path: "/polls" },
+        ] // Dashboard, Notices, and Polls for members
       : [];
 
   const renderNavItem = (item: any) => {
