@@ -4,11 +4,10 @@ import Logger from "./configs/logger";
 const databaseLogger = new Logger("database-connect");
 
 const pool = new Pool({
-  host: 'localhost',
-  port: Number(5432),
-  database: 'maintenance-flow',
-  user: 'postgres',
-  password: 'admin',
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 export default pool;
