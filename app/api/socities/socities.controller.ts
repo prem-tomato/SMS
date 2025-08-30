@@ -106,6 +106,22 @@ import {
   SocietyOptions,
 } from "./socities.types";
 
+function generateSocietyKey(inputKey: string): string {
+  let societyKey = inputKey
+    .toLowerCase()
+    .replace(/\s+/g, "") // remove spaces
+    .toUpperCase();
+
+  if (societyKey.length < 6) {
+    societyKey = "SOC" + societyKey;
+  }
+
+  // Ensure final max length is 6
+  societyKey = societyKey.substring(0, 6);
+
+  return societyKey;
+}
+
 export const addSocietyController = async (
   request: Request,
   reqBody: AddSocietyReqBody
@@ -123,8 +139,7 @@ export const addSocietyController = async (
       );
     }
 
-    // generate unique society key 6 characters long
-    const societyKey = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const societyKey = generateSocietyKey(reqBody.name);
 
     const addSocietiesPayload = {
       ...reqBody,
