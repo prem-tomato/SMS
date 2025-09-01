@@ -472,7 +472,7 @@ export default function PollsList({
           rows={filteredPolls}
           columns={columns}
           loading={loading}
-          height="calc(100vh - 160px)"
+          height="calc(100vh - 170px)"
           pageSize={20}
         />
       )}
