@@ -113,7 +113,7 @@ function generateSocietyKey(inputKey: string): string {
     .toUpperCase();
 
   if (societyKey.length < 6) {
-    societyKey = "SOC" + societyKey;
+    societyKey = societyKey + "SOC";
   }
 
   // Ensure final max length is 6

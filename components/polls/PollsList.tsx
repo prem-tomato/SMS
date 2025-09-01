@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -273,7 +272,9 @@ export default function PollsList({
         const topOption = sortedOptions[0];
 
         return (
-          <div style={{ fontSize: "0.75rem", lineHeight: "1.2", marginTop: 10 }}>
+          <div
+            style={{ fontSize: "0.75rem", lineHeight: "1.2", marginTop: 10 }}
+          >
             {sortedOptions.length > 0 ? (
               <div>
                 <div style={{ fontWeight: 500, color: "#374151" }}>
@@ -324,19 +325,6 @@ export default function PollsList({
     },
   ];
 
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress size={40} sx={{ color: "#1e1ee4" }} />
-      </Box>
-    );
-  }
-
   return (
     <Box height="calc(100vh - 180px)">
       {/* Header */}
@@ -375,14 +363,15 @@ export default function PollsList({
             value={filter}
             exclusive
             onChange={handleFilterChange}
+            size="small" // makes buttons smaller
             sx={{
               "& .MuiToggleButton-root": {
                 borderRadius: 1,
-                border: "1px solid #1e1ee4",
-                color: "#1e1ee4",
-                px: 2,
-                py: 1,
-                mb: 2,
+                color: "black",
+                fontSize: "0.75rem", // smaller text
+                px: 1.5, // reduce horizontal padding
+                py: 0.5, // reduce vertical padding
+                mb: 3,
                 "&.Mui-selected": {
                   backgroundColor: "#1e1ee4",
                   color: "white",
@@ -420,62 +409,14 @@ export default function PollsList({
           </ToggleButtonGroup>
         </Box>
       </Box>
-      {/* Polls Table */}
-      {filteredPolls.length === 0 ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 4, sm: 6 },
-            textAlign: "center",
-            bgcolor: "#f8f9fa",
-            borderRadius: 3,
-            border: "1px solid #e0e0e0",
-            background: "linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%)",
-          }}
-        >
-          <Typography
-            variant="h6"
-            color="text.secondary"
-            sx={{ mb: 2, fontSize: { xs: "1.1rem", sm: "1.25rem" } }}
-          >
-            No {filter} polls found
-          </Typography>
-          {userRole === "admin" && filter === "active" && (
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Create your first poll to get started
-            </Typography>
-          )}
-          {userRole === "admin" && (
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={() => setShowCreateModal(true)}
-              sx={{
-                textTransform: "none",
-                borderColor: "#1e1ee4",
-                color: "#1e1ee4",
-                borderRadius: 2,
-                px: 3,
-                py: 1.5,
-                "&:hover": {
-                  borderColor: "#1e1ee4",
-                  bgcolor: "rgba(30, 30, 228, 0.04)",
-                },
-              }}
-            >
-              Create First Poll
-            </Button>
-          )}
-        </Paper>
-      ) : (
-        <CommonDataGrid
-          rows={filteredPolls}
-          columns={columns}
-          loading={loading}
-          height="calc(100vh - 170px)"
-          pageSize={20}
-        />
-      )}
+
+      <CommonDataGrid
+        rows={filteredPolls}
+        columns={columns}
+        loading={loading}
+        height="calc(100vh - 170px)"
+        pageSize={20}
+      />
 
       <CreatePollModal
         isOpen={showCreateModal}
