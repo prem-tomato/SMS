@@ -273,7 +273,7 @@ export default function PollsList({
         const topOption = sortedOptions[0];
 
         return (
-          <div style={{ fontSize: "0.75rem", lineHeight: "1.2" }}>
+          <div style={{ fontSize: "0.75rem", lineHeight: "1.2", marginTop: 10 }}>
             {sortedOptions.length > 0 ? (
               <div>
                 <div style={{ fontWeight: 500, color: "#374151" }}>
