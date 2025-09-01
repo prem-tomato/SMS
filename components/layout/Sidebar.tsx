@@ -416,7 +416,7 @@ export default function Sidebar() {
                 <StorageOutlinedIcon />
               </ListItemIcon>
               <ListItemText
-                primary="Miscellaneous"
+                primary="Miscella...."
                 primaryTypographyProps={{
                   fontSize: "12px",
                   fontWeight: openMisc ? 700 : 500,

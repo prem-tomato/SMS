@@ -1,20 +1,36 @@
 // app/components/polls/PollsList.tsx
 "use client";
 
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
+  Chip,
   CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  LinearProgress,
   Paper,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import CommonDataGrid from "../common/CommonDataGrid"; // Adjust import path as needed
 import CreatePollModal from "./CreatePollModal";
-import PollCard from "./PollCard";
+
+interface PollOption {
+  id: string;
+  option_text: string;
+  option_order: number;
+  vote_count: number;
+  percentage: number;
+}
 
 interface Poll {
   id: string;
@@ -22,9 +38,11 @@ interface Poll {
   description?: string;
   expires_at: string;
   status: "active" | "expired" | "closed";
+  created_at: string;
   user_has_voted: boolean;
   user_voted_option_id?: string;
   total_votes: number;
+  options?: PollOption[];
 }
 
 interface PollsListProps {
@@ -41,6 +59,8 @@ export default function PollsList({
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
   const [filter, setFilter] = useState<"active" | "expired">("active");
 
   const fetchPolls = async () => {
@@ -82,6 +102,38 @@ export default function PollsList({
     }
   };
 
+  const handleViewPoll = (poll: Poll) => {
+    setSelectedPoll(poll);
+    setShowDetailModal(true);
+  };
+
+  const handleVoteOption = async (optionId: string) => {
+    if (!selectedPoll) return;
+
+    try {
+      const response = await fetch(`/api/polls/${selectedPoll.id}/vote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pollId: selectedPoll.id,
+          optionId: optionId,
+          userId: userId,
+        }),
+      });
+
+      if (response.ok) {
+        handleVote(); // Refresh the polls data
+        setShowDetailModal(false); // Close modal after voting
+      } else {
+        console.error("Failed to vote");
+      }
+    } catch (error) {
+      console.error("Error voting:", error);
+    }
+  };
+
   const filteredPolls = polls.filter((poll) => {
     if (filter === "active")
       return poll.status === "active" && new Date(poll.expires_at) > new Date();
@@ -91,6 +143,186 @@ export default function PollsList({
       );
     return true;
   });
+
+  const columns = [
+    {
+      field: "title",
+      headerName: "Poll Title",
+      flex: 1,
+    },
+    {
+      field: "description",
+      headerName: "Description",
+      flex: 1,
+      renderCell: ({ row }: { row: Poll }) => (
+        <span title={row.description}>
+          {row.description || "No Description"}
+        </span>
+      ),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      renderCell: ({ row }: { row: Poll }) => {
+        const isActive = row.status === "active";
+        const isExpired = row.status === "expired";
+
+        return (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              fontSize: "0.875rem",
+              color: isActive ? "#10b981" : isExpired ? "#ef4444" : "#6b7280",
+              fontWeight: 500,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                backgroundColor: isActive
+                  ? "#10b981"
+                  : isExpired
+                  ? "#ef4444"
+                  : "#6b7280",
+                transition: "background-color 0.2s",
+              }}
+            />
+            <span>
+              {isActive ? "Active" : isExpired ? "Expired" : row.status}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      field: "expires_at",
+      headerName: "Expires At",
+      flex: 1,
+      renderCell: ({ row }: { row: Poll }) =>
+        row.expires_at
+          ? dayjs(row.expires_at).format("YYYY-MM-DD HH:mm")
+          : "No Expiry",
+    },
+    {
+      field: "created_at",
+      headerName: "Created At",
+      flex: 1,
+      renderCell: ({ row }: { row: Poll }) =>
+        dayjs(row.created_at).format("YYYY-MM-DD HH:mm"),
+    },
+    {
+      field: "total_votes",
+      headerName: "Total Votes",
+      flex: 0.6,
+      renderCell: ({ row }: { row: Poll }) => (
+        <span style={{ fontWeight: 500 }}>{row.total_votes || 0}</span>
+      ),
+    },
+    {
+      field: "user_has_voted",
+      headerName: "Your Vote",
+      flex: 0.8,
+      renderCell: ({ row }: { row: Poll }) => {
+        const hasVoted = row.user_has_voted;
+        const votedOption = row.options?.find(
+          (opt) => opt.id === row.user_voted_option_id
+        );
+
+        return (
+          <div style={{ fontSize: "0.875rem" }}>
+            {hasVoted ? (
+              <span
+                style={{
+                  color: "#10b981",
+                  fontWeight: 500,
+                  backgroundColor: "#f0fdf4",
+                  padding: "2px 8px",
+                  borderRadius: "12px",
+                  border: "1px solid #bbf7d0",
+                }}
+              >
+                {votedOption?.option_text || "Voted"}
+              </span>
+            ) : (
+              <span
+                style={{
+                  color: "#6b7280",
+                  fontStyle: "italic",
+                }}
+              >
+                Not Voted
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      field: "options",
+      headerName: "Results",
+      flex: 1,
+      renderCell: ({ row }: { row: Poll }) => {
+        const sortedOptions =
+          row.options?.sort((a, b) => b.vote_count - a.vote_count) || [];
+        const topOption = sortedOptions[0];
+
+        return (
+          <div style={{ fontSize: "0.75rem", lineHeight: "1.2" }}>
+            {sortedOptions.length > 0 ? (
+              <div>
+                <div style={{ fontWeight: 500, color: "#374151" }}>
+                  {topOption?.option_text}: {topOption?.percentage}% (
+                  {topOption?.vote_count})
+                </div>
+                {sortedOptions.length > 1 && (
+                  <div style={{ color: "#6b7280", marginTop: "2px" }}>
+                    +{sortedOptions.length - 1} more options
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span style={{ color: "#6b7280", fontStyle: "italic" }}>
+                No Options
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      field: "view",
+      headerName: "View",
+      flex: 0.5,
+      renderCell: ({ row }: { row: Poll }) => (
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => handleViewPoll(row)}
+          sx={{
+            textTransform: "none",
+            borderColor: "#1e1ee4",
+            color: "#1e1ee4",
+            fontSize: "0.75rem",
+            px: 2,
+            py: 0.5,
+            borderRadius: 1,
+            "&:hover": {
+              borderColor: "#1a1acc",
+              bgcolor: "rgba(30, 30, 228, 0.04)",
+            },
+          }}
+        >
+          View
+        </Button>
+      ),
+    },
+  ];
 
   if (loading) {
     return (
@@ -106,115 +338,89 @@ export default function PollsList({
   }
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: "1200px", mx: "auto" }}>
+    <Box height="calc(100vh - 180px)">
       {/* Header */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        spacing={2}
-        sx={{ mb: 4 }}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
       >
-        <Box>
-          <Typography 
-            variant="h4" 
-            component="h1"
-            fontWeight="bold" 
-            color="#333" 
-            sx={{ 
-              mb: 1,
-              fontSize: { xs: "1.75rem", sm: "2.125rem" }
-            }}
-          >
-            Polls
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {filter === "active"
-              ? "Active polls you can vote on"
-              : "Expired polls and results"}
-          </Typography>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          {userRole === "admin" && (
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => setShowCreateModal(true)}
+              sx={{
+                borderRadius: 1,
+                border: "1px solid #1e1ee4",
+                color: "#1e1ee4",
+              }}
+            >
+              Create Poll
+            </Button>
+          )}
         </Box>
 
-        {userRole === "admin" && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setShowCreateModal(true)}
+        {/* Filter Buttons */}
+        <Box>
+          <ToggleButtonGroup
+            value={filter}
+            exclusive
+            onChange={handleFilterChange}
             sx={{
-              bgcolor: "#1e1ee4",
-              textTransform: "none",
-              borderRadius: 2,
-              px: 3,
-              py: 1.5,
-              minWidth: "140px",
-              boxShadow: "0 2px 8px rgba(30, 30, 228, 0.3)",
-              "&:hover": { 
-                bgcolor: "#1a1acc",
-                boxShadow: "0 4px 12px rgba(30, 30, 228, 0.4)",
+              "& .MuiToggleButton-root": {
+                borderRadius: 1,
+                border: "1px solid #1e1ee4",
+                color: "#1e1ee4",
+                px: 2,
+                py: 1,
+                mb: 2,
+                "&.Mui-selected": {
+                  backgroundColor: "#1e1ee4",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "#1a1acc",
+                  },
+                },
+                "&:hover": {
+                  backgroundColor: "rgba(30, 30, 228, 0.04)",
+                },
               },
             }}
           >
-            Create Poll
-          </Button>
-        )}
-      </Stack>
-
-      {/* Filter Buttons */}
-      <Box sx={{ mb: 4 }}>
-        <ToggleButtonGroup
-          value={filter}
-          exclusive
-          onChange={handleFilterChange}
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 1,
-            "& .MuiToggleButton-root": {
-              textTransform: "none",
-              borderRadius: 2,
-              px: { xs: 2, sm: 3 },
-              py: 1.2,
-              border: "1px solid #e0e0e0",
-              color: "#666",
-              fontSize: "0.9rem",
-              fontWeight: 500,
-              transition: "all 0.2s ease",
-              "&.Mui-selected": {
-                bgcolor: "#1e1ee4",
-                color: "white",
-                borderColor: "#1e1ee4",
-                boxShadow: "0 2px 4px rgba(30, 30, 228, 0.2)",
-                "&:hover": {
-                  bgcolor: "#1a1acc",
-                },
-              },
-              "&:hover": {
-                bgcolor: "rgba(30, 30, 228, 0.04)",
-                borderColor: "#1e1ee4",
-              },
-            },
-          }}
-        >
-          <ToggleButton value="active">
-            Active Polls ({
-              polls.filter(
-                (p) =>
-                  p.status === "active" && new Date(p.expires_at) > new Date()
-              ).length
-            })
-          </ToggleButton>
-          <ToggleButton value="expired">
-            Expired Polls ({
-              polls.filter(
-                (p) =>
-                  p.status === "expired" || new Date(p.expires_at) <= new Date()
-              ).length
-            })
-          </ToggleButton>
-        </ToggleButtonGroup>
+            <ToggleButton value="active">
+              ACTIVE POLLS (
+              {
+                polls.filter(
+                  (p) =>
+                    p.status === "active" && new Date(p.expires_at) > new Date()
+                ).length
+              }
+              )
+            </ToggleButton>
+            <ToggleButton value="expired">
+              EXPIRED POLLS (
+              {
+                polls.filter(
+                  (p) =>
+                    p.status === "expired" ||
+                    new Date(p.expires_at) <= new Date()
+                ).length
+              }
+              )
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
       </Box>
-
-      {/* Polls Container */}
+      {/* Polls Table */}
       {filteredPolls.length === 0 ? (
         <Paper
           elevation={0}
@@ -227,9 +433,9 @@ export default function PollsList({
             background: "linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%)",
           }}
         >
-          <Typography 
-            variant="h6" 
-            color="text.secondary" 
+          <Typography
+            variant="h6"
+            color="text.secondary"
             sx={{ mb: 2, fontSize: { xs: "1.1rem", sm: "1.25rem" } }}
           >
             No {filter} polls found
@@ -262,34 +468,13 @@ export default function PollsList({
           )}
         </Paper>
       ) : (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-            // Alternative: masonry-style layout for larger screens
-            "@media (min-width: 900px)": {
-              display: "flex",
-              flexDirection: "row",
-              flexWrap: "wrap",
-              "& > *": {
-                flex: "1 1 calc(50% - 12px)",
-                minWidth: "350px",
-              },
-            },
-          }}
-        >
-          {filteredPolls.map((poll) => (
-            <Box key={poll.id} sx={{ width: "100%" }}>
-              <PollCard
-                poll={poll}
-                userId={userId}
-                onVote={handleVote}
-                showResults={poll.user_has_voted || filter === "expired"}
-              />
-            </Box>
-          ))}
-        </Box>
+        <CommonDataGrid
+          rows={filteredPolls}
+          columns={columns}
+          loading={loading}
+          height="calc(100vh - 160px)"
+          pageSize={20}
+        />
       )}
 
       <CreatePollModal
@@ -299,6 +484,303 @@ export default function PollsList({
         societyId={societyId}
         userId={userId}
       />
+
+      {/* Poll Detail Modal - Inline Component */}
+      <Dialog
+        open={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pb: 2,
+            borderBottom: "1px solid #e0e0e0",
+          }}
+        >
+          <Typography variant="h5" component="h2" fontWeight="bold">
+            Poll Details
+          </Typography>
+          <IconButton onClick={() => setShowDetailModal(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 3 }}>
+          {selectedPoll && (
+            <Stack spacing={3}>
+              {/* Poll Title */}
+              <Box>
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  color="#333"
+                  sx={{ mb: 1 }}
+                >
+                  {selectedPoll.title}
+                </Typography>
+                {selectedPoll.description && (
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedPoll.description}
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Status and Info */}
+              <Stack direction="row" spacing={2} flexWrap="wrap">
+                <Chip
+                  label={
+                    selectedPoll.status === "expired" ||
+                    new Date(selectedPoll.expires_at) <= new Date()
+                      ? "Expired"
+                      : "Active"
+                  }
+                  color={
+                    selectedPoll.status === "expired" ||
+                    new Date(selectedPoll.expires_at) <= new Date()
+                      ? "error"
+                      : "success"
+                  }
+                  variant="filled"
+                  size="small"
+                />
+                <Chip
+                  label={`${selectedPoll.total_votes} votes`}
+                  variant="outlined"
+                  size="small"
+                />
+                {selectedPoll.user_has_voted && (
+                  <Chip
+                    label="You voted"
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+              </Stack>
+
+              {/* Dates */}
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Created:</strong>{" "}
+                  {dayjs(selectedPoll.created_at).format(
+                    "MMMM DD, YYYY at HH:mm"
+                  )}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Expires:</strong>{" "}
+                  {dayjs(selectedPoll.expires_at).format(
+                    "MMMM DD, YYYY at HH:mm"
+                  )}
+                </Typography>
+              </Box>
+
+              <Divider />
+
+              {/* Options */}
+              <Box>
+                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+                  {selectedPoll.user_has_voted ||
+                  selectedPoll.status === "expired" ||
+                  new Date(selectedPoll.expires_at) <= new Date()
+                    ? "Results"
+                    : "Vote for an Option"}
+                </Typography>
+
+                <Stack spacing={2}>
+                  {selectedPoll.options
+                    ?.sort((a, b) => b.vote_count - a.vote_count)
+                    .map((option, index) => {
+                      const isUserChoice =
+                        option.id === selectedPoll.user_voted_option_id;
+                      const isExpired =
+                        selectedPoll.status === "expired" ||
+                        new Date(selectedPoll.expires_at) <= new Date();
+                      const canVote =
+                        !selectedPoll.user_has_voted && !isExpired;
+                      const showResults =
+                        selectedPoll.user_has_voted || isExpired;
+
+                      return (
+                        <Paper
+                          key={option.id}
+                          elevation={1}
+                          sx={{
+                            p: 2,
+                            border: isUserChoice
+                              ? "2px solid #1e1ee4"
+                              : "1px solid #e0e0e0",
+                            borderRadius: 2,
+                            bgcolor: isUserChoice
+                              ? "rgba(30, 30, 228, 0.05)"
+                              : "white",
+                            cursor: canVote ? "pointer" : "default",
+                            transition: "all 0.2s ease",
+                            "&:hover": canVote
+                              ? {
+                                  bgcolor: "rgba(30, 30, 228, 0.02)",
+                                  borderColor: "#1e1ee4",
+                                  boxShadow: "0 2px 8px rgba(30, 30, 228, 0.1)",
+                                }
+                              : {},
+                          }}
+                          onClick={() => canVote && handleVoteOption(option.id)}
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            sx={{ mb: showResults ? 1 : 0 }}
+                          >
+                            <Typography
+                              variant="body1"
+                              fontWeight={isUserChoice ? 600 : 500}
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {showResults && index === 0 && (
+                                <Chip
+                                  label="Leading"
+                                  size="small"
+                                  color="success"
+                                  variant="outlined"
+                                  sx={{ fontSize: "0.7rem", height: "20px" }}
+                                />
+                              )}
+                              {option.option_text}
+                              {isUserChoice && (
+                                <Chip
+                                  label="Your vote"
+                                  size="small"
+                                  color="primary"
+                                  variant="filled"
+                                  sx={{ fontSize: "0.7rem", height: "20px" }}
+                                />
+                              )}
+                              {canVote && (
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: "#1e1ee4",
+                                    fontSize: "0.75rem",
+                                    fontStyle: "italic",
+                                    ml: 1,
+                                  }}
+                                >
+                                  Click to vote
+                                </Typography>
+                              )}
+                            </Typography>
+
+                            {showResults && (
+                              <Typography
+                                variant="body2"
+                                fontWeight="bold"
+                                color={
+                                  index === 0 ? "#10b981" : "text.secondary"
+                                }
+                              >
+                                {option.percentage}% ({option.vote_count})
+                              </Typography>
+                            )}
+                          </Stack>
+
+                          {showResults && (
+                            <LinearProgress
+                              variant="determinate"
+                              value={option.percentage}
+                              sx={{
+                                height: 6,
+                                borderRadius: 3,
+                                bgcolor: "#f0f0f0",
+                                "& .MuiLinearProgress-bar": {
+                                  bgcolor:
+                                    index === 0
+                                      ? "#10b981"
+                                      : isUserChoice
+                                      ? "#1e1ee4"
+                                      : "#94a3b8",
+                                  borderRadius: 3,
+                                },
+                              }}
+                            />
+                          )}
+
+                          {canVote && (
+                            <Box
+                              sx={{
+                                mt: 1,
+                                pt: 1,
+                                borderTop: "1px dashed #e0e0e0",
+                              }}
+                            >
+                              <Button
+                                variant="contained"
+                                size="small"
+                                fullWidth
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVoteOption(option.id);
+                                }}
+                                sx={{
+                                  bgcolor: "#1e1ee4",
+                                  textTransform: "none",
+                                  borderRadius: 1.5,
+                                  py: 0.8,
+                                  "&:hover": {
+                                    bgcolor: "#1a1acc",
+                                  },
+                                }}
+                              >
+                                Vote for this option
+                              </Button>
+                            </Box>
+                          )}
+                        </Paper>
+                      );
+                    })}
+                </Stack>
+              </Box>
+
+              {/* Action Button */}
+              <Stack
+                direction="row"
+                spacing={2}
+                justifyContent="flex-end"
+                sx={{ pt: 2 }}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowDetailModal(false)}
+                  sx={{
+                    textTransform: "none",
+                    borderColor: "#e0e0e0",
+                    color: "#666",
+                    "&:hover": {
+                      borderColor: "#1e1ee4",
+                      bgcolor: "rgba(30, 30, 228, 0.04)",
+                    },
+                  }}
+                >
+                  Close
+                </Button>
+              </Stack>
+            </Stack>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
