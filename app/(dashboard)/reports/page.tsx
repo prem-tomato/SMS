@@ -31,7 +31,11 @@ export default function ReportsPage() {
   });
   const [reportData, setReportData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [exporting, setExporting] = useState(false);
+
+  // Separate loading states for each export format
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+
   const [societyType, setSocietyType] = useState<string>("");
   const [error, setError] = useState<string>("");
 
@@ -122,7 +126,13 @@ export default function ReportsPage() {
       return;
     }
 
-    setExporting(true);
+    // Set the appropriate loading state based on format
+    if (format === "excel") {
+      setExportingExcel(true);
+    } else {
+      setExportingPdf(true);
+    }
+
     try {
       const params = new URLSearchParams({
         type: formData.reportType,
@@ -153,7 +163,12 @@ export default function ReportsPage() {
       console.error("Error:", error);
       setError("An error occurred while exporting the report");
     } finally {
-      setExporting(false);
+      // Reset the appropriate loading state based on format
+      if (format === "excel") {
+        setExportingExcel(false);
+      } else {
+        setExportingPdf(false);
+      }
     }
   };
 
@@ -520,28 +535,28 @@ export default function ReportsPage() {
 
             <button
               onClick={() => exportReport("excel")}
-              disabled={exporting || reportData.length === 0}
+              disabled={exportingExcel || reportData.length === 0}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {exporting ? (
+              {exportingExcel ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               ) : (
                 <Download className="h-4 w-4 mr-2" />
               )}
-              Export Excel
+              {exportingExcel ? "Exporting..." : "Export Excel"}
             </button>
 
             <button
               onClick={() => exportReport("pdf")}
-              disabled={exporting || reportData.length === 0}
+              disabled={exportingPdf || reportData.length === 0}
               className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {exporting ? (
+              {exportingPdf ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               ) : (
                 <FileText className="h-4 w-4 mr-2" />
               )}
-              Export PDF
+              {exportingPdf ? "Exporting..." : "Export PDF"}
             </button>
           </div>
         </div>
