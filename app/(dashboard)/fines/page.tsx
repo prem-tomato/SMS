@@ -262,18 +262,287 @@ import {
 } from "@/lib/auth";
 import { fetchFinesBySocietyId } from "@/services/fines";
 import { fetchSocietyById } from "@/services/societies";
-import { Alert, Box, Button, Chip, Snackbar, Typography } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import {
+  Alert,
+  Backdrop,
+  Box,
+  Button,
+  Chip,
+  Fade,
+  Modal,
+  Snackbar,
+  Typography,
+} from "@mui/material";
+import { keyframes } from "@mui/system";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+
+// TypeScript interfaces
+interface PaymentAlert {
+  open: boolean;
+  message: string;
+  severity: "success" | "error";
+}
+
+interface SuccessModal {
+  open: boolean;
+  amount: number;
+  reason: string;
+}
+
+interface Fine {
+  id: string;
+  amount: number;
+  reason: string;
+  is_paid: boolean;
+  paid_at?: string;
+  building_name?: string;
+  flat_number?: string;
+  unit_number?: string;
+}
+
+interface PaymentSuccessModalProps {
+  open: boolean;
+  onClose: () => void;
+  amount: number;
+  reason: string;
+}
+
+interface ConfettiParticle {
+  id: number;
+  left: number;
+  animationDelay: number;
+  color: string;
+}
+
+// Keyframe animations
+const bounceIn = keyframes`
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+`;
+
+const confettiAnimation = keyframes`
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+`;
+
+const pulseGlow = keyframes`
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 40px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+`;
+
+// Success Modal Component
+const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
+  open,
+  onClose,
+  amount,
+  reason,
+}) => {
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (open) {
+      setShowConfetti(true);
+      // Auto close after 3 seconds
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowConfetti(false);
+    }
+  }, [open, onClose]);
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Generate confetti particles
+  const confettiParticles: ConfettiParticle[] = Array.from(
+    { length: 50 },
+    (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      animationDelay: Math.random() * 2,
+      color: ["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#ffeaa7"][
+        Math.floor(Math.random() * 5)
+      ],
+    })
+  );
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      closeAfterTransition
+      BackdropComponent={Backdrop}
+      BackdropProps={{
+        timeout: 500,
+        sx: { backgroundColor: "rgba(0, 0, 0, 0.8)" },
+      }}
+    >
+      <Fade in={open}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: { xs: 300, sm: 400 },
+            bgcolor: "background.paper",
+            borderRadius: 3,
+            boxShadow: 24,
+            p: 4,
+            textAlign: "center",
+            outline: "none",
+          }}
+        >
+          {/* Confetti */}
+          {showConfetti && (
+            <Box
+              sx={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none",
+                zIndex: 1000,
+              }}
+            >
+              {confettiParticles.map((particle: ConfettiParticle) => (
+                <Box
+                  key={particle.id}
+                  sx={{
+                    position: "absolute",
+                    left: `${particle.left}%`,
+                    width: "10px",
+                    height: "10px",
+                    backgroundColor: particle.color,
+                    animation: `${confettiAnimation} 3s ease-out forwards`,
+                    animationDelay: `${particle.animationDelay}s`,
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+
+          {/* Success Icon */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 2,
+            }}
+          >
+            <CheckCircleIcon
+              sx={{
+                fontSize: 80,
+                color: "#4caf50",
+                animation: `${bounceIn} 0.6s ease-out, ${pulseGlow} 2s infinite`,
+              }}
+            />
+          </Box>
+
+          {/* Success Text */}
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "bold",
+              color: "#4caf50",
+              mb: 1,
+              animation: `${bounceIn} 0.8s ease-out 0.2s both`,
+            }}
+          >
+            Payment Successful!
+          </Typography>
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "medium",
+              mb: 1,
+              animation: `${bounceIn} 0.8s ease-out 0.4s both`,
+            }}
+          >
+            {formatCurrency(amount)}
+          </Typography>
+
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{
+              mb: 3,
+              animation: `${bounceIn} 0.8s ease-out 0.6s both`,
+            }}
+          >
+            {reason}
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+              animation: `${bounceIn} 0.8s ease-out 0.8s both`,
+            }}
+          >
+            <CheckCircleIcon sx={{ color: "#4caf50", fontSize: 20 }} />
+            <Typography variant="body2" color="text.secondary">
+              Transaction completed successfully
+            </Typography>
+          </Box>
+        </Box>
+      </Fade>
+    </Modal>
+  );
+};
 
 export default function Fines() {
   const [societyId, setSocietyId] = useState<string>("");
   const [societyType, setSocietyType] = useState<string>("");
-  const [paymentAlert, setPaymentAlert] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({ open: false, message: "", severity: "success" });
+  const [paymentAlert, setPaymentAlert] = useState<PaymentAlert>({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  // Success modal state
+  const [successModal, setSuccessModal] = useState<SuccessModal>({
+    open: false,
+    amount: 0,
+    reason: "",
+  });
 
   // Track loading state for individual fines
   const [loadingFines, setLoadingFines] = useState<Set<string>>(new Set());
@@ -302,7 +571,7 @@ export default function Fines() {
     enabled: !!societyId,
   });
 
-  const handlePayment = async (fine: any) => {
+  const handlePayment = async (fine: Fine) => {
     // Add this fine to loading set
     setLoadingFines((prev) => new Set(prev).add(fine.id));
 
@@ -314,15 +583,24 @@ export default function Fines() {
         society_id: societyId,
         society_type: societyInfo!.society_type,
         onSuccess: () => {
+          // Show success modal with animation
+          setSuccessModal({
+            open: true,
+            amount: fine.amount,
+            reason: fine.reason,
+          });
+
+          // Also show the snackbar (optional, you can remove this if you prefer only the modal)
           setPaymentAlert({
             open: true,
             message: "Payment completed successfully!",
             severity: "success",
           });
+
           // Refresh the fines data
           queryClient.invalidateQueries({ queryKey: ["fines", societyId] });
         },
-        onFailure: (error) => {
+        onFailure: (error: any) => {
           setPaymentAlert({
             open: true,
             message: "Payment failed. Please try again.",
@@ -345,8 +623,12 @@ export default function Fines() {
     setPaymentAlert((prev) => ({ ...prev, open: false }));
   };
 
+  const handleCloseSuccessModal = () => {
+    setSuccessModal({ open: false, amount: 0, reason: "" });
+  };
+
   // Format currency
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
@@ -356,7 +638,7 @@ export default function Fines() {
   };
 
   // Format date
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string): string => {
     if (!dateString) return "Not Paid";
     return new Date(dateString).toLocaleDateString("en-IN", {
       year: "numeric",
@@ -502,6 +784,14 @@ export default function Fines() {
         loading={loadingFinesData}
         height="calc(100vh - 110px)"
         pageSize={20}
+      />
+
+      {/* Payment Success Modal with Animation */}
+      <PaymentSuccessModal
+        open={successModal.open}
+        onClose={handleCloseSuccessModal}
+        amount={successModal.amount}
+        reason={successModal.reason}
       />
 
       {/* Payment Status Snackbar */}

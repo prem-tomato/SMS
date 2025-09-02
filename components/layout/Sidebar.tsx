@@ -31,7 +31,7 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material";
-import { VoteIcon } from "lucide-react";
+import { BookMarkedIcon, VoteIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -202,11 +202,6 @@ export default function Sidebar() {
       path: "/notices",
     },
     {
-      label: "Polls",
-      icon: <VoteIcon />,
-      path: "/polls",
-    },
-    {
       label: "Login History",
       icon: <LoginOutlined />,
       path: "/login-history",
@@ -242,6 +237,7 @@ export default function Sidebar() {
           ...commonItems,
           ...adminItems,
           { label: "Polls", icon: <VoteIcon />, path: "/polls" },
+          { label: "Reports", icon: <BookMarkedIcon />, path: "/reports" },
         ]
       : role === "member"
       ? [
