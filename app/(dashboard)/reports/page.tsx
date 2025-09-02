@@ -1,7 +1,10 @@
 // app/reports/page.tsx
 "use client";
 
-import { getSocietyIdFromLocalStorage } from "@/lib/auth";
+import {
+  getSocietyIdFromLocalStorage,
+  getSocietyTypeFromLocalStorage,
+} from "@/lib/auth";
 import {
   AlertCircle,
   Calendar,
@@ -10,7 +13,7 @@ import {
   Filter,
   Search,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface ReportFormData {
   reportType: string;
@@ -29,14 +32,20 @@ export default function ReportsPage() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [societyType, setSocietyType] = useState<string>("");
   const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    setSocietyType(getSocietyTypeFromLocalStorage()!);
+  }, []);
 
   const reportTypes = [
     { value: "member_maintenances", label: "Member Maintenances" },
     { value: "income", label: "Income Tracking" },
     { value: "expense", label: "Expense Tracking" },
-    { value: "flat_penalties", label: "Flat Penalties" },
-    { value: "unit_penalties", label: "Unit Penalties" },
+    ...(societyType !== "housing"
+      ? [{ value: "flat_penalties", label: "Flat Penalties" }]
+      : [{ value: "unit_penalties", label: "Unit Penalties" }]),
   ];
 
   const handleInputChange = (

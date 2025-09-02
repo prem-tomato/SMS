@@ -1,8 +1,7 @@
 // app/api/reports/export/route.ts
 import { query } from "@/db/database-connect";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { NextRequest, NextResponse } from "next/server";
+import puppeteer from "puppeteer";
 import * as XLSX from "xlsx";
 
 // Types for better TypeScript support
@@ -135,7 +134,7 @@ async function fetchReportData(
         AND up.created_at >= $2::date
         AND up.created_at <= $3::date
         AND up.is_deleted = false
-        ORDER BY up.created_at DESC
+        ORDER up.created_at DESC
       `;
       break;
 
@@ -147,161 +146,412 @@ async function fetchReportData(
   return result.rows;
 }
 
-function generatePDFReport(
+function generateHTMLForPDF(
   reportType: string,
   data: ReportData[],
   startDate: string,
   endDate: string
-): jsPDF {
-  const doc = new jsPDF();
-
-  // Modern header with Smart Manager branding
-  doc.setFillColor(30, 41, 59); // Slate-800
-  doc.rect(0, 0, 210, 35, "F");
-
-  // Smart Manager logo/title
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
-  doc.setFont("bold");
-  doc.text("Smart Manager", 20, 18);
-
-  // Report type subtitle
-  doc.setFontSize(10);
-  doc.setFont("normal");
-  doc.text(`${reportType.replace(/_/g, " ").toUpperCase()} REPORT`, 20, 26);
-
-  // Date info aligned right
-  doc.setFontSize(8);
-  doc.text(`${startDate} - ${endDate}`, 210 - 20, 18, { align: "right" });
-  doc.text(
-    `Generated: ${new Date().toLocaleDateString("en-IN")}`,
-    210 - 20,
-    26,
-    { align: "right" }
-  );
-
-  // Reset text color for content
-  doc.setTextColor(0, 0, 0);
-
+): string {
   // Prepare table data based on report type
   let headers: string[] = [];
-  let tableData: any[][] = [];
+  let tableRows: string[] = [];
 
   switch (reportType) {
     case "member_maintenances":
       headers = ["Member Name", "Unit", "Month", "Amount", "Status", "Phone"];
-      tableData = data.map((row) => [
-        row.member_name || "",
-        row.unit_number || "",
-        new Date(row.month_year).toLocaleDateString("en-IN"),
-        `Rs. ${Number(row.maintenance_amount).toLocaleString("en-IN")}`,
-        row.maintenance_paid ? "PAID" : "PENDING",
-        row.phone || "",
-      ]);
+      tableRows = data.map(
+        (row) => `
+        <tr>
+          <td>${row.member_name || ""}</td>
+          <td>${row.unit_number || ""}</td>
+          <td>${new Date(row.month_year).toLocaleDateString("en-IN")}</td>
+          <td>₹${Number(row.maintenance_amount).toLocaleString("en-IN")}</td>
+          <td><span class="status ${
+            row.maintenance_paid ? "paid" : "pending"
+          }">${row.maintenance_paid ? "PAID" : "PENDING"}</span></td>
+          <td>${row.phone || ""}</td>
+        </tr>
+      `
+      );
       break;
 
     case "income":
       headers = ["Type", "Reason", "Amount", "Period", "Created By"];
-      tableData = data.map((row) => [
-        row.income_type || "",
-        row.income_reason || "",
-        `₹${Number(row.income_amount).toLocaleString("en-IN")}`,
-        `${row.income_month}/${row.income_year}`,
-        row.created_by || "",
-      ]);
+      tableRows = data.map(
+        (row) => `
+        <tr>
+          <td>${row.income_type || ""}</td>
+          <td>${row.income_reason || ""}</td>
+          <td>₹${Number(row.income_amount).toLocaleString("en-IN")}</td>
+          <td>${row.income_month}/${row.income_year}</td>
+          <td>${row.created_by || ""}</td>
+        </tr>
+      `
+      );
       break;
 
     case "expense":
       headers = ["Type", "Reason", "Amount", "Period", "Created By"];
-      tableData = data.map((row) => [
-        row.expense_type || "",
-        row.expense_reason || "",
-        `₹${Number(row.expense_amount).toLocaleString("en-IN")}`,
-        `${row.expense_month}/${row.expense_year}`,
-        row.created_by || "",
-      ]);
+      tableRows = data.map(
+        (row) => `
+        <tr>
+          <td>${row.expense_type || ""}</td>
+          <td>${row.expense_reason || ""}</td>
+          <td>₹${Number(row.expense_amount).toLocaleString("en-IN")}</td>
+          <td>${row.expense_month}/${row.expense_year}</td>
+          <td>${row.created_by || ""}</td>
+        </tr>
+      `
+      );
       break;
 
     case "flat_penalties":
     case "unit_penalties":
       headers = ["Member", "Unit", "Amount", "Reason", "Status", "Phone"];
-      tableData = data.map((row) => [
-        row.member_name || "",
-        row.unit_number || row.flat_number || "",
-        `₹${Number(row.amount).toLocaleString("en-IN")}`,
-        row.reason || "",
-        row.is_paid ? "✓ Paid" : "⏳ Pending",
-        row.phone || "",
-      ]);
+      tableRows = data.map(
+        (row) => `
+        <tr>
+          <td>${row.member_name || ""}</td>
+          <td>${row.unit_number || row.flat_number || ""}</td>
+          <td>₹${Number(row.amount).toLocaleString("en-IN")}</td>
+          <td>${row.reason || ""}</td>
+          <td><span class="status ${row.is_paid ? "paid" : "pending"}">${
+          row.is_paid ? "PAID" : "PENDING"
+        }</span></td>
+          <td>${row.phone || ""}</td>
+        </tr>
+      `
+      );
       break;
   }
 
-  // Generate clean, modern table using autoTable
-  autoTable(doc, {
-    head: [headers],
-    body: tableData,
-    startY: 45,
-    styles: {
-      fontSize: 9,
-      cellPadding: { top: 8, right: 6, bottom: 8, left: 6 },
-      lineColor: [226, 232, 240], // Gray-200
-      lineWidth: 0.5,
-      textColor: [51, 65, 85], // Slate-700
-      font: "helvetica",
-    },
-    headStyles: {
-      fillColor: [248, 250, 252], // Gray-50
-      textColor: [30, 41, 59], // Slate-800
-      fontStyle: "bold",
-      fontSize: 10,
-      cellPadding: { top: 10, right: 6, bottom: 10, left: 6 },
-    },
-    bodyStyles: {
-      fillColor: [255, 255, 255], // White
-    },
-    alternateRowStyles: {
-      fillColor: [249, 250, 251], // Gray-50
-    },
-    columnStyles: {
-      // Style the status column (assuming it's usually the 5th column for most reports)
-      4: {
-        fontStyle: "bold",
-        fontSize: 8,
-      },
-    },
-    didParseCell: function (data) {
-      // Color code status cells
-      if (data.cell.text && data.cell.text.length > 0) {
-        const cellText = data.cell.text[0];
-        if (cellText === "PAID") {
-          data.cell.styles.textColor = [34, 197, 94]; // Green-500
-          data.cell.styles.fillColor = [240, 253, 244]; // Green-50
-        } else if (cellText === "PENDING") {
-          data.cell.styles.textColor = [234, 179, 8]; // Yellow-600
-          data.cell.styles.fillColor = [254, 252, 232]; // Yellow-50
-        }
-      }
-    },
-    margin: { top: 45, left: 15, right: 15, bottom: 20 },
-    tableLineColor: [226, 232, 240],
-    tableLineWidth: 0.5,
-    didDrawPage: function (data) {
-      // Minimal footer
-      const pageCount = doc.getNumberOfPages();
-      doc.setFontSize(8);
-      doc.setTextColor(156, 163, 175); // Gray-400
-      doc.text(`${data.pageNumber} / ${pageCount}`, 210 - 20, 297 - 10, {
-        align: "right",
-      });
+  const headerCells = headers.map((header) => `<th>${header}</th>`).join("");
+  const tableBody = tableRows.join("");
 
-      // Subtle brand line at bottom
-      doc.setDrawColor(226, 232, 240);
-      doc.setLineWidth(0.5);
-      doc.line(15, 297 - 15, 210 - 15, 297 - 15);
-    },
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Smart Manager Report</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-size: 12px;
+          line-height: 1.4;
+          color: #2D3748;
+          background: #FFFFFF;
+        }
+
+        .container {
+          max-width: 100%;
+          margin: 0 auto;
+          padding: 0;
+        }
+
+        .header {
+          background: linear-gradient(135deg, #1E1EE4 0%, #2563EB 100%);
+          padding: 32px 40px;
+          color: white;
+          margin-bottom: 40px;
+        }
+
+        .header-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .brand {
+          font-size: 28px;
+          font-weight: 700;
+          letter-spacing: -0.5px;
+        }
+
+        .report-title {
+          font-size: 14px;
+          font-weight: 500;
+          opacity: 0.9;
+          margin-top: 4px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .date-info {
+          text-align: right;
+          font-size: 12px;
+          opacity: 0.9;
+        }
+
+        .date-range {
+          font-weight: 600;
+          margin-bottom: 4px;
+        }
+
+        .generated-date {
+          font-size: 11px;
+          opacity: 0.7;
+        }
+
+        .content {
+          padding: 0 40px 40px;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
+          margin-bottom: 32px;
+        }
+
+        .stat-card {
+          background: #F8FAFC;
+          border: 1px solid #E2E8F0;
+          border-radius: 8px;
+          padding: 20px;
+          text-align: center;
+        }
+
+        .stat-number {
+          font-size: 24px;
+          font-weight: 700;
+          color: #1E1EE4;
+          margin-bottom: 4px;
+        }
+
+        .stat-label {
+          font-size: 11px;
+          color: #64748B;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .table-container {
+          background: #FFFFFF;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid #E2E8F0;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 11px;
+        }
+
+        th {
+          background: #F8FAFC;
+          color: #374151;
+          font-weight: 600;
+          padding: 16px 12px;
+          text-align: left;
+          border-bottom: 2px solid #E2E8F0;
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        td {
+          padding: 14px 12px;
+          border-bottom: 1px solid #F1F5F9;
+          color: #374151;
+        }
+
+        tr:hover {
+          background: #F8FAFC;
+        }
+
+        tr:last-child td {
+          border-bottom: none;
+        }
+
+        .status {
+          padding: 4px 8px;
+          border-radius: 12px;
+          font-size: 9px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .status.paid {
+          background: #ECFDF5;
+          color: #059669;
+        }
+
+        .status.pending {
+          background: #FEF3C7;
+          color: #D97706;
+        }
+
+        .footer {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #E2E8F0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 10px;
+          color: #9CA3AF;
+        }
+
+        .footer-brand {
+          font-weight: 600;
+        }
+
+        .page-break {
+          page-break-after: always;
+        }
+
+        @media print {
+          .header {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          .status.paid,
+          .status.pending {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="header-content">
+            <div>
+              <div class="brand">Smart Manager</div>
+              <div class="report-title">${reportType.replace(
+                /_/g,
+                " "
+              )} Report</div>
+            </div>
+            <div class="date-info">
+              <div class="date-range">${startDate} - ${endDate}</div>
+              <div class="generated-date">Generated ${new Date().toLocaleDateString(
+                "en-IN"
+              )}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number">${data.length}</div>
+              <div class="stat-label">Total Records</div>
+            </div>
+            ${
+              reportType.includes("penalties")
+                ? `
+              <div class="stat-card">
+                <div class="stat-number">${
+                  data.filter((row) => row.is_paid).length
+                }</div>
+                <div class="stat-label">Paid</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">${
+                  data.filter((row) => !row.is_paid).length
+                }</div>
+                <div class="stat-label">Pending</div>
+              </div>
+            `
+                : reportType === "member_maintenances"
+                ? `
+              <div class="stat-card">
+                <div class="stat-number">${
+                  data.filter((row) => row.maintenance_paid).length
+                }</div>
+                <div class="stat-label">Paid</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">${
+                  data.filter((row) => !row.maintenance_paid).length
+                }</div>
+                <div class="stat-label">Pending</div>
+              </div>
+            `
+                : `
+              <div class="stat-card">
+                <div class="stat-number">₹${data
+                  .reduce(
+                    (sum, row) =>
+                      sum +
+                      Number(
+                        row[
+                          reportType === "income"
+                            ? "income_amount"
+                            : "expense_amount"
+                        ] || 0
+                      ),
+                    0
+                  )
+                  .toLocaleString("en-IN")}</div>
+                <div class="stat-label">Total Amount</div>
+              </div>
+            `
+            }
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>${headerCells}</tr>
+              </thead>
+              <tbody>
+                ${tableBody}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="footer">
+            <div class="footer-brand">Smart Manager</div>
+            <div>Confidential Report</div>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+async function generatePDFWithPuppeteer(html: string): Promise<Buffer> {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
-  return doc;
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      margin: {
+        top: "0mm",
+        right: "0mm",
+        bottom: "0mm",
+        left: "0mm",
+      },
+      printBackground: true,
+      preferCSSPageSize: true,
+    });
+
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await browser.close();
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -328,9 +578,7 @@ export async function GET(request: NextRequest) {
     );
 
     if (format === "excel") {
-      // Create enhanced Excel file with Smart Manager branding
-
-      // Prepare data with better formatting
+      // Excel generation remains the same as in original code
       let excelData: ExcelRowData[] = [];
       let headers: string[] = [];
 
@@ -409,10 +657,7 @@ export async function GET(request: NextRequest) {
           break;
       }
 
-      // Create workbook with metadata
       const workbook = XLSX.utils.book_new();
-
-      // Add metadata
       workbook.Props = {
         Title: `${reportType.replace(/_/g, " ").toUpperCase()} Report`,
         Subject: `Smart Manager Report - ${startDate} to ${endDate}`,
@@ -420,13 +665,12 @@ export async function GET(request: NextRequest) {
         CreatedDate: new Date(),
       };
 
-      // Create worksheet with title rows
       const wsData = [
         ["Smart Manager"],
         [`${reportType.replace(/_/g, " ").toUpperCase()} REPORT`],
         [`Period: ${startDate} to ${endDate}`],
         [`Generated: ${new Date().toLocaleDateString("en-IN")}`],
-        [], // Empty row
+        [],
         headers,
         ...excelData.map((row) =>
           headers.map((header) => row[header as keyof typeof row])
@@ -434,23 +678,16 @@ export async function GET(request: NextRequest) {
       ];
 
       const worksheet = XLSX.utils.aoa_to_sheet(wsData);
-
-      // Style the worksheet
-      const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
-
-      // Set column widths
       const colWidths = headers.map(() => ({ wch: 20 }));
       worksheet["!cols"] = colWidths;
 
-      // Merge title cells and add some basic styling info
       if (!worksheet["!merges"]) worksheet["!merges"] = [];
       worksheet["!merges"].push(
-        { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }, // Smart Manager
-        { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } } // Report title
+        { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } }
       );
 
       XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-
       const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
       return new NextResponse(buffer, {
@@ -461,9 +698,9 @@ export async function GET(request: NextRequest) {
         },
       });
     } else if (format === "pdf") {
-      // Generate PDF using jsPDF
-      const doc = generatePDFReport(reportType, data, startDate, endDate);
-      const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
+      // Generate PDF using Puppeteer
+      const html = generateHTMLForPDF(reportType, data, startDate, endDate);
+      const pdfBuffer = await generatePDFWithPuppeteer(html);
 
       return new NextResponse(pdfBuffer, {
         headers: {
