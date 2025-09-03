@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      key: process.env.RAZORPAY_KEY_ID,
+      key: config?.razorpay_key_id,
     });
   } catch (error) {
     console.error("Error creating Razorpay order:", error);

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     // Verify signature
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+      .createHmac("sha256", razorpay_key_secret)
       .update(sign.toString())
       .digest("hex");
 
