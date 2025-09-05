@@ -115,7 +115,7 @@ export const listMemberMaintenances = async (
 ): Promise<GetMemberMaintenance[]> => {
   try {
     const queryText = `
-        WITH latest_payments AS (
+    WITH latest_payments AS (
           SELECT 
             rp.*,
             ROW_NUMBER() OVER (
@@ -125,7 +125,21 @@ export const listMemberMaintenances = async (
           FROM razorpay_payments rp
         )
         SELECT 
-          mmmd.*,
+          mmmd.id,
+          mmmd.society_id,
+          mmmd.building_id,
+          mmmd.flat_id,
+          mmmd.member_ids,
+          TO_CHAR(mmmd.month_year::date, 'YYYY-MM-DD') AS month_year,
+          mmmd.maintenance_amount,
+          mmmd.maintenance_paid,
+          mmmd.maintenance_paid_at,
+          mmmd.created_at,
+          mmmd.created_by,
+          mmmd.updated_at,
+          mmmd.updated_by,
+          mmmd.housing_id,
+          mmmd.razorpay_payment_id,
           s.name as society_name,
           json_agg(
             DISTINCT concat(u.first_name, ' ', u.last_name)
