@@ -682,28 +682,18 @@ export default function SocietyProLanding() {
               <h3 className="font-semibold mb-4">Support</h3>
               <div className="space-y-2">
                 <a
-                  href="#"
+                  href="/termsandconditions"
+                  target="_blank"
                   className="block text-gray-400 hover:text-white transition-colors"
                 >
-                  Help Center
+                  Terms & Conditions
                 </a>
                 <a
-                  href="#"
+                  href="/privacypolicy"
+                  target="_blank"
                   className="block text-gray-400 hover:text-white transition-colors"
                 >
-                  Contact Us
-                </a>
-                <a
-                  href="#"
-                  className="block text-gray-400 hover:text-white transition-colors"
-                >
-                  Training
-                </a>
-                <a
-                  href="#"
-                  className="block text-gray-400 hover:text-white transition-colors"
-                >
-                  Status
+                  Privacy Policy
                 </a>
               </div>
             </div>
