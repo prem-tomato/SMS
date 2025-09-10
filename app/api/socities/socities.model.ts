@@ -813,7 +813,7 @@ export const getBuildingsBySociety = async (
       FROM buildings b
       LEFT JOIN societies s ON s.id = b.society_id
       LEFT JOIN users u ON u.id = b.created_by
-      WHERE b.society_id = $1
+      WHERE b.society_id = $1 AND b.is_deleted = false
     `;
 
     const res: QueryResult<BuildingResponseForSociety> =

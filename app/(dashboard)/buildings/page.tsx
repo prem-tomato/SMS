@@ -5,12 +5,17 @@ import CommonDataGrid from "@/components/common/CommonDataGrid";
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
   createBuilding,
+  deleteBuilding,
   fetchBuildingBySocietyForAdmin,
   fetchBuildings,
+  updateBuilding,
 } from "@/services/building";
 import { fetchSocietyOptionsForFlat } from "@/services/societies";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import WarningIcon from "@mui/icons-material/Warning";
 import {
   Box,
   Button,
@@ -20,7 +25,9 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  IconButton,
   InputLabel,
+  Menu,
   MenuItem,
   Select,
   TextField,
@@ -30,6 +37,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import { z } from "zod";
 
 // Zod Schemas
@@ -57,6 +65,17 @@ export default function BuildingsPage() {
 
   const [role, setRole] = useState<string | null>(null);
   const [adminSocietyId, setAdminSocietyId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [editBuilding, setEditBuilding] = useState<any | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(
+    null
+  );
+
+  // Delete confirmation dialog states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [buildingToDelete, setBuildingToDelete] = useState<any | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null); // ✅ New state for error in dialog
 
   useEffect(() => {
     setRole(getUserRole());
@@ -79,13 +98,12 @@ export default function BuildingsPage() {
     queryFn: fetchSocietyOptionsForFlat,
   });
 
-  const [open, setOpen] = useState(false);
-
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
+    setValue,
   } = useForm<FormValues>({
     resolver: zodResolver(inputSchema),
     defaultValues: {
@@ -95,7 +113,7 @@ export default function BuildingsPage() {
     },
   });
 
-  const mutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: (data: OutputValues) =>
       createBuilding(data.society_id, {
         name: data.name,
@@ -103,16 +121,153 @@ export default function BuildingsPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["buildings"] });
+      toast.success(
+        t("buildingCreatedSuccessfully") || "Building created successfully!"
+      );
       setOpen(false);
       reset();
+    },
+    onError: (error: any) => {
+      let errorMessage = "Failed to create building";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: OutputValues) =>
+      updateBuilding(data.society_id, editBuilding.id, {
+        name: data.name,
+        total_floors: data.total_floors,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["buildings"] });
+      toast.success(
+        t("buildingUpdatedSuccessfully") || "Building updated successfully!"
+      );
+      setOpen(false);
+      setEditBuilding(null);
+      reset();
+    },
+    onError: (error: any) => {
+      let errorMessage = "Failed to update building";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: ({
+      societyId,
+      buildingId,
+    }: {
+      societyId: string;
+      buildingId: string;
+    }) => deleteBuilding(societyId, buildingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["buildings"] });
+      toast.success(
+        t("buildingDeletedSuccessfully") || "Building deleted successfully!"
+      );
+      setDeleteConfirmOpen(false);
+      setBuildingToDelete(null);
+      setDeleteError(null); // Clear error on success
+    },
+    onError: (error: any) => {
+      console.log("Delete error:", error);
+
+      let errorMessage = "Failed to delete building";
+
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      // Handle flats association error
+      if (
+        errorMessage.includes(
+          "Building cannot be deleted because it has associated flats"
+        ) ||
+        errorMessage.includes("associated flats")
+      ) {
+        errorMessage =
+          t("cannotDeleteBuildingWithFlats") ||
+          "Cannot delete building because it has associated flats. Please remove all flats first.";
+      }
+
+      // ✅ SET ERROR IN DIALOG — DO NOT USE TOAST
+      setDeleteError(errorMessage);
+
+      // ❌ DO NOT close dialog or clear buildingToDelete
+      // User should see error and close manually
     },
   });
 
   const onSubmit = (data: FormValues) => {
     const result = outputSchema.safeParse(data);
     if (result.success) {
-      mutation.mutate(result.data);
+      if (editBuilding) {
+        updateMutation.mutate(result.data);
+      } else {
+        createMutation.mutate(result.data);
+      }
     }
+  };
+
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    building: any
+  ) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedBuildingId(building.id);
+    setEditBuilding(building);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedBuildingId(null);
+  };
+
+  const handleEdit = () => {
+    if (editBuilding) {
+      setValue("society_id", editBuilding.society_id || adminSocietyId || "");
+      setValue("name", editBuilding.name);
+      setValue("total_floors", editBuilding.total_floors.toString());
+      setOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleDeleteClick = () => {
+    if (editBuilding) {
+      setBuildingToDelete(editBuilding);
+      setDeleteError(null); // ✅ Clear error when opening for new building
+      setDeleteConfirmOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleConfirmDelete = () => {
+    setDeleteError(null); // ✅ Clear previous error before new attempt
+    if (buildingToDelete && adminSocietyId) {
+      deleteMutation.mutate({
+        societyId: adminSocietyId,
+        buildingId: buildingToDelete.id,
+      });
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmOpen(false);
+    setBuildingToDelete(null);
+    setDeleteError(null); // ✅ Clear error on cancel
   };
 
   const columns = useMemo(
@@ -135,8 +290,34 @@ export default function BuildingsPage() {
           />
         ),
       },
+      {
+        field: "actions",
+        headerName: t("actions"),
+        width: 100,
+        renderCell: (params: any) => (
+          <>
+            <IconButton onClick={(event) => handleMenuOpen(event, params.row)}>
+              <MoreVertIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl) && selectedBuildingId === params.row.id}
+              onClose={handleMenuClose}
+              PaperProps={{ sx: { minWidth: 120 } }}
+            >
+              <MenuItem onClick={handleEdit}>{t("edit")}</MenuItem>
+              <MenuItem
+                onClick={handleDeleteClick}
+                sx={{ color: "error.main" }}
+              >
+                {t("delete")}
+              </MenuItem>
+            </Menu>
+          </>
+        ),
+      },
     ],
-    [role, t]
+    [role, t, anchorEl, selectedBuildingId]
   );
 
   const handleOpen = () => {
@@ -145,11 +326,13 @@ export default function BuildingsPage() {
     } else {
       reset({ society_id: "", name: "", total_floors: "" });
     }
+    setEditBuilding(null);
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
+    setEditBuilding(null);
     reset();
   };
 
@@ -181,11 +364,11 @@ export default function BuildingsPage() {
         rows={buildings}
         columns={columns}
         loading={loadingBuildings}
-        height="calc(100vh - 180px)" // Adjust based on header/toolbar height
+        height="calc(100vh - 180px)"
         pageSize={20}
       />
 
-      {/* Add Building Dialog */}
+      {/* Add/Edit Building Dialog */}
       <Dialog
         open={open}
         onClose={handleClose}
@@ -195,7 +378,7 @@ export default function BuildingsPage() {
       >
         <DialogTitle sx={{ pb: 2 }}>
           <Typography variant="h6" fontWeight="bold">
-            {t("addNewBuilding")}
+            {editBuilding ? t("editBuilding") : t("addNewBuilding")}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {t("fillDetails")}
@@ -297,7 +480,7 @@ export default function BuildingsPage() {
           <DialogActions sx={{ p: 3, pt: 1 }}>
             <Button
               onClick={handleClose}
-              disabled={mutation.isPending}
+              disabled={createMutation.isPending || updateMutation.isPending}
               sx={{ textTransform: "none" }}
             >
               {t("cancel")}
@@ -305,13 +488,117 @@ export default function BuildingsPage() {
             <CommonButton
               type="submit"
               variant="contained"
-              loading={mutation.isPending}
+              loading={createMutation.isPending || updateMutation.isPending}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              {t("saveBuilding")}
+              {editBuilding ? t("updateBuilding") : t("saveBuilding")}
             </CommonButton>
           </DialogActions>
         </Box>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle
+          sx={{ display: "flex", alignItems: "center", gap: 2, pb: 2 }}
+        >
+          <WarningIcon color="warning" />
+          <Typography variant="h6" fontWeight="bold">
+            {t("confirmDelete") || "Confirm Delete"}
+          </Typography>
+        </DialogTitle>
+
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            {t("deleteConfirmationMessage") ||
+              "Are you sure you want to delete this building?"}
+          </Typography>
+
+          {buildingToDelete && (
+            <Box
+              sx={{
+                bgcolor: "grey.50",
+                p: 2,
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "grey.200",
+                mb: 2,
+              }}
+            >
+              <Typography variant="subtitle2" color="text.secondary">
+                {t("buildingName")}:
+              </Typography>
+              <Typography variant="body1" fontWeight="medium">
+                {buildingToDelete.name}
+              </Typography>
+
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={{ mt: 1 }}
+              >
+                {t("totalFloors")}:
+              </Typography>
+              <Typography variant="body1" fontWeight="medium">
+                {buildingToDelete.total_floors}
+              </Typography>
+            </Box>
+          )}
+
+          <Typography
+            variant="body2"
+            color="warning.main"
+            sx={{ mt: 2, fontStyle: "italic" }}
+          >
+            {t("deleteWarning") || "This action cannot be undone."}
+          </Typography>
+
+          {/* ✅ Show error in dialog if exists */}
+          {deleteError && (
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                color: "error.dark",
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "error.main",
+              }}
+            >
+              <Typography variant="body2" fontWeight="medium">
+                {deleteError}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            onClick={handleCancelDelete}
+            disabled={deleteMutation.isPending}
+            sx={{ textTransform: "none" }}
+          >
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            disabled={deleteMutation.isPending || !!deleteError} // ✅ Disable if error shown
+            startIcon={deleteMutation.isPending ? null : <DeleteIcon />}
+            sx={{ textTransform: "none" }}
+          >
+            {deleteMutation.isPending
+              ? t("deleting") || "Deleting..."
+              : t("delete") || "Delete"}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

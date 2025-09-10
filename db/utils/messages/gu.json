@@ -144,7 +144,17 @@
     "cancel": "રદ્દ કરો",
     "saveBuilding": "બિલ્ડિંગ સાચવો",
     "buildingNamePlaceholder": "જેમ કે, A Wing",
-    "totalFloorsPlaceholder": "જેમ કે, 10"
+    "totalFloorsPlaceholder": "જેમ કે, 10",
+    "actions": "ક્રિયાઓ",
+    "edit": "સંપાદિત કરો",
+    "delete": "કાઢી નાખો",
+    "editBuilding": "ઈમારત સંપાદિત કરો",
+    "updateBuilding": "ઈમારત સુધારો",
+    "confirmDelete": "કાઢી નાખવાનું ખાતરી કરો",
+    "deleteConfirmation": "શું તમે ખરેખર ઈમારત '{name}' કાઢી નાખવા માંગો છો? આ ક્રિયા પાછી ફેરવી શકાશે નહીં.",
+    "deleteConfirmationMessage": "શું તમે ખરેખર ઈમારત '{name}' કાઢી નાખવા માંગો છો? આ ક્રિયા પાછી ફેરવી શકાશે નહીં.",
+    "cannotDeleteBuildingWithFlats": "ઈમારત કાઢી શકાય નહીં કારણ કે તે ફ્લેટ્સ સાથે સંકળાયેલી છે.",
+    "deleteWarning": "આ ક્રિયા પાછી ફેરવી શકાશે નહીં."
   },
   "FlatsPage": {
     "columns": {

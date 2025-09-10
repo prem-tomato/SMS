@@ -60,5 +60,7 @@
   "RAZORPAY_CONFIG_RETRIEVED_SUCCESSFULLY": "razor pay config retrieved successfully",
   "RAZORPAY_CONFIG_NOT_FOUND": "razor pay config not found",
   "SOCIETY_KEY_MISMATCH": "society key mismatch",
-  "UNAUTHORIZED_ACCESS": "unauthorized access"
+  "UNAUTHORIZED_ACCESS": "unauthorized access",
+  "BUILDING_UPDATED_SUCCESSFULLY": "building updated successfully",
+  "BUILDING_DELETED_SUCCESSFULLY": "building deleted successfully"
 }

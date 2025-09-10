@@ -18,18 +18,17 @@ export async function createBuilding(
 ) {
   const token = getAccessToken();
   const res = await fetch(`/api/socities/${societyId}/building`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.message || 'Failed to create building');
+  if (!res.ok) throw new Error(json.message || "Failed to create building");
   return json;
 }
-
 
 export async function fetchBuildingsBySociety(societyId: string) {
   const token = getAccessToken();
@@ -39,7 +38,7 @@ export async function fetchBuildingsBySociety(societyId: string) {
     },
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.message || 'Failed to fetch buildings');
+  if (!res.ok) throw new Error(json.message || "Failed to fetch buildings");
   return json.data;
 }
 
@@ -51,7 +50,7 @@ export async function fetchBuildingById(societyId: string, buildingId: string) {
     },
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.message || 'Failed to fetch building');
+  if (!res.ok) throw new Error(json.message || "Failed to fetch building");
   return json.data;
 }
 
@@ -63,6 +62,44 @@ export async function fetchBuildingBySocietyForAdmin(societyId: string) {
     },
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.message || 'Failed to fetch building');
+  if (!res.ok) throw new Error(json.message || "Failed to fetch building");
   return json.data;
+}
+
+export async function updateBuilding(
+  societyId: string,
+  buildingId: string,
+  payload: { name: string; total_floors: number }
+) {
+  const token = getAccessToken();
+  const res = await fetch(`/api/socities/${societyId}/building/${buildingId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to update building");
+  return json;
+}
+// services/building.ts (or wherever deleteBuilding is defined)
+
+export async function deleteBuilding(societyId: string, buildingId: string) {
+  const token = getAccessToken();
+  const res = await fetch(`/api/socities/${societyId}/building/${buildingId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw json; // ✅ Important: throw raw response to preserve .message
+  }
+
+  return json;
 }

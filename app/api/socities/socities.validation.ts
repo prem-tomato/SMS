@@ -4,7 +4,7 @@ import {
   memberType,
   societyType,
 } from "@/db/utils/enums/enum";
-import { array, boolean, enum as enum_, number, object, string } from "zod";
+import z, { array, boolean, enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
   body: object({

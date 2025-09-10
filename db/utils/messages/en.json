@@ -145,7 +145,17 @@
     "cancel": "Cancel",
     "saveBuilding": "Save Building",
     "buildingNamePlaceholder": "e.g., A Wing",
-    "totalFloorsPlaceholder": "e.g., 10"
+    "totalFloorsPlaceholder": "e.g., 10",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editBuilding": "Edit Building",
+    "updateBuilding": "Update Building",
+    "confirmDelete": "Confirm Delete",
+    "deleteConfirmation": "Are you sure you want to delete building '{name}'? This action cannot be undone.",
+    "deleteConfirmationMessage": "Are you sure you want to delete building '{name}'? This action cannot be undone.",
+    "cannotDeleteBuildingWithFlats": "Cannot delete building because it is associated with flats.",
+    "deleteWarning": "This action cannot be undone."
   },
   "FlatsPage": {
     "columns": {
