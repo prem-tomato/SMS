@@ -98,25 +98,25 @@ export async function GET(request: NextRequest) {
 
       case "flat_penalties":
         queryText = `
-          SELECT 
-            fp.id,
-            fp.amount,
-            fp.reason,
-            fp.is_paid,
-            fp.paid_at,
-            fp.payment_method,
-            fp.created_at,
-            f.flat_number,
-            b.name as building_name,
-            u.first_name,
-            u.last_name,
-            u.phone,
-            s.name as society_name
+          SELECT
+              fp.id,
+              fp.amount,
+              fp.reason,
+              fp.is_paid,
+              fp.paid_at,
+              fp.payment_method,
+              fp.created_at,
+              f.flat_number,
+              b.name as building_name,
+              u.first_name,
+              u.last_name,
+              u.phone,
+              s.name as society_name
           FROM flat_penalties fp
           JOIN flats f ON fp.flat_id = f.id
           JOIN buildings b ON fp.building_id = b.id
-          JOIN members m ON f.id = m.flat_id
-          JOIN users u ON m.user_id = u.id
+          LEFT JOIN members m ON f.id = m.flat_id
+          LEFT JOIN users u ON m.user_id = u.id
           JOIN societies s ON fp.society_id = s.id
           WHERE fp.society_id = $1
           AND fp.created_at >= $2::date
