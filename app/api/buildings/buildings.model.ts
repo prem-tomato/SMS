@@ -30,7 +30,7 @@ export const listBuildingOptionsBySocietyId = async (
   try {
     const queryText: string = `
       SELECT id, name, total_floors FROM buildings
-      WHERE society_id = $1
+      WHERE society_id = $1 AND is_deleted = false
     `;
 
     const res: QueryResult<BuildingOptions> = await query<BuildingOptions>(

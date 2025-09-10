@@ -1,5 +1,7 @@
-import { query } from "@/db/database-connect";
-import { UpdateBuildingReqBody } from "./building.types";
+import { query, queryWithClient } from "@/db/database-connect";
+import { PoolClient, QueryResult } from "pg";
+import { Flat } from "../../../socities.types";
+import { UpdateBuildingReqBody, UpdateFlatReqBody } from "./building.types";
 
 export const updateBuildingModel = async (
   societyId: string,
@@ -75,4 +77,66 @@ export const deleteBuildingModel = async (
   } catch (error: any) {
     throw new Error(`Error in deleteBuildingModel: ${error.message}`);
   }
+};
+
+export const updateFlat = async (
+  reqBody: Partial<Omit<UpdateFlatReqBody, "pending_maintenance">>,
+  flatId: string,
+  buildingId: string,
+  societyId: string,
+  userId: string,
+  client: PoolClient
+): Promise<Flat> => {
+  try {
+    const fields: string[] = [];
+    const values: any[] = [flatId, buildingId, societyId];
+
+    let idx = 4;
+    for (const [key, value] of Object.entries(reqBody)) {
+      if (value !== undefined) {
+        fields.push(`${key} = $${idx}`);
+        values.push(value);
+        idx++;
+      }
+    }
+
+    fields.push(`updated_by = $${idx}`);
+    values.push(userId);
+    idx++;
+
+    fields.push(`updated_at = NOW()`);
+
+    const queryText = `
+      UPDATE flats
+      SET ${fields.join(", ")}
+      WHERE id = $1 AND building_id = $2 AND society_id = $3
+      RETURNING *;
+    `;
+
+    const res: QueryResult<Flat> = await queryWithClient<Flat>(
+      client,
+      queryText,
+      values
+    );
+
+    if (res.rows.length === 0) {
+      throw new Error("Flat not found or not updated");
+    }
+
+    return res.rows[0];
+  } catch (error) {
+    throw new Error(`Error updating flat: ${error}`);
+  }
+};
+
+export const deleteFlatMaintenance = async (
+  flatId: string,
+  client: PoolClient
+): Promise<void> => {
+  const queryText = `
+    DELETE FROM flat_maintenances
+    WHERE flat_id = $1;
+  `;
+
+  await queryWithClient(client, queryText, [flatId]);
 };

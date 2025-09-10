@@ -205,3 +205,28 @@ export async function markFlatPenaltyDeleted(
   if (!res.ok)
     throw new Error(json.message || "Failed to mark penalty as deleted");
 }
+
+export async function updateFlat(
+  societyId: string,
+  buildingId: string,
+  flatId: string,
+  payload: any // ideally use UpdateFlatReqBody type
+) {
+  const token = getAccessToken();
+
+  const res = await fetch(
+    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to update flat");
+  return json.data;
+}

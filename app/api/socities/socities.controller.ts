@@ -364,7 +364,8 @@ export const addFlatController = async (
       restPayload,
       params.buildingId,
       params.id,
-      userId
+      userId,
+      client
     );
 
     if (pending_maintenance) {
@@ -372,7 +373,8 @@ export const addFlatController = async (
         pending_maintenance as { amount: number; reason: string }[],
         params,
         flat.id,
-        userId
+        userId,
+        client
       );
     }
 

@@ -1,6 +1,6 @@
-import { query } from "@/db/database-connect";
+import { query, queryWithClient } from "@/db/database-connect";
 import { HOUSING } from "@/db/utils/enums/enum";
-import { QueryResult } from "pg";
+import { PoolClient, QueryResult } from "pg";
 import { User } from "../auth/auth.types";
 import {
   AddAdminReqBody,
@@ -228,7 +228,8 @@ export const addFlat = async (
   reqBody: Omit<AddFlatReqBody, "pending_maintenance">,
   buildingId: string,
   societyId: string,
-  userId: string
+  userId: string,
+  client: PoolClient
 ): Promise<Flat> => {
   try {
     const queryText: string = `
@@ -245,15 +246,19 @@ export const addFlat = async (
       RETURNING *;
     `;
 
-    const res: QueryResult<Flat> = await query<Flat>(queryText, [
-      societyId,
-      buildingId,
-      reqBody.flat_number,
-      reqBody.floor_number,
-      userId,
-      reqBody.square_foot,
-      reqBody.current_maintenance,
-    ]);
+    const res: QueryResult<Flat> = await queryWithClient<Flat>(
+      client,
+      queryText,
+      [
+        societyId,
+        buildingId,
+        reqBody.flat_number,
+        reqBody.floor_number,
+        userId,
+        reqBody.square_foot,
+        reqBody.current_maintenance,
+      ]
+    );
 
     return res.rows[0];
   } catch (error) {
@@ -265,7 +270,8 @@ export const addFlatMaintenance = async (
   items: { amount: number; reason: string }[],
   params: { id: string; buildingId: string },
   flatId: string,
-  createdBy: string
+  createdBy: string,
+  client: PoolClient
 ): Promise<void> => {
   if (!items.length) return;
 
@@ -299,7 +305,7 @@ export const addFlatMaintenance = async (
     createdBy,
   ];
 
-  await query(queryText, values);
+  await queryWithClient(client, queryText, values);
 };
 
 export const findFlatById = async (id: string): Promise<Flat | undefined> => {

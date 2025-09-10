@@ -1,6 +1,7 @@
 "use client";
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
+import EditFlatModal from "@/components/flat/EditFlatModel";
 import AddFlatModal from "@/components/flat/FlatModel";
 import { ManagePendingMaintenanceModal } from "@/components/flat/ManagePendingMaintenanceModal";
 import { ViewFlatModal } from "@/components/flat/ViewFlatModal";
@@ -41,6 +42,8 @@ export default function FlatsPage() {
   const [societyId, setSocietyId] = useState("");
   const [role, setRole] = useState("");
   const [societyType, setSocietyType] = useState<string | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editFlat, setEditFlat] = useState<any>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFlat, setSelectedFlat] = useState<any>(null);
@@ -256,6 +259,15 @@ export default function FlatsPage() {
         societyId={societyId}
       />
 
+      <EditFlatModal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditFlat(null);
+        }}
+        flat={editFlat}
+      />
+
       {/* 3-dot Action Menu */}
       <Menu
         anchorEl={anchorEl}
@@ -275,6 +287,15 @@ export default function FlatsPage() {
         </MenuItem>
         <MenuItem onClick={handleViewMaintenance}>
           {t("menu.maintenanceOverview")}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            setEditFlat(selectedFlat);
+            setEditModalOpen(true);
+          }}
+        >
+          {t("menu.editFlat")}
         </MenuItem>
       </Menu>
 

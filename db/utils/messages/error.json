@@ -62,5 +62,6 @@
   "SOCIETY_KEY_MISMATCH": "society key mismatch",
   "UNAUTHORIZED_ACCESS": "unauthorized access",
   "BUILDING_UPDATED_SUCCESSFULLY": "building updated successfully",
-  "BUILDING_DELETED_SUCCESSFULLY": "building deleted successfully"
+  "BUILDING_DELETED_SUCCESSFULLY": "building deleted successfully",
+  "FLAT_UPDATED_SUCCESSFULLY": "flat updated successfully"
 }

@@ -3,7 +3,11 @@ import socitiesLogger from "@/app/api/socities/socities.logger";
 import { FlatView } from "@/app/api/socities/socities.types";
 import type { Response } from "@/db/utils/response-generator";
 import { authMiddleware } from "@/middlewares/auth-middleware";
+import validationMiddleware from "@/middlewares/validation-middleware";
 import { NextRequest, NextResponse } from "next/server";
+import { updateFlatController } from "../../building.controller";
+import { UpdateFlatReqBody } from "../../building.types";
+import { updateFlatValidation } from "../../building.validation";
 
 export const GET = async (
   request: NextRequest,
@@ -24,6 +28,38 @@ export const GET = async (
   // Step 3: If validation, authentication, and permission check succeed, process the request
   const { status, ...responseData }: Response<FlatView> =
     await getFlatsController(params);
+
+  // Return the response with the appropriate status code
+  return NextResponse.json(responseData, { status });
+};
+
+export const PATCH = async (
+  request: NextRequest,
+  { params }: { params: { id: string; buildingId: string; flatId: string } }
+) => {
+  socitiesLogger.info(
+    "PATCH api/socities/[id]/building/[buildingId]/flat/[flatId]"
+  );
+  socitiesLogger.debug(
+    `PATCH flat ${params.flatId} in building ${params.buildingId} in society ${params.id}`
+  );
+
+  const { reqBody, response } = await validationMiddleware<UpdateFlatReqBody>(
+    request,
+    updateFlatValidation,
+    params
+  );
+
+  // If validation fails, return the error response
+  if (response) return response;
+
+  const authResult = await authMiddleware(request);
+
+  // If authentication fails, return the error response
+  if (authResult instanceof Response) return authResult;
+
+  const { status, ...responseData }: Response<void> =
+    await updateFlatController(request, reqBody, params);
 
   // Return the response with the appropriate status code
   return NextResponse.json(responseData, { status });
