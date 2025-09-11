@@ -142,6 +142,8 @@ export const deleteFlatMaintenance = async (
 };
 
 export const updateFlatMaintenance = async (
+  societyId: string,
+  buildingId: string,
   flatId: string,
   items: { id?: string; amount: number; reason: string }[],
   userId: string,
@@ -162,8 +164,14 @@ export const updateFlatMaintenance = async (
   if (toDelete.length) {
     await queryWithClient(
       client,
-      `DELETE FROM flat_maintenances WHERE id = ANY($1::uuid[])`,
-      [toDelete]
+      `UPDATE flat_maintenances 
+        SET is_deleted = true, 
+          deleted_at = NOW(), 
+          deleted_by = $1,
+          updated_by = $1,
+          updated_at = NOW()
+        WHERE id = ANY($2::uuid[])`,
+      [userId, toDelete]
     );
   }
 
@@ -179,32 +187,131 @@ export const updateFlatMaintenance = async (
   }
 
   // 4. Insert new
+  // 4. Insert new
   const newItems = items.filter((i) => !i.id);
   if (newItems.length) {
     const values = newItems.flatMap((i) => [
-      flatId,
-      i.amount,
-      i.reason,
-      userId,
+      societyId, // $1
+      buildingId, // $2
+      flatId, // $3
+      i.amount, // $4
+      i.reason, // $5
+      userId, // $6 (created_by)
+      userId, // $7 (updated_by)
     ]);
 
     const queryText = `
-      INSERT INTO flat_maintenances 
-        (flat_id, amount, reason, created_by, created_at, updated_by, updated_at)
-      VALUES ${newItems
-        .map(
-          (_, idx) =>
-            `($${idx * 4 + 1}, $${idx * 4 + 2}, $${idx * 4 + 3}, $${
-              idx * 4 + 4
-            }, NOW(), $${idx * 4 + 4}, NOW())`
-        )
-        .join(", ")}
-    `;
+    INSERT INTO flat_maintenances 
+      (society_id, building_id, flat_id, amount, reason, created_by, created_at, updated_by, updated_at)
+    VALUES ${newItems
+      .map(
+        (_, idx) =>
+          `($${idx * 7 + 1}, $${idx * 7 + 2}, $${idx * 7 + 3}, $${
+            idx * 7 + 4
+          }, $${idx * 7 + 5}, $${idx * 7 + 6}, NOW(), $${idx * 7 + 7}, NOW())`
+      )
+      .join(", ")}
+  `;
+
+    console.log("queryText", queryText);
+    console.log("values", values);
 
     await queryWithClient(client, queryText, values);
   }
 };
 
+// export const deleteFlat = async (
+//   flatId: string,
+//   buildingId: string,
+//   societyId: string,
+//   userId: string,
+//   client: PoolClient
+// ) => {
+//   try {
+//     // 1. Soft delete the flat
+//     const deleteFlatQuery = `
+//       UPDATE flats
+//       SET is_deleted = true,
+//           deleted_at = NOW(),
+//           updated_by = $4,
+//           updated_at = NOW(),
+//           deleted_by = $4
+//       WHERE id = $1
+//         AND building_id = $2
+//         AND society_id = $3
+//         AND is_occupied = false
+//       RETURNING id
+//     `;
+
+//     const flatResult = await queryWithClient(client, deleteFlatQuery, [
+//       flatId,
+//       buildingId,
+//       societyId,
+//       userId,
+//     ]);
+
+//     if (flatResult.rowCount === 0) {
+//       throw new Error("Flat is already occupied");
+//     }
+
+//     // 2. Soft delete related flat_maintenances
+//     const deleteMaintenanceQuery = `
+//       UPDATE flat_maintenances
+//       SET is_deleted = true,
+//           deleted_at = NOW(),
+//           updated_by = $3,
+//           updated_at = NOW(),
+//           deleted_by = $3
+//       WHERE flat_id = $1
+//         AND society_id = $2
+//       returning *
+//     `;
+
+//     const maintenanceResult = await queryWithClient(
+//       client,
+//       deleteMaintenanceQuery,
+//       [flatId, societyId, userId]
+//     );
+
+//     const queryDeleteMonthlySettlement = `
+//       UPDATE flat_maintenance_settlements
+//       SET is_deleted = true,
+//           deleted_at = NOW(),
+//           updated_by = $3,
+//           updated_at = NOW(),
+//           deleted_by = $3
+//       WHERE flat_maintenance_id = ANY($4::uuid[])
+//     `;
+
+//     await queryWithClient(client, queryDeleteMonthlySettlement, [
+//       flatId,
+//       societyId,
+//       userId,
+//       maintenanceResult.rows.map((r) => r.id),
+//     ]);
+
+//     const queryFlatMaintenanceMonthly = `
+//       UPDATE flat_maintenance_monthly
+//       SET is_deleted = true,
+//           deleted_at = NOW(),
+//           updated_by = $3,
+//           updated_at = NOW(),
+//           deleted_by = $3
+//       WHERE flat_maintenance_id = ANY($4::uuid[])
+//     `;
+
+//     await queryWithClient(client, queryFlatMaintenanceMonthly, [
+//       flatId,
+//       societyId,
+//       userId,
+//       maintenanceResult.rows.map((r) => r.id),
+//     ]);
+
+//     return { success: true, flatId };
+//   } catch (error: any) {
+//     throw new Error(`${error.message}`);
+//   }
+// };
 export const deleteFlat = async (
   flatId: string,
   buildingId: string,
@@ -236,7 +343,7 @@ export const deleteFlat = async (
     ]);
 
     if (flatResult.rowCount === 0) {
-      throw new Error("Flat is already occupied");
+      throw new Error("Flat not found or already occupied");
     }
 
     // 2. Soft delete related flat_maintenances
@@ -249,16 +356,52 @@ export const deleteFlat = async (
           deleted_by = $3
       WHERE flat_id = $1 
         AND society_id = $2
+      RETURNING id
     `;
 
-    await queryWithClient(client, deleteMaintenanceQuery, [
-      flatId,
-      societyId,
-      userId,
-    ]);
+    const maintenanceResult = await queryWithClient(
+      client,
+      deleteMaintenanceQuery,
+      [flatId, societyId, userId]
+    );
+
+    const maintenanceIds = maintenanceResult.rows.map((r) => r.id);
+    if (maintenanceIds.length > 0) {
+      // 3. Soft delete related settlements
+      const queryDeleteMonthlySettlement = `
+        UPDATE flat_maintenance_settlements
+        SET is_deleted = true,
+            deleted_at = NOW(),
+            updated_by = $1,
+            updated_at = NOW(),
+            deleted_by = $1
+        WHERE maintenance_id = ANY($2::uuid[])
+      `;
+
+      await queryWithClient(client, queryDeleteMonthlySettlement, [
+        userId,
+        maintenanceIds,
+      ]);
+
+      // 4. Soft delete related monthly records
+      const queryFlatMaintenanceMonthly = `
+        UPDATE flat_maintenance_monthly
+        SET is_deleted = true,
+            deleted_at = NOW(),
+            updated_by = $1,
+            updated_at = NOW(),
+            deleted_by = $1
+        WHERE maintenance_id = ANY($2::uuid[])
+      `;
+
+      await queryWithClient(client, queryFlatMaintenanceMonthly, [
+        userId,
+        maintenanceIds,
+      ]);
+    }
 
     return { success: true, flatId };
   } catch (error: any) {
-    throw new Error(`${error.message}`);
+    throw new Error(`deleteFlat failed: ${error.message}`);
   }
 };

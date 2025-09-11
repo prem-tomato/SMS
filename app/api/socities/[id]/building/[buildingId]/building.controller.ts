@@ -130,6 +130,8 @@ export const updateFlatController = async (
     // Update maintenance
     if (pending_maintenance) {
       await updateFlatMaintenance(
+        params.id,
+        params.buildingId,
         flat.id,
         pending_maintenance as {
           id?: string;
@@ -175,7 +177,7 @@ export const getFlatMaintenanceController = async (
 
     const queryText = `SELECT id, amount, reason
     FROM flat_maintenances
-    WHERE flat_id = $1
+    WHERE flat_id = $1 AND is_deleted = false
     ORDER BY created_at ASC`;
 
     const maintRes = await query(queryText, [params.flatId]);
