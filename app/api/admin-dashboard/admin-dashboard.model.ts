@@ -35,7 +35,7 @@ export const getAdminDashboard = async (societyId: string): Promise<any> => {
             SELECT COUNT(*) 
             FROM public.buildings b
             JOIN public.societies s ON s.id = b.society_id
-            WHERE s.society_type IN ('commercial', 'residential')
+            WHERE b.is_deleted = false AND s.society_type IN ('commercial', 'residential')
             ${
               societyId
                 ? `AND s.id = '${societyId}' AND s.is_deleted = false`
@@ -49,7 +49,7 @@ export const getAdminDashboard = async (societyId: string): Promise<any> => {
                 FROM public.flats f
                 JOIN public.buildings b ON f.building_id = b.id
                 JOIN public.societies s ON b.society_id = s.id
-                WHERE s.society_type IN ('commercial', 'residential')
+                WHERE b.is_deleted = false AND f.is_deleted = false AND s.society_type IN ('commercial', 'residential')
                 ${
                   societyId
                     ? `AND s.id = '${societyId}' AND s.is_deleted = false`
