@@ -29,6 +29,7 @@ import {
   checkSocietyInBuilding,
   checkSocietyInHousing,
   createNotice,
+  deleteHousingUnit,
   deleteHousingUnitPenalty,
   deleteSocietyModel,
   findBuildingById,
@@ -1768,6 +1769,57 @@ export const updateHousingUnitController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in updateHousingUnitController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const deleteHousingUnitController = async (
+  request: Request,
+  housingUnitId: string,
+  societyId: string
+): Promise<Response<void>> => {
+  const transaction: Transaction = await startTransaction();
+  const { client } = transaction;
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    await rollbackTransaction(transaction);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const housingUnit: HousingUnits | undefined = await findHousingUnitById(
+      housingUnitId
+    );
+    if (!housingUnit) {
+      await rollbackTransaction(transaction);
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_UNIT_NOT_FOUND")
+      );
+    }
+
+    await deleteHousingUnit(societyId, housingUnitId, userId, client);
+
+    await commitTransaction(transaction);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNIT_DELETED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in deleteHousingUnitController:", error);
+
+    await rollbackTransaction(transaction);
+
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,

@@ -12,6 +12,8 @@ export const getHousingUnits = async (): Promise<HousingUnits[]> => {
       housing_units hu
     LEFT JOIN 
       societies s ON hu.society_id = s.id
+    WHERE 
+      hu.is_deleted = false
     `;
 
     const result: QueryResult<HousingUnits> = await query<HousingUnits>(

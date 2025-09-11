@@ -360,11 +360,17 @@
       "addHousingUnit": "Add Housing Unit",
       "cancel": "Cancel",
       "addPenalty": "Add Penalty",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "save": "Save"
     },
     "menu": {
       "viewUnit": "View Unit",
-      "addPenalty": "Add Penalty"
+      "addPenalty": "Add Penalty",
+      "editUnit": "Edit Unit",
+      "deleteUnit": "Delete Unit"
     },
     "penalty": {
       "title": "Add Penalty",
@@ -386,6 +392,17 @@
     },
     "common": {
       "unknown": "Unknown"
+    },
+    "delete": {
+      "title": "Delete Housing Unit",
+      "confirmMessage": "Are you sure you want to delete this unit?"
+    },
+    "edit": {
+      "title": "Edit Housing Unit",
+      "unitNumber": "Unit Number",
+      "unitType": "Unit Type",
+      "squareFeet": "Square Feet",
+      "currentMaintenance": "Current Maintenance"
     }
   },
   "AddHousingUnitDialog": {

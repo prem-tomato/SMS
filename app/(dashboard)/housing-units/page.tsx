@@ -4,7 +4,11 @@ import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddHousingUnitModal from "@/components/housing/AddHousingUnitModal";
 import { ViewHousingUnitModal } from "@/components/housing/ViewHousingUnitPenaltiesModal";
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
-import { fetchAllHousingUnits, updateHousingUnit } from "@/services/housing";
+import {
+  deleteHousingUnitService,
+  fetchAllHousingUnits,
+  updateHousingUnit,
+} from "@/services/housing";
 import { addPenaltyForUnit } from "@/services/housing-unit-penalty";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
@@ -78,6 +82,8 @@ interface HousingUnit {
 
 export default function HousingUnitsPage() {
   const t = useTranslations("housing-units");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [open, setOpen] = useState(false);
   const [societyId, setSocietyId] = useState("");
@@ -183,6 +189,24 @@ export default function HousingUnitsPage() {
           t("errors.failedToUpdateUnit") ||
           "Failed to update housing unit"
       );
+    },
+  });
+
+  const { mutate: deleteUnit, isPending: isDeleting } = useMutation({
+    mutationFn: ({
+      societyId,
+      housingId,
+    }: {
+      societyId: string;
+      housingId: string;
+    }) => deleteHousingUnitService(societyId, housingId),
+    onSuccess: () => {
+      setDeleteDialogOpen(false);
+      setDeleteError(null);
+      queryClient.invalidateQueries(["housing-units"] as any);
+    },
+    onError: (error: any) => {
+      setDeleteError(error.message || t("errors.failedToDeleteUnit"));
     },
   });
 
@@ -387,6 +411,22 @@ export default function HousingUnitsPage() {
     );
   };
 
+  const handleOpenDeleteDialog = () => {
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteUnit = () => {
+    if (!selectedUnit) return;
+    const targetSocietyId = getSocietyIdForUnit(selectedUnit);
+    if (!targetSocietyId) {
+      setDeleteError(t("errors.noSocietyId"));
+      return;
+    }
+    deleteUnit({ societyId: targetSocietyId, housingId: selectedUnit.id });
+  };
+
   return (
     <>
       <Box height="calc(100vh - 180px)">
@@ -433,19 +473,64 @@ export default function HousingUnitsPage() {
         >
           <MenuItem onClick={handleViewUnit}>{t("menu.viewUnit")}</MenuItem>
           <MenuItem
-            onClick={handleOpenEditDialog}
-            disabled={!selectedUnit || !getSocietyIdForUnit(selectedUnit)}
-          >
-            <EditIcon fontSize="small" sx={{ mr: 1 }} />
-            {t("menu.editUnit") || "Edit Unit"}
-          </MenuItem>
-          <MenuItem
             onClick={handleOpenPenaltyDialog}
             disabled={!selectedUnit || !getSocietyIdForUnit(selectedUnit)}
           >
             {t("menu.addPenalty")}
           </MenuItem>
+          <MenuItem
+            onClick={handleOpenEditDialog}
+            disabled={!selectedUnit || !getSocietyIdForUnit(selectedUnit)}
+          >
+            {t("menu.editUnit") || "Edit Unit"}
+          </MenuItem>
+          <MenuItem
+            onClick={handleOpenDeleteDialog}
+            disabled={!selectedUnit || !getSocietyIdForUnit(selectedUnit)}
+          >
+            {t("menu.deleteUnit") || "Delete Unit"}
+          </MenuItem>
         </Menu>
+
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => !isDeleting && setDeleteDialogOpen(false)}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle>
+            {t("delete.title") || "Delete Housing Unit"}
+          </DialogTitle>
+          <DialogContent>
+            <p>
+              {t("delete.confirmMessage") ||
+                "Are you sure you want to delete this unit?"}
+            </p>
+            {deleteError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {deleteError}
+              </Alert>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              {t("actions.cancel")}
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              disabled={isDeleting}
+              onClick={handleDeleteUnit}
+            >
+              {isDeleting
+                ? t("actions.deleting") || "Deleting..."
+                : t("actions.delete")}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Edit Housing Unit Dialog */}
         <Dialog

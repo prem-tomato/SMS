@@ -359,11 +359,17 @@
       "addHousingUnit": "હાઉસિંગ યુનિટ ઉમેરો",
       "cancel": "રદ કરો",
       "addPenalty": "દંડ ઉમેરો",
-      "saving": "સાચવી રહ્યા છે..."
+      "saving": "સાચવી રહ્યું છે...",
+      "edit": "ફેરફાર કરો",
+      "delete": "કાઢો",
+      "deleting": "કાઢી રહ્યું છે...",
+      "save": "સાચવો"
     },
     "menu": {
       "viewUnit": "યુનિટ જુઓ",
-      "addPenalty": "દંડ ઉમેરો"
+      "addPenalty": "દંડ ઉમેરો",
+      "edit": "ફેરફાર કરો",
+      "delete": "કાઢો"
     },
     "penalty": {
       "title": "દંડ ઉમેરો",
@@ -385,6 +391,17 @@
     },
     "common": {
       "unknown": "અજાણ"
+    },
+    "delete": {
+      "title": "હાઉસિંગ યુનિટ કાઢો",
+      "confirmMessage": "શું તમે ખરેખર આ યુનિટ કાઢવા માંગો છો?"
+    },
+    "edit": {
+      "title": "હાઉસિંગ યુનિટ ફેરફાર કરો",
+      "unitNumber": "યુનિટ નંબર",
+      "unitType": "યુનિટ પ્રકાર",
+      "squareFeet": "સ્ક્વેર ફૂટ",
+      "currentMaintenance": "હાલનું મેન્ટેનન્સ"
     }
   },
   "AddHousingUnitDialog": {

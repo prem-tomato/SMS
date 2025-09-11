@@ -35,7 +35,6 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import toast from "react-hot-toast";
 
 export default function FlatsPage() {
   const t = useTranslations("FlatsPage");
@@ -134,7 +133,6 @@ export default function FlatsPage() {
     }) => deleteFlatService(societyId, buildingId, flatId),
     onSuccess: () => {
       queryClient.invalidateQueries(["flats", societyId] as any);
-      toast.success(t("messages.flatDeleted"));
       setDeleteDialogOpen(false);
       setDeleteError(null);
     },

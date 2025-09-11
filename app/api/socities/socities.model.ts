@@ -1599,3 +1599,53 @@ export const updateHousingUnit = async (
     throw new Error(`Error updating housing unit: ${error}`);
   }
 };
+
+export const deleteHousingUnit = async (
+  societyId: string,
+  housingUnitId: string,
+  userId: string,
+  client: PoolClient
+): Promise<void> => {
+  try {
+    // 1. Soft delete the housing unit
+    const deleteHousingUnitQuery = `
+      UPDATE housing_units
+      SET is_deleted = true,
+          deleted_at = NOW(),
+          deleted_by = $3,
+          updated_at = NOW(),
+          updated_by = $3
+      WHERE society_id = $1 AND id = $2 AND is_occupied = false
+      RETURNING id
+    `;
+
+    const housingUnitResult = await queryWithClient(
+      client,
+      deleteHousingUnitQuery,
+      [societyId, housingUnitId, userId]
+    );
+
+    if (housingUnitResult.rowCount === 0) {
+      throw new Error("Housing unit is already occupied.");
+    }
+
+    // 2. Soft delete related penalties
+    const deletePenaltiesQuery = `
+      UPDATE unit_penalties
+      SET is_deleted = true,
+          deleted_at = NOW(),
+          deleted_by = $3,
+          updated_at = NOW(),
+          updated_by = $3
+      WHERE society_id = $1 AND unit_id = $2
+    `;
+
+    await queryWithClient(client, deletePenaltiesQuery, [
+      societyId,
+      housingUnitId,
+      userId,
+    ]);
+  } catch (error: any) {
+    throw new Error(`${error.message}`);
+  }
+};

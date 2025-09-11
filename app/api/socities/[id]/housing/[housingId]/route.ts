@@ -2,7 +2,10 @@ import type { Response } from "@/db/utils/response-generator";
 import { authMiddleware } from "@/middlewares/auth-middleware";
 import validationMiddleware from "@/middlewares/validation-middleware";
 import { NextRequest, NextResponse } from "next/server";
-import { updateHousingUnitController } from "../../../socities.controller";
+import {
+  deleteHousingUnitController,
+  updateHousingUnitController,
+} from "../../../socities.controller";
 import socitiesLogger from "../../../socities.logger";
 import { UpdateHousingUnitReqBody } from "../../../socities.types";
 import { updateHousingUnitValidation } from "../../../socities.validation";
@@ -41,10 +44,21 @@ export const PATCH = async (
   return NextResponse.json(responseData, { status });
 };
 
-// export const DELETE = async (
-//   request: NextRequest,
-//   { params }: { params: { id: string; housingId: string } }
-// ) => {
-//   socitiesLogger.info("DELETE /api/socities/:id/housing/:housingId");
-//   socitiesLogger.debug("Deleting a housing unit...");
-// };
+export const DELETE = async (
+  request: NextRequest,
+  { params }: { params: { id: string; housingId: string } }
+) => {
+  socitiesLogger.info("DELETE /api/socities/:id/housing/:housingId");
+  socitiesLogger.debug("Deleting a housing unit...");
+
+  // Step 1: Verify the JWT token for authentication
+  const authResult = await authMiddleware(request);
+
+  // If authentication fails, return the error response
+  if (authResult instanceof Response) return authResult;
+
+  const { status, ...responseData }: Response<void> =
+    await deleteHousingUnitController(request, params.housingId, params.id);
+
+  return NextResponse.json(responseData, { status });
+};

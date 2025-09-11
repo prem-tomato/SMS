@@ -176,7 +176,7 @@ export default function SocietyProLanding() {
                 </button>
                 <a
                   target="_blank"
-                  href="https://smartmanager.co.in/auth/login"
+                  href="https://smartmanager.co.in/dashboard"
                   className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-all duration-300 font-medium transform hover:scale-105"
                 >
                   Already Purchased?
