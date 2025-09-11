@@ -249,3 +249,23 @@ export async function fetchFlatMaintenance(
   if (!res.ok) throw new Error(json.message || "Failed to fetch maintenance");
   return json.data;
 }
+
+export async function deleteFlatService(
+  societyId: string,
+  buildingId: string,
+  flatId: string
+) {
+  const token = getAccessToken();
+  const res = await fetch(
+    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to delete flat");
+  return json.data;
+}

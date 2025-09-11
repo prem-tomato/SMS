@@ -204,3 +204,59 @@ export const updateFlatMaintenance = async (
     await queryWithClient(client, queryText, values);
   }
 };
+
+export const deleteFlat = async (
+  flatId: string,
+  buildingId: string,
+  societyId: string,
+  userId: string,
+  client: PoolClient
+) => {
+  try {
+    // 1. Soft delete the flat
+    const deleteFlatQuery = `
+      UPDATE flats
+      SET is_deleted = true,
+          deleted_at = NOW(),
+          updated_by = $4,
+          updated_at = NOW()
+      WHERE id = $1 
+        AND building_id = $2 
+        AND society_id = $3 
+        AND is_occupied = false
+      RETURNING id
+    `;
+
+    const flatResult = await queryWithClient(client, deleteFlatQuery, [
+      flatId,
+      buildingId,
+      societyId,
+      userId,
+    ]);
+
+    if (flatResult.rowCount === 0) {
+      throw new Error("Flat not found, occupied, or already deleted.");
+    }
+
+    // 2. Soft delete related flat_maintenances
+    const deleteMaintenanceQuery = `
+      UPDATE flat_maintenances
+      SET is_deleted = true,
+          deleted_at = NOW(),
+          updated_by = $3,
+          updated_at = NOW()
+      WHERE flat_id = $1 
+        AND society_id = $2
+    `;
+
+    await queryWithClient(client, deleteMaintenanceQuery, [
+      flatId,
+      societyId,
+      userId,
+    ]);
+
+    return { success: true, flatId };
+  } catch (error: any) {
+    throw new Error(`Error in deleteFlat: ${error.message}`);
+  }
+};

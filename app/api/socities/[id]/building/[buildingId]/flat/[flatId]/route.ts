@@ -5,7 +5,10 @@ import type { Response } from "@/db/utils/response-generator";
 import { authMiddleware } from "@/middlewares/auth-middleware";
 import validationMiddleware from "@/middlewares/validation-middleware";
 import { NextRequest, NextResponse } from "next/server";
-import { updateFlatController } from "../../building.controller";
+import {
+  deleteFlatController,
+  updateFlatController,
+} from "../../building.controller";
 import { UpdateFlatReqBody } from "../../building.types";
 import { updateFlatValidation } from "../../building.validation";
 
@@ -60,6 +63,29 @@ export const PATCH = async (
 
   const { status, ...responseData }: Response<void> =
     await updateFlatController(request, reqBody, params);
+
+  // Return the response with the appropriate status code
+  return NextResponse.json(responseData, { status });
+};
+
+export const DELETE = async (
+  request: NextRequest,
+  { params }: { params: { id: string; buildingId: string; flatId: string } }
+) => {
+  socitiesLogger.info(
+    "DELETE api/socities/[id]/building/[buildingId]/flat/[flatId]"
+  );
+  socitiesLogger.debug(
+    `DELETE flat ${params.flatId} in building ${params.buildingId} in society ${params.id}`
+  );
+
+  const authResult = await authMiddleware(request);
+
+  // If authentication fails, return the error response
+  if (authResult instanceof Response) return authResult;
+
+  const { status, ...responseData }: Response<void> =
+    await deleteFlatController(request, params);
 
   // Return the response with the appropriate status code
   return NextResponse.json(responseData, { status });

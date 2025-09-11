@@ -17,6 +17,7 @@ import {
 import { Building, Societies } from "../../../socities.types";
 import {
   deleteBuildingModel,
+  deleteFlat,
   updateBuildingModel,
   updateFlat,
   updateFlatMaintenance,
@@ -185,6 +186,46 @@ export const getFlatMaintenanceController = async (
       { data: maintRes.rows }
     );
   } catch (error: any) {
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const deleteFlatController = async (
+  request: Request,
+  params: { id: string; buildingId: string; flatId: string }
+): Promise<Response<void>> => {
+  const transaction: Transaction = await startTransaction();
+  const { client } = transaction;
+
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const flat = await findFlatById(params.flatId);
+    if (!flat) {
+      await rollbackTransaction(transaction);
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_NOT_FOUND")
+      );
+    }
+
+    await deleteFlat(params.flatId, params.buildingId, params.id, userId, client);
+
+    await commitTransaction(transaction);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("FLAT_DELETED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in deleteFlatController:", error);
+
+    await rollbackTransaction(transaction);
+
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,
