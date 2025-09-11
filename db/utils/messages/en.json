@@ -519,7 +519,8 @@
     "subtitles": {
       "selectHousingUnit": "Select housing unit and residents.",
       "selectBuildingShop": "Select Building, Shop and Owners.",
-      "selectSocietyBuilding": "Select society, building, flat and members."
+      "selectSocietyBuilding": "Select society, building, flat and members.",
+      "selectBuildingShops": "Select Building, Shops and Owners."
     },
     "labels": {
       "society": "Society",
@@ -529,13 +530,17 @@
       "housingUnit": "Housing Unit",
       "residents": "Residents",
       "owners": "Owners",
-      "moveInDate": "Move-in Date"
+      "moveInDate": "Move-in Date",
+      "shops": "Shops",
+      "housingUnits": "Housing Units"
     },
     "buttons": {
       "assignUnitToResident": "Assign Unit to Resident",
       "assignShopToOwner": "Assign Shop to Owner",
       "assignFlatToResident": "Assign Flat to Resident",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "assignUnitsToResidents": "Assign Units to Residents",
+      "assignShopsToOwners": "Assign Shops to Owners"
     },
     "validation": {
       "selectSociety": "Select society",

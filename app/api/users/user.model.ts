@@ -43,13 +43,6 @@ export const getVacantUsers = async (
       FROM users u
       LEFT JOIN societies s ON s.id = u.society_id
       WHERE u.society_id = $1
-        AND NOT EXISTS (
-            SELECT 1
-            FROM members m
-            JOIN flats f ON f.id = m.flat_id
-            WHERE m.user_id = u.id
-              AND f.is_occupied = true
-        );
     `;
 
     const res: QueryResult<UserResponse> = await query<UserResponse>(
@@ -78,13 +71,6 @@ export const getVacantUsersForHousing = async (
       FROM users u
       LEFT JOIN societies s ON s.id = u.society_id
       WHERE u.society_id = $1
-        AND NOT EXISTS (
-            SELECT 1
-            FROM members m
-            JOIN housing_units h ON h.id = m.housing_id
-            WHERE m.user_id = u.id
-              AND h.is_occupied = true
-        );
     `;
 
     const res: QueryResult<UserResponse> = await query<UserResponse>(

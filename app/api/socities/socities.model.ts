@@ -331,6 +331,8 @@ export const assignMembersToFlat = async (
   createdBy: string
 ): Promise<void> => {
   try {
+    if (userIds.length === 0) return; // Early return if no users
+
     const values = userIds
       .map(
         (userId) =>
@@ -342,11 +344,13 @@ export const assignMembersToFlat = async (
       INSERT INTO members
       (user_id, society_id, building_id, flat_id, move_in_date, created_by)
       VALUES ${values}
+      ON CONFLICT (user_id, flat_id) DO NOTHING
       RETURNING *
     `;
 
     await query<AssignFlatMembers>(queryText);
   } catch (error) {
+    console.error("Failed to assign members to flat:", error);
     throw new Error(`Error assigning members to flat: ${error}`);
   }
 };
@@ -563,7 +567,7 @@ export const listVacantFlats = async (params: {
       FROM flats f
       LEFT JOIN buildings b ON b.id = f.building_id
       LEFT JOIN societies ON societies.id = f.society_id
-      WHERE f.society_id = $1 AND f.building_id = $2 AND f.is_occupied = false
+      WHERE f.society_id = $1 AND f.building_id = $2 AND f.is_deleted = false
     `;
 
     const res: QueryResult<FlatOptions> = await query<FlatOptions>(queryText, [
@@ -591,7 +595,7 @@ export const listVacantHouseUnits = async (
         societies.name AS society_name
       FROM housing_units hu
       LEFT JOIN societies ON societies.id = hu.society_id
-      WHERE hu.society_id = $1 AND hu.is_occupied = false
+      WHERE hu.society_id = $1 AND hu.is_deleted = false
     `;
 
     const res: QueryResult<HousingOptions> = await query<HousingOptions>(
@@ -1363,6 +1367,8 @@ export const assignHousingUnitToMember = async (
   createdBy: string
 ): Promise<void> => {
   try {
+    if (userIds.length === 0) return;
+
     const values = userIds
       .map(
         (userId) =>
@@ -1371,15 +1377,17 @@ export const assignHousingUnitToMember = async (
       .join(",");
 
     const queryText: string = `
-    INSERT INTO members
-    (user_id, society_id, housing_id, move_in_date, created_by)
-    VALUES ${values}
-    RETURNING *
-  `;
+      INSERT INTO members
+      (user_id, society_id, housing_id, move_in_date, created_by)
+      VALUES ${values}
+      ON CONFLICT (user_id, housing_id) DO NOTHING
+      RETURNING *
+    `;
 
     await query(queryText);
   } catch (error) {
-    throw new Error(`error in assigning member ${error}`);
+    console.error("Failed to assign housing unit to member:", error);
+    throw new Error(`Error assigning member to housing unit: ${error}`);
   }
 };
 

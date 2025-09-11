@@ -518,7 +518,8 @@
     "subtitles": {
       "selectHousingUnit": "હાઉસિંગ યુનિટ અને રહેવાસીઓ પસંદ કરો.",
       "selectBuildingShop": "બિલ્ડિંગ, દુકાન અને માલિકો પસંદ કરો.",
-      "selectSocietyBuilding": "સોસાયટી, બિલ્ડિંગ, ફ્લેટ અને સભ્યો પસંદ કરો."
+      "selectSocietyBuilding": "સોસાયટી, બિલ્ડિંગ, ફ્લેટ અને સભ્યો પસંદ કરો.",
+      "selectBuildingShops": "બિલ્ડિંગ, દુકાનો અને માલિકો પસંદ કરો."
     },
     "labels": {
       "society": "સોસાયટી",
@@ -528,13 +529,17 @@
       "housingUnit": "હાઉસિંગ યુનિટ",
       "residents": "રહેવાસીઓ",
       "owners": "માલિકો",
-      "moveInDate": "રહેવા આવવાની તારીખ"
+      "moveInDate": "રહેવા આવવાની તારીખ",
+      "shops": "દુકાનો",
+      "housingUnits": "હાઉસિંગ યુનિટો"
     },
     "buttons": {
       "assignUnitToResident": "રહેવાસીને યુનિટ સોંપો",
       "assignShopToOwner": "માલિકને દુકાન સોંપો",
       "assignFlatToResident": "રહેવાસીને ફ્લેટ સોંપો",
-      "cancel": "રદ કરો"
+      "cancel": "રદ કરો",
+      "assignUnitsToResidents": "રહેવાસીઓને યુનિટ્સ સોંપો",
+      "assignShopsToOwners": "માલિકોને દુકાન્સ સોંપો"
     },
     "validation": {
       "selectSociety": "સોસાયટી પસંદ કરો",
