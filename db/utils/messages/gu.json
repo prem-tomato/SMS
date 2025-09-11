@@ -180,7 +180,9 @@
       "viewFlat": "ફ્લેટ જુઓ",
       "addPenalty": "દંડ ઉમેરો",
       "maintenanceSettings": "મેન્ટેનન્સ સેટિંગ્સ",
-      "maintenanceOverview": "મેન્ટેનન્સ વિગતો"
+      "maintenanceOverview": "મેન્ટેનન્સ વિગતો",
+      "deleteFlat": "ફ્લેટ કાઢો",
+      "editFlat": "ફ્લેટ ફેરફાર કરો"
     },
     "penaltyDialog": {
       "title": "દંડ ઉમેરો",
@@ -190,10 +192,25 @@
     },
     "common": {
       "cancel": "રદ કરો",
-      "saving": "સાચવી રહ્યું છે..."
+      "saving": "સાચવી રહ્યું છે...",
+      "deleting": "કાઢી રહ્યું છે...",
+      "editing": "ફેરફાર કરી રહ્યું છે...",
+      "deleteConfirm": "શું તમે ખરેખર ફ્લેટ {flat} કાઢવા માંગો છો?"
     },
     "errors": {
-      "failedAddPenalty": "દંડ ઉમેરવામાં નિષ્ફળ"
+      "failedAddPenalty": "દંડ ઉમેરવામાં નિષ્ફળતા"
+    },
+    "deleteDialog": {
+      "title": "ફ્લેટ કાઢો",
+      "message": "શું તમે ખરેખર ફ્લેટ {flat} કાઢવા માંગો છો?",
+      "confirm": "કાઢો",
+      "cancel": "રદ કરો"
+    },
+    "editDialog": {
+      "title": "ફ્લેટ ફેરફાર કરો",
+      "message": "શું તમે ખરેખર ફ્લેટ {flat} ફેરફાર કરવા માંગો છો?",
+      "confirm": "ફેરફાર કરો",
+      "cancel": "રદ કરો"
     }
   },
   "ViewFlatModal": {

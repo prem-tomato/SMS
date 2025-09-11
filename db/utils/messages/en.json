@@ -181,7 +181,9 @@
       "viewFlat": "View Flat",
       "addPenalty": "Add Penalty",
       "maintenanceSettings": "Maintenance Settings",
-      "maintenanceOverview": "Maintenance Overview"
+      "maintenanceOverview": "Maintenance Overview",
+      "deleteFlat": "Delete Flat",
+      "editFlat": "Edit Flat"
     },
     "penaltyDialog": {
       "title": "Add Penalty",
@@ -191,10 +193,25 @@
     },
     "common": {
       "cancel": "Cancel",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "deleting": "Deleting...",
+      "editing": "Editing...",
+      "deleteConfirm": "Are you sure you want to delete flat {flat}?"
     },
     "errors": {
       "failedAddPenalty": "Failed to add penalty"
+    },
+    "deleteDialog": {
+      "title": "Delete Flat",
+      "message": "Are you sure you want to delete flat {flat}?",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "editDialog": {
+      "title": "Edit Flat",
+      "message": "Are you sure you want to edit flat {flat}?",
+      "confirm": "Edit",
+      "cancel": "Cancel"
     }
   },
   "ViewFlatModal": {

@@ -259,6 +259,6 @@ export const deleteFlat = async (
 
     return { success: true, flatId };
   } catch (error: any) {
-    throw new Error(`Error in deleteFlat: ${error.message}`);
+    throw new Error(`${error.message}`);
   }
 };
