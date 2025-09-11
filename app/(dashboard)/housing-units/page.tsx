@@ -4,9 +4,11 @@ import CommonDataGrid from "@/components/common/CommonDataGrid";
 import AddHousingUnitModal from "@/components/housing/AddHousingUnitModal";
 import { ViewHousingUnitModal } from "@/components/housing/ViewHousingUnitPenaltiesModal";
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
-import { fetchAllHousingUnits } from "@/services/housing";
+import { fetchAllHousingUnits, updateHousingUnit } from "@/services/housing";
 import { addPenaltyForUnit } from "@/services/housing-unit-penalty";
+import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Alert,
@@ -25,6 +27,40 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+
+// Validation schema for edit form
+const editSchema = z.object({
+  unit_number: z
+    .string()
+    .min(1, "Unit number is required")
+    .max(20, "Unit number must be less than 20 characters")
+    .optional(),
+  unit_type: z
+    .string()
+    .min(1, "Unit type is required")
+    .max(50, "Unit type must be less than 50 characters")
+    .optional(),
+  square_foot: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z
+      .number()
+      .int("Square foot must be an integer")
+      .min(1, "Square foot must be at least 1")
+      .optional()
+  ),
+  current_maintenance: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z
+      .number()
+      .min(0, "Current maintenance must be greater than or equal to 0")
+      .max(1000000, "Current maintenance must be less than or equal to 1000000")
+      .optional()
+  ),
+});
+
+type EditHousingForm = z.infer<typeof editSchema>;
 
 interface HousingUnit {
   id: string;
@@ -62,8 +98,26 @@ export default function HousingUnitsPage() {
     housingUnitId: string;
     unitData: any;
   } | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
+
+  // Form for editing housing unit
+  const {
+    control,
+    handleSubmit,
+    reset: resetEditForm,
+    formState: { errors: editErrors },
+  } = useForm<EditHousingForm>({
+    resolver: zodResolver(editSchema) as any,
+    mode: "onChange", // Validate on change to show immediate feedback
+    defaultValues: {
+      unit_number: "",
+      unit_type: "",
+      square_foot: 0,
+      current_maintenance: 0,
+    },
+  });
 
   useEffect(() => {
     const storedSocietyId = getSocietyIdFromLocalStorage();
@@ -107,6 +161,31 @@ export default function HousingUnitsPage() {
     },
   });
 
+  // Mutation for updating housing unit
+  const { mutate: updateUnit, isPending: isUpdating } = useMutation({
+    mutationFn: ({
+      societyId,
+      housingId,
+      payload,
+    }: {
+      societyId: string;
+      housingId: string;
+      payload: EditHousingForm;
+    }) => updateHousingUnit(societyId, housingId, payload),
+    onSuccess: () => {
+      setEditDialogOpen(false);
+      resetEditForm();
+      queryClient.invalidateQueries(["housing-units"] as any);
+    },
+    onError: (error: any) => {
+      alert(
+        error.message ||
+          t("errors.failedToUpdateUnit") ||
+          "Failed to update housing unit"
+      );
+    },
+  });
+
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
     unit: HousingUnit
@@ -119,6 +198,21 @@ export default function HousingUnitsPage() {
 
   const handleOpenPenaltyDialog = () => {
     setPenaltyDialogOpen(true);
+    handleMenuClose();
+  };
+
+  const handleOpenEditDialog = () => {
+    if (!selectedUnit) return;
+
+    // Reset form with current unit data
+    resetEditForm({
+      unit_number: selectedUnit.unit_number,
+      unit_type: selectedUnit.unit_type,
+      square_foot: selectedUnit.square_foot,
+      current_maintenance: selectedUnit.current_maintenance,
+    });
+
+    setEditDialogOpen(true);
     handleMenuClose();
   };
 
@@ -163,6 +257,23 @@ export default function HousingUnitsPage() {
       unit.society?.id ||
       (userRole !== "super_admin" ? societyId : null)
     );
+  };
+
+  const onEditSubmit = (data: EditHousingForm) => {
+    if (!selectedUnit) return;
+
+    const targetSocietyId = getSocietyIdForUnit(selectedUnit);
+    if (!targetSocietyId) {
+      alert(t("errors.noSocietyId"));
+      return;
+    }
+
+    // Send all data since we're updating the unit
+    updateUnit({
+      societyId: targetSocietyId,
+      housingId: selectedUnit.id,
+      payload: data,
+    });
   };
 
   const columns = useMemo(
@@ -322,12 +433,135 @@ export default function HousingUnitsPage() {
         >
           <MenuItem onClick={handleViewUnit}>{t("menu.viewUnit")}</MenuItem>
           <MenuItem
+            onClick={handleOpenEditDialog}
+            disabled={!selectedUnit || !getSocietyIdForUnit(selectedUnit)}
+          >
+            <EditIcon fontSize="small" sx={{ mr: 1 }} />
+            {t("menu.editUnit") || "Edit Unit"}
+          </MenuItem>
+          <MenuItem
             onClick={handleOpenPenaltyDialog}
             disabled={!selectedUnit || !getSocietyIdForUnit(selectedUnit)}
           >
             {t("menu.addPenalty")}
           </MenuItem>
         </Menu>
+
+        {/* Edit Housing Unit Dialog */}
+        <Dialog
+          open={editDialogOpen}
+          onClose={() => !isUpdating && setEditDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>{t("edit.title") || "Edit Housing Unit"}</DialogTitle>
+          <DialogContent>
+            <Box
+              component="form"
+              sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
+            >
+              <Controller
+                name="unit_number"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label={t("edit.unitNumber") || "Unit Number"}
+                    fullWidth
+                    disabled={isUpdating}
+                    error={!!editErrors.unit_number}
+                    helperText={editErrors.unit_number?.message}
+                    placeholder="Enter unit number"
+                  />
+                )}
+              />
+
+              <Controller
+                name="unit_type"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label={t("edit.unitType") || "Unit Type"}
+                    fullWidth
+                    disabled={isUpdating}
+                    error={!!editErrors.unit_type}
+                    helperText={editErrors.unit_type?.message}
+                  >
+                    <MenuItem value="Bungalows">Bungalows</MenuItem>
+                    <MenuItem value="Raw House">Raw House</MenuItem>
+                    <MenuItem value="Villas">Villas</MenuItem>
+                  </TextField>
+                )}
+              />
+
+              <Controller
+                name="square_foot"
+                control={control}
+                render={({ field: { onChange, value, ...field } }) => (
+                  <TextField
+                    {...field}
+                    type="number"
+                    label={t("edit.squareFoot") || "Square Foot"}
+                    fullWidth
+                    disabled={isUpdating}
+                    value={value === 0 ? "" : value}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onChange(val === "" ? 0 : parseInt(val, 10));
+                    }}
+                    error={!!editErrors.square_foot}
+                    helperText={editErrors.square_foot?.message}
+                    inputProps={{ min: 1, step: 1 }}
+                  />
+                )}
+              />
+
+              <Controller
+                name="current_maintenance"
+                control={control}
+                render={({ field: { onChange, value, ...field } }) => (
+                  <TextField
+                    {...field}
+                    type="number"
+                    label={
+                      t("edit.currentMaintenance") || "Current Maintenance"
+                    }
+                    fullWidth
+                    disabled={isUpdating}
+                    value={value === 0 ? "" : value}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onChange(val === "" ? 0 : parseFloat(val));
+                    }}
+                    error={!!editErrors.current_maintenance}
+                    helperText={editErrors.current_maintenance?.message}
+                    inputProps={{ min: 0, step: 1 }}
+                  />
+                )}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setEditDialogOpen(false)}
+              disabled={isUpdating}
+            >
+              {t("actions.cancel")}
+            </Button>
+            <Button
+              variant="contained"
+              disabled={isUpdating}
+              sx={{ bgcolor: "#1e1ee4" }}
+              onClick={handleSubmit(onEditSubmit)}
+            >
+              {isUpdating
+                ? t("actions.saving") || "Saving..."
+                : t("actions.save") || "Save"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Penalty Dialog */}
         <Dialog

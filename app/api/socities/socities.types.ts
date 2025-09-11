@@ -22,6 +22,7 @@ import {
   assignMemberValidation,
   flatPenaltyValidation,
   noticeResponseValidation,
+  updateHousingUnitValidation,
   updateMonthlyDuesValidation,
 } from "./socities.validation";
 
@@ -38,7 +39,6 @@ export type Societies = {
   created_by: string;
   created_at: string;
   society_key: string;
-
 };
 
 export type Building = {
@@ -379,4 +379,8 @@ export type RazorPayConfig = {
 
 export type AddRazorPayConfig = z.infer<
   typeof addRazorPayConfigValidation.shape.body
+>;
+
+export type UpdateHousingUnitReqBody = z.infer<
+  typeof updateHousingUnitValidation.shape.body
 >;

@@ -4,7 +4,7 @@ import {
   memberType,
   societyType,
 } from "@/db/utils/enums/enum";
-import z, { array, boolean, enum as enum_, number, object, string } from "zod";
+import { array, boolean, enum as enum_, number, object, string } from "zod";
 
 export const addSocietyValidation = object({
   body: object({
@@ -298,5 +298,30 @@ export const addRazorPayConfigValidation = object({
 export const getRazorPayConfigValidation = object({
   params: object({
     id: idValidation,
+  }),
+});
+
+export const updateHousingUnitValidation = object({
+  params: object({
+    housingId: idValidation,
+    id: idValidation,
+  }),
+  body: object({
+    unit_number: string()
+      .min(1, "Unit number is required")
+      .max(20, "Unit number must be less than 20 characters")
+      .optional(),
+    unit_type: string()
+      .min(1, "Unit type is required")
+      .max(50, "Unit type must be less than 50 characters")
+      .optional(),
+    square_foot: number()
+      .int("Square foot must be an integer")
+      .min(1, "Square foot must be at least 1")
+      .optional(),
+    current_maintenance: number()
+      .min(0, "Current maintenance must be greater than or equal to 0")
+      .max(1000000, "Current maintenance must be less than or equal to 1000000")
+      .optional(),
   }),
 });

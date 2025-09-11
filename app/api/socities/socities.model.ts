@@ -35,6 +35,7 @@ import {
   RazorPayConfig,
   Societies,
   SocietyOptions,
+  UpdateHousingUnitReqBody,
 } from "./socities.types";
 
 export const findSocityByName = async (
@@ -1565,5 +1566,36 @@ export const checkSocietyInHousing = async (
     return res.rows[0]?.id;
   } catch (error) {
     throw new Error(`Error checking society in housing: ${error}`);
+  }
+};
+
+export const updateHousingUnit = async (
+  societyId: string,
+  housingUnitId: string,
+  userId: string,
+  body: UpdateHousingUnitReqBody
+): Promise<void> => {
+  try {
+    const queryText = `
+      UPDATE housing_units
+      SET unit_number = $1,
+        unit_type = $2,
+        square_foot = $3,
+        current_maintenance = $4,
+        updated_at = NOW(),
+        updated_by = $5
+      WHERE society_id = $6 AND id = $7
+    `;
+    await query(queryText, [
+      body.unit_number,
+      body.unit_type,
+      body.square_foot,
+      body.current_maintenance,
+      userId,
+      societyId,
+      housingUnitId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error updating housing unit: ${error}`);
   }
 };

@@ -1,6 +1,7 @@
 import {
   AddHousingUnitReqBody,
   AssignHousingUnitReqBody,
+  UpdateHousingUnitReqBody,
 } from "@/app/api/socities/socities.types";
 import { getAccessToken } from "@/lib/auth";
 
@@ -110,4 +111,23 @@ export const getOccupiedHousingUnits = async (societyId: string) => {
   if (!res.ok)
     throw new Error(json.message || "Failed to fetch occupied housing units");
   return json.data;
+};
+
+export const updateHousingUnit = async (
+  societyId: string,
+  housingId: string,
+  payload: UpdateHousingUnitReqBody
+) => {
+  const token = getAccessToken();
+  const res = await fetch(`/api/socities/${societyId}/housing/${housingId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to update housing unit");
+  return json;
 };

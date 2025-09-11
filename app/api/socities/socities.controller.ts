@@ -64,6 +64,7 @@ import {
   toggleForIsOccupiedForHousing,
   toggleNoticeStatus,
   updateEndDate,
+  updateHousingUnit,
   updateHousingUnitPenalty,
   updateMonthlyDues,
 } from "./socities.model";
@@ -104,6 +105,7 @@ import {
   RazorPayConfig,
   Societies,
   SocietyOptions,
+  UpdateHousingUnitReqBody,
 } from "./socities.types";
 
 function generateSocietyKey(inputKey: string): string {
@@ -1723,6 +1725,49 @@ export const getRazorPayConfigController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in getRazorPayConfigController:", error);
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const updateHousingUnitController = async (
+  request: Request,
+  housingUnitId: string,
+  societyId: string,
+  body: UpdateHousingUnitReqBody
+): Promise<Response<void>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const housingUnit: HousingUnits | undefined = await findHousingUnitById(
+      housingUnitId
+    );
+    if (!housingUnit) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("HOUSING_UNIT_NOT_FOUND")
+      );
+    }
+
+    await updateHousingUnit(societyId, housingUnitId, userId, body);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNIT_UPDATED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in updateHousingUnitController:", error);
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,
