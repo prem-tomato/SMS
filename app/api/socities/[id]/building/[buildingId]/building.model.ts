@@ -140,3 +140,67 @@ export const deleteFlatMaintenance = async (
 
   await queryWithClient(client, queryText, [flatId]);
 };
+
+export const updateFlatMaintenance = async (
+  flatId: string,
+  items: { id?: string; amount: number; reason: string }[],
+  userId: string,
+  client: PoolClient
+): Promise<void> => {
+  // 1. Fetch existing
+  const existingRes = await queryWithClient<{ id: string }>(
+    client,
+    `SELECT id FROM flat_maintenances WHERE flat_id = $1`,
+    [flatId]
+  );
+  const existingIds = existingRes.rows.map((r) => r.id);
+
+  const incomingIds = items.filter((i) => i.id).map((i) => i.id!);
+
+  // 2. Delete removed
+  const toDelete = existingIds.filter((id) => !incomingIds.includes(id));
+  if (toDelete.length) {
+    await queryWithClient(
+      client,
+      `DELETE FROM flat_maintenances WHERE id = ANY($1::uuid[])`,
+      [toDelete]
+    );
+  }
+
+  // 3. Update existing
+  for (const item of items.filter((i) => i.id)) {
+    await queryWithClient(
+      client,
+      `UPDATE flat_maintenances 
+       SET amount = $1, reason = $2, updated_by = $3, updated_at = NOW()
+       WHERE id = $4`,
+      [item.amount, item.reason, userId, item.id]
+    );
+  }
+
+  // 4. Insert new
+  const newItems = items.filter((i) => !i.id);
+  if (newItems.length) {
+    const values = newItems.flatMap((i) => [
+      flatId,
+      i.amount,
+      i.reason,
+      userId,
+    ]);
+
+    const queryText = `
+      INSERT INTO flat_maintenances 
+        (flat_id, amount, reason, created_by, created_at, updated_by, updated_at)
+      VALUES ${newItems
+        .map(
+          (_, idx) =>
+            `($${idx * 4 + 1}, $${idx * 4 + 2}, $${idx * 4 + 3}, $${
+              idx * 4 + 4
+            }, NOW(), $${idx * 4 + 4}, NOW())`
+        )
+        .join(", ")}
+    `;
+
+    await queryWithClient(client, queryText, values);
+  }
+};

@@ -230,3 +230,22 @@ export async function updateFlat(
   if (!res.ok) throw new Error(json.message || "Failed to update flat");
   return json.data;
 }
+
+export async function fetchFlatMaintenance(
+  societyId: string,
+  buildingId: string,
+  flatId: string
+) {
+  const token = getAccessToken();
+  const res = await fetch(
+    `/api/socities/${societyId}/building/${buildingId}/flat/${flatId}/maintenance`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to fetch maintenance");
+  return json.data;
+}

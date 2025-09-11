@@ -4,21 +4,22 @@ import {
   startTransaction,
   Transaction,
 } from "@/db/configs/acid";
+import { query } from "@/db/database-connect";
 import getMessage from "@/db/utils/messages";
 import { generateResponseJSON, Response } from "@/db/utils/response-generator";
 import { StatusCodes } from "http-status-codes";
 import socitiesLogger from "../../../socities.logger";
 import {
-  addFlatMaintenance,
   findBuildingById,
+  findFlatById,
   findSocietyById,
 } from "../../../socities.model";
 import { Building, Societies } from "../../../socities.types";
 import {
   deleteBuildingModel,
-  deleteFlatMaintenance,
   updateBuildingModel,
   updateFlat,
+  updateFlatMaintenance,
 } from "./building.model";
 import { UpdateBuildingReqBody, UpdateFlatReqBody } from "./building.types";
 
@@ -115,7 +116,7 @@ export const updateFlatController = async (
       );
     }
 
-    // Update flat details
+    // Update flat
     const flat = await updateFlat(
       restPayload,
       params.flatId,
@@ -125,14 +126,15 @@ export const updateFlatController = async (
       client
     );
 
-    // ✅ Clear old maintenance before adding new ones
-    await deleteFlatMaintenance(params.flatId, client);
-
-    if (pending_maintenance?.length) {
-      await addFlatMaintenance(
-        pending_maintenance as { amount: number; reason: string }[],
-        { id: params.id, buildingId: params.buildingId },
+    // Update maintenance
+    if (pending_maintenance) {
+      await updateFlatMaintenance(
         flat.id,
+        pending_maintenance as {
+          id?: string;
+          amount: number;
+          reason: string;
+        }[],
         userId,
         client
       );
@@ -149,6 +151,40 @@ export const updateFlatController = async (
 
     await rollbackTransaction(transaction);
 
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getFlatMaintenanceController = async (
+  request: Request,
+  params: { id: string; buildingId: string; flatId: string }
+): Promise<Response<any>> => {
+  try {
+    const flat = await findFlatById(params.flatId);
+    if (!flat) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_NOT_FOUND")
+      );
+    }
+
+    const queryText = `SELECT id, amount, reason
+    FROM flat_maintenances
+    WHERE flat_id = $1
+    ORDER BY created_at ASC`;
+
+    const maintRes = await query(queryText, [params.flatId]);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("MAINTENANCE_FETCHED_SUCCESSFULLY"),
+      { data: maintRes.rows }
+    );
+  } catch (error: any) {
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,

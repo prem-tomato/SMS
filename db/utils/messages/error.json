@@ -63,5 +63,6 @@
   "UNAUTHORIZED_ACCESS": "unauthorized access",
   "BUILDING_UPDATED_SUCCESSFULLY": "building updated successfully",
   "BUILDING_DELETED_SUCCESSFULLY": "building deleted successfully",
-  "FLAT_UPDATED_SUCCESSFULLY": "flat updated successfully"
+  "FLAT_UPDATED_SUCCESSFULLY": "flat updated successfully",
+  "MAINTENANCE_FETCHED_SUCCESSFULLY": "maintenance fetched successfully"
 }
