@@ -19,6 +19,7 @@ export const listAllFlats = async (): Promise<GetAllFlats[]> => {
             FROM flats
             INNER JOIN societies ON flats.society_id = societies.id
             INNER JOIN buildings ON flats.building_id = buildings.id
+            WHERE flats.is_deleted = false
         `;
 
     const result: QueryResult<GetAllFlats> = await query<GetAllFlats>(
@@ -50,7 +51,7 @@ export const listAllFlatsBySociety = async (
             FROM flats
             INNER JOIN societies ON flats.society_id = societies.id
             INNER JOIN buildings ON flats.building_id = buildings.id
-            WHERE societies.id = $1
+            WHERE societies.id = $1 AND flats.is_deleted = false
         `;
 
     const result: QueryResult<GetAllFlats> = await query<GetAllFlats>(

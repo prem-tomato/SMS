@@ -532,7 +532,7 @@ export const listFlats = async (params: {
       FROM flats f
       LEFT JOIN buildings b ON b.id = f.building_id
       LEFT JOIN societies ON societies.id = f.society_id
-      WHERE f.society_id = $1 AND f.building_id = $2
+      WHERE f.society_id = $1 AND f.building_id = $2 AND f.is_deleted = false
     `;
 
     const res: QueryResult<FlatOptions> = await query<FlatOptions>(queryText, [

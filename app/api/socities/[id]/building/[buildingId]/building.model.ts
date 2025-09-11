@@ -219,7 +219,8 @@ export const deleteFlat = async (
       SET is_deleted = true,
           deleted_at = NOW(),
           updated_by = $4,
-          updated_at = NOW()
+          updated_at = NOW(),
+          deleted_by = $4
       WHERE id = $1 
         AND building_id = $2 
         AND society_id = $3 
@@ -235,7 +236,7 @@ export const deleteFlat = async (
     ]);
 
     if (flatResult.rowCount === 0) {
-      throw new Error("Flat not found, occupied, or already deleted.");
+      throw new Error("Flat is already occupied");
     }
 
     // 2. Soft delete related flat_maintenances
@@ -244,7 +245,8 @@ export const deleteFlat = async (
       SET is_deleted = true,
           deleted_at = NOW(),
           updated_by = $3,
-          updated_at = NOW()
+          updated_at = NOW(),
+          deleted_by = $3
       WHERE flat_id = $1 
         AND society_id = $2
     `;

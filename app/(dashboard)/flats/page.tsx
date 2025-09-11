@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth";
 import {
   addFlatPenalty,
+  deleteFlatService,
   listAllFlats,
   listAllFlatsBySociety,
 } from "@/services/flats";
@@ -34,6 +35,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function FlatsPage() {
   const t = useTranslations("FlatsPage");
@@ -44,6 +46,8 @@ export default function FlatsPage() {
   const [societyType, setSocietyType] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editFlat, setEditFlat] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedFlat, setSelectedFlat] = useState<any>(null);
@@ -115,6 +119,28 @@ export default function FlatsPage() {
     },
     onError: (error: any) => {
       alert(error.message || t("errors.failedAddPenalty"));
+    },
+  });
+
+  const { mutate: deleteFlat, isPending: isDeleting } = useMutation({
+    mutationFn: ({
+      societyId,
+      buildingId,
+      flatId,
+    }: {
+      societyId: string;
+      buildingId: string;
+      flatId: string;
+    }) => deleteFlatService(societyId, buildingId, flatId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["flats", societyId] as any);
+      toast.success(t("messages.flatDeleted"));
+      setDeleteDialogOpen(false);
+      setDeleteError(null);
+    },
+    onError: (error: any) => {
+      // Instead of toast, show inside dialog
+      setDeleteError(error.message || t("errors.failedDeleteFlat"));
     },
   });
 
@@ -269,6 +295,36 @@ export default function FlatsPage() {
       />
 
       {/* 3-dot Action Menu */}
+      {/* <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={handleViewFlat}>
+          {societyType === "commercial"
+            ? t("menu.viewShop")
+            : t("menu.viewFlat")}
+        </MenuItem>
+        <MenuItem onClick={handleOpenPenaltyDialog}>
+          {t("menu.addPenalty")}
+        </MenuItem>
+        <MenuItem onClick={handleManageMaintenance}>
+          {t("menu.maintenanceSettings")}
+        </MenuItem>
+        <MenuItem onClick={handleViewMaintenance}>
+          {t("menu.maintenanceOverview")}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            setEditFlat(selectedFlat);
+            setEditModalOpen(true);
+          }}
+        >
+          {t("menu.editFlat")}
+        </MenuItem>
+      </Menu> */}
+
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -297,7 +353,64 @@ export default function FlatsPage() {
         >
           {t("menu.editFlat")}
         </MenuItem>
+        {/* 🗑 Delete Flat option */}
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            setDeleteDialogOpen(true);
+            setDeleteError(null);
+          }}
+          style={{ color: "red" }}
+        >
+          {t("menu.deleteFlat")}
+        </MenuItem>
       </Menu>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>{t("deleteDialog.title")}</DialogTitle>
+        <DialogContent>
+          <p>
+            {t("deleteDialog.message", {
+              flat: selectedFlat?.flat_number,
+            })}
+          </p>
+          {deleteError && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 1.5,
+                bgcolor: "#fdecea",
+                color: "#b71c1c",
+                borderRadius: 1,
+              }}
+            >
+              {deleteError}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={isDeleting}
+            onClick={() =>
+              deleteFlat({
+                societyId: selectedFlat.society_id,
+                buildingId: selectedFlat.building_id,
+                flatId: selectedFlat.id,
+              })
+            }
+          >
+            {isDeleting ? t("common.deleting") : t("deleteDialog.confirm")}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Penalty Dialog */}
       <Dialog

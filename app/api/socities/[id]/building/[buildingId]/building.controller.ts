@@ -213,7 +213,13 @@ export const deleteFlatController = async (
       );
     }
 
-    await deleteFlat(params.flatId, params.buildingId, params.id, userId, client);
+    await deleteFlat(
+      params.flatId,
+      params.buildingId,
+      params.id,
+      userId,
+      client
+    );
 
     await commitTransaction(transaction);
 
