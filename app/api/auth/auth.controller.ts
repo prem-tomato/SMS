@@ -20,6 +20,7 @@ import {
   findUserById,
   findUserByLoginKeyAndSociety,
   removeOtherTokens,
+  updateUser,
 } from "./auth.model";
 import { LoginBody, LoginResponse, User, UserAgentData } from "./auth.types";
 
@@ -332,6 +333,35 @@ export const getMeController = async (
         getMessage("USER_NOT_FOUND")
       );
     }
+
+    return generateResponseJSON(StatusCodes.OK, getMessage("USER_FOUND"), user);
+  } catch (error: any) {
+    authLogger.error(`Error from login controller => ${error}`);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const updateMeController = async (
+  request: Request,
+  reqBody: User
+): Promise<Response<User>> => {
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const user: User | undefined = await findUserById(userId);
+    if (!user) {
+      return generateResponseJSON(
+        StatusCodes.UNAUTHORIZED,
+        getMessage("USER_NOT_FOUND")
+      );
+    }
+
+    await updateUser(user.id, reqBody);
 
     return generateResponseJSON(StatusCodes.OK, getMessage("USER_FOUND"), user);
   } catch (error: any) {

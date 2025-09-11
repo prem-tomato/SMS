@@ -9,7 +9,13 @@
     "role": "ભૂમિકા",
     "loginKey": "લોગિન કી",
     "phone": "ફોન",
-    "joinedAt": "જોડાયા"
+    "joinedAt": "જોડાયા",
+    "edit": "દાખલ કરો",
+    "save": "સાચવો",
+    "cancel": "રદ કરો",
+    "firstName": "પ્રથમ નામ",
+    "lastName": "અભ્યાસકાર નામ",
+    "profileUpdated": "પ્રોફાઇલ સફળતાપૂર્વક અપડેટ કરાયો!"
   },
   "Dashboard": {
     "unitLabelHousing": "હાઉસિંગ યુનિટ્સ",

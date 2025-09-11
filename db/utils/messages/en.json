@@ -9,7 +9,13 @@
     "role": "Role",
     "loginKey": "Login Key",
     "phone": "Phone",
-    "joinedAt": "Joined At"
+    "joinedAt": "Joined At",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "profileUpdated": "Profile updated successfully!"
   },
 
   "Dashboard": {

@@ -177,3 +177,32 @@ export const findSuperAdminByLoginKey = async (
     throw new Error(`Error finding super admin by login key: ${error}`);
   }
 };
+
+export const updateUser = async (
+  userId: string,
+  reqBody: User
+): Promise<void> => {
+  try {
+    const queryText = `
+      UPDATE users
+      SET
+        first_name = $1,
+        last_name = $2,
+        phone = $3,
+        society_id = $4,
+        updated_at = NOW(),
+        updated_by = $5
+      WHERE id = $5
+    `;
+
+    await query(queryText, [
+      reqBody.first_name,
+      reqBody.last_name,
+      reqBody.phone,
+      reqBody.society_id,
+      userId,
+    ]);
+  } catch (error) {
+    throw new Error(`Error updating user: ${error}`);
+  }
+};
