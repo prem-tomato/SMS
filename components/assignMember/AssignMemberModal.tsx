@@ -812,7 +812,7 @@ export default function AssignMemberModal({
 
   const getDisplayName = (user: any) =>
     user?.first_name && user?.last_name
-      ? `${user.first_name} ${user.last_name}`
+      ? `${user.first_name} ${user.last_name} (${user.phone})`
       : user?.name || user?.email || `${t("common.user")} ${user.id}`;
 
   // Type-safe way to check for society_id error
