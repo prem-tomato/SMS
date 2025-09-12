@@ -1,13 +1,20 @@
 // app/components/polls/PollsList.tsx
 "use client";
 
-import { Add as AddIcon, Close as CloseIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
 import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
+  DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   Divider,
   IconButton,
@@ -18,6 +25,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { GridColDef } from "@mui/x-data-grid";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import CommonDataGrid from "../common/CommonDataGrid"; // Adjust import path as needed
@@ -57,8 +65,10 @@ export default function PollsList({
 }: PollsListProps) {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
   const [filter, setFilter] = useState<"active" | "expired">("active");
 
@@ -143,7 +153,36 @@ export default function PollsList({
     return true;
   });
 
-  const columns = [
+  const handleDeletePoll = async () => {
+    if (!selectedPoll) return;
+
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/polls/${selectedPoll.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          userId: userId,
+        },
+      });
+      if (response.ok) {
+        fetchPolls();
+        setShowDeleteDialog(false);
+        setShowDetailModal(false);
+        setSelectedPoll(null);
+      }
+    } catch (error) {
+      console.error("Error deleting poll:", error);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const isPollActive = (poll: Poll) => {
+    return poll.status === "active" && new Date(poll.expires_at) > new Date();
+  };
+
+  const columns: GridColDef[] = [
     {
       field: "title",
       headerName: "Poll Title",
@@ -297,30 +336,60 @@ export default function PollsList({
       },
     },
     {
-      field: "view",
-      headerName: "View",
-      flex: 0.5,
+      field: "actions",
+      headerName: "Actions",
+      flex: 0.8,
       renderCell: ({ row }: { row: Poll }) => (
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => handleViewPoll(row)}
-          sx={{
-            textTransform: "none",
-            borderColor: "#1e1ee4",
-            color: "#1e1ee4",
-            fontSize: "0.75rem",
-            px: 2,
-            py: 0.5,
-            borderRadius: 1,
-            "&:hover": {
-              borderColor: "#1a1acc",
-              bgcolor: "rgba(30, 30, 228, 0.04)",
-            },
-          }}
-        >
-          View
-        </Button>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => handleViewPoll(row)}
+            sx={{
+              textTransform: "none",
+              borderColor: "#1e1ee4",
+              color: "#1e1ee4",
+              fontSize: "0.75rem",
+              px: 2,
+              py: 0.5,
+              borderRadius: 1,
+              "&:hover": {
+                borderColor: "#1a1acc",
+                bgcolor: "rgba(30, 30, 228, 0.04)",
+              },
+            }}
+          >
+            View
+          </Button>
+          {userRole === "admin" && isPollActive(row) && (
+            <IconButton
+              size="small"
+              disabled={deleteLoading && selectedPoll?.id === row.id}
+              onClick={() => {
+                setSelectedPoll(row);
+                setShowDeleteDialog(true);
+              }}
+              sx={{
+                color:
+                  deleteLoading && selectedPoll?.id === row.id
+                    ? "#ccc"
+                    : "#ef4444",
+                "&:hover": {
+                  bgcolor: "rgba(239, 68, 68, 0.04)",
+                },
+                "&:disabled": {
+                  color: "#ccc",
+                },
+              }}
+            >
+              {deleteLoading && selectedPoll?.id === row.id ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <DeleteIcon fontSize="small" />
+              )}
+            </IconButton>
+          )}
+        </Stack>
       ),
     },
   ];
@@ -426,7 +495,7 @@ export default function PollsList({
         userId={userId}
       />
 
-      {/* Poll Detail Modal - Inline Component */}
+      {/* Poll Detail Modal */}
       <Dialog
         open={showDetailModal}
         onClose={() => setShowDetailModal(false)}
@@ -695,13 +764,45 @@ export default function PollsList({
                 </Stack>
               </Box>
 
-              {/* Action Button */}
+              {/* Action Buttons */}
               <Stack
                 direction="row"
                 spacing={2}
                 justifyContent="flex-end"
                 sx={{ pt: 2 }}
               >
+                {userRole === "admin" &&
+                  selectedPoll &&
+                  isPollActive(selectedPoll) && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={
+                        deleteLoading ? (
+                          <CircularProgress size={16} color="inherit" />
+                        ) : (
+                          <DeleteIcon />
+                        )
+                      }
+                      disabled={deleteLoading}
+                      onClick={() => setShowDeleteDialog(true)}
+                      sx={{
+                        textTransform: "none",
+                        borderColor: "#ef4444",
+                        color: "#ef4444",
+                        "&:hover": {
+                          borderColor: "#dc2626",
+                          bgcolor: "rgba(239, 68, 68, 0.04)",
+                        },
+                        "&:disabled": {
+                          borderColor: "#ccc",
+                          color: "#ccc",
+                        },
+                      }}
+                    >
+                      {deleteLoading ? "Deleting..." : "Delete Poll"}
+                    </Button>
+                  )}
                 <Button
                   variant="outlined"
                   onClick={() => setShowDetailModal(false)}
@@ -721,6 +822,47 @@ export default function PollsList({
             </Stack>
           )}
         </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={showDeleteDialog}
+        onClose={() => !deleteLoading && setShowDeleteDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Delete Poll</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete the poll "{selectedPoll?.title}"?
+            This action cannot be undone and will remove all votes associated
+            with this poll.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setShowDeleteDialog(false)}
+            color="inherit"
+            disabled={deleteLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeletePoll}
+            color="error"
+            variant="contained"
+            startIcon={
+              deleteLoading ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <DeleteIcon />
+              )
+            }
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? "Deleting..." : "Delete Poll"}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

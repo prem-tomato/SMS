@@ -1,6 +1,13 @@
 // app/api/polls/[pollId]/route.ts
-import { query } from "@/db/database-connect";
+import {
+  commitTransaction,
+  rollbackTransaction,
+  startTransaction,
+  Transaction,
+} from "@/db/configs/acid";
+import { query, queryWithClient } from "@/db/database-connect";
 import { NextRequest, NextResponse } from "next/server";
+import { findUserById } from "../../auth/auth.model";
 
 // GET - Get specific poll with options and vote counts
 export async function GET(
@@ -45,6 +52,71 @@ export async function GET(
     return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error("Error fetching poll:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// api/polls/[pollId]
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { pollId: string } }
+) {
+  const transaction: Transaction = await startTransaction();
+  const { client } = transaction;
+  try {
+    const userId = request.headers.get("userId")!;
+
+    const user = await findUserById(userId);
+    if (!user) {
+      await rollbackTransaction(transaction);
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const queries = [
+      `
+        UPDATE polls
+        SET is_deleted = true,
+            deleted_at = NOW(),
+            deleted_by = $2,
+            updated_at = NOW(),
+            updated_by = $2
+        WHERE id = $1
+      `,
+      `
+        UPDATE poll_votes
+        SET is_deleted = true,
+            deleted_at = NOW(),
+            deleted_by = $2,
+            updated_at = NOW(),
+            updated_by = $2
+        WHERE poll_id = $1
+      `,
+      `
+        UPDATE poll_options
+        SET is_deleted = true,
+            deleted_at = NOW(),
+            deleted_by = $2,
+            updated_at = NOW(),
+            updated_by = $2
+        WHERE poll_id = $1
+      `,
+    ];
+
+    for (const sql of queries) {
+      await queryWithClient(client, sql, [params.pollId, userId]);
+    }
+
+    await commitTransaction(transaction);
+
+    return NextResponse.json({ message: "Poll deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting poll:", error);
+
+    await rollbackTransaction(transaction);
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
