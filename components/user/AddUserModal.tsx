@@ -2,6 +2,9 @@
 
 import CommonButton from "@/components/common/CommonButton";
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
+import { fetchBuildingsBySociety } from "@/services/building";
+import { getVacantFlats } from "@/services/flats";
+import { getVacantHousingUnits } from "@/services/housing";
 import { fetchSocietyOptions } from "@/services/societies";
 import { createUser } from "@/services/user";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,22 +19,24 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
+  OutlinedInput,
   Select,
   TextField,
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CountryCode } from "libphonenumber-js/core";
-import { useTranslations } from "next-intl"; // ✅ Added
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { z } from "zod";
 
-const inputSchema = z.object({
+// Base schema for all user types
+const baseSchema = z.object({
   role: z.enum(["admin", "member"]),
   first_name: z.string().min(1, "First name required"),
   last_name: z.string().min(1, "Last name required"),
@@ -47,12 +52,43 @@ const inputSchema = z.object({
   society_id: z.string().optional(),
 });
 
-// Create a schema for super_admin that requires society_id
-const superAdminSchema = inputSchema.extend({
+// Extended schema for commercial and residential societies (requires building and flats)
+const commercialResidentialSchema = baseSchema.extend({
+  building_id: z.string().min(1, "Building is required"),
+  flat_id: z.array(z.string()).min(1, "At least one shop/flat is required"),
+});
+
+// Extended schema for housing societies (requires housing units)
+const housingSchema = baseSchema.extend({
+  housing_unit_id: z.array(z.string()).min(1, "At least one unit is required"),
+});
+
+// Schema for super_admin that requires society_id
+const superAdminCommercialResidentialSchema =
+  commercialResidentialSchema.extend({
+    society_id: z.string().min(1, "Society is required"),
+  });
+
+const superAdminHousingSchema = housingSchema.extend({
   society_id: z.string().min(1, "Society is required"),
 });
 
-type FormValues = z.infer<typeof inputSchema>;
+type BaseFormValues = z.infer<typeof baseSchema>;
+type CommercialResidentialFormValues = z.infer<
+  typeof commercialResidentialSchema
+>;
+type HousingFormValues = z.infer<typeof housingSchema>;
+type SuperAdminCommercialResidentialFormValues = z.infer<
+  typeof superAdminCommercialResidentialSchema
+>;
+type SuperAdminHousingFormValues = z.infer<typeof superAdminHousingSchema>;
+
+type FormValues =
+  | BaseFormValues
+  | CommercialResidentialFormValues
+  | HousingFormValues
+  | SuperAdminCommercialResidentialFormValues
+  | SuperAdminHousingFormValues;
 
 export default function AddUserModal({
   open,
@@ -66,29 +102,100 @@ export default function AddUserModal({
   societyType: string | null;
 }) {
   const t = useTranslations("AddUserModal");
-
   const queryClient = useQueryClient();
   const [country, setCountry] = useState<CountryCode>("IN");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [adminSocietyId, setAdminSocietyId] = useState<string>("");
+
+  // Determine which schema to use based on user role and society type
+  const getSchemaAndDefaults = () => {
+    const isHousing = societyType === "housing";
+    const isSuperAdmin = userRole === "super_admin";
+
+    if (isHousing) {
+      if (isSuperAdmin) {
+        return {
+          schema: superAdminHousingSchema,
+          defaults: {
+            role: "member" as const,
+            first_name: "",
+            last_name: "",
+            login_key: "",
+            phone: "",
+            society_id: "",
+            housing_unit_id: [],
+          },
+        };
+      } else {
+        return {
+          schema: housingSchema,
+          defaults: {
+            role: "member" as const,
+            first_name: "",
+            last_name: "",
+            login_key: "",
+            phone: "",
+            housing_unit_id: [],
+          },
+        };
+      }
+    } else {
+      // Commercial or residential
+      if (isSuperAdmin) {
+        return {
+          schema: superAdminCommercialResidentialSchema,
+          defaults: {
+            role: "member" as const,
+            first_name: "",
+            last_name: "",
+            login_key: "",
+            phone: "",
+            society_id: "",
+            building_id: "",
+            flat_id: [],
+          },
+        };
+      } else {
+        return {
+          schema: commercialResidentialSchema,
+          defaults: {
+            role: "member" as const,
+            first_name: "",
+            last_name: "",
+            login_key: "",
+            phone: "",
+            building_id: "",
+            flat_id: [],
+          },
+        };
+      }
+    }
+  };
+
+  const { schema, defaults } = getSchemaAndDefaults();
 
   const {
     control,
     handleSubmit,
     reset,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(inputSchema),
-    defaultValues: {
-      role: "member",
-      first_name: "",
-      last_name: "",
-      login_key: "",
-      phone: "",
-      society_id: "",
-    },
+    resolver: zodResolver(schema as any),
+    defaultValues: defaults,
   });
+
+  // Watch form values for dependent dropdowns
+  const watchedValues = useWatch({ control });
+  const selectedSocietyId =
+    userRole === "super_admin"
+      ? "society_id" in watchedValues
+        ? watchedValues.society_id
+        : ""
+      : adminSocietyId;
+  const selectedBuildingId =
+    "building_id" in watchedValues ? watchedValues.building_id : "";
 
   useEffect(() => {
     const role = getUserRole();
@@ -100,46 +207,87 @@ export default function AddUserModal({
     }
   }, []);
 
+  // Fetch societies (for super admin)
   const { data: societies = [] } = useQuery({
     queryKey: ["society-options"],
     queryFn: fetchSocietyOptions,
     enabled: userRole === "super_admin" || userRole === "admin",
   });
 
+  // Fetch buildings (for commercial/residential societies)
+  const { data: buildings = [], isLoading: loadingBuildings } = useQuery({
+    queryKey: ["buildings", selectedSocietyId],
+    queryFn: () => fetchBuildingsBySociety(selectedSocietyId!),
+    enabled: !!selectedSocietyId && societyType !== "housing",
+  });
+
+  // Fetch vacant flats/shops (for commercial/residential societies)
+  const { data: vacantFlats = [], isLoading: loadingFlats } = useQuery({
+    queryKey: ["vacantFlats", selectedSocietyId, selectedBuildingId],
+    queryFn: () => getVacantFlats(selectedSocietyId!, selectedBuildingId!),
+    enabled:
+      !!selectedSocietyId && !!selectedBuildingId && societyType !== "housing",
+  });
+
+  // Fetch vacant housing units (for housing societies)
+  const { data: vacantUnits = [], isLoading: loadingUnits } = useQuery({
+    queryKey: ["vacantUnits", selectedSocietyId],
+    queryFn: () => getVacantHousingUnits(selectedSocietyId!),
+    enabled: !!selectedSocietyId && societyType === "housing",
+  });
+
+  // Reset dependent fields when parent selection changes
+  useEffect(() => {
+    if (userRole === "super_admin" && selectedSocietyId) {
+      if (societyType !== "housing") {
+        setValue("building_id", "");
+        setValue("flat_id", []);
+      } else {
+        setValue("housing_unit_id", []);
+      }
+    }
+  }, [selectedSocietyId, userRole, setValue, societyType]);
+
+  useEffect(() => {
+    if (societyType !== "housing" && selectedBuildingId) {
+      setValue("flat_id", []);
+    }
+  }, [selectedBuildingId, setValue, societyType]);
+
   const mutation = useMutation({
     mutationFn: (data: FormValues) => {
-      // Validate based on user role
-      let validatedData;
-      if (userRole === "super_admin") {
-        const result = superAdminSchema.safeParse(data);
-        if (!result.success) {
-          // Handle validation errors
-          result.error.issues.forEach((issue) => {
-            const path = issue.path[0] as keyof FormValues;
-            setError(path, { type: "manual", message: issue.message });
-          });
-          throw new Error("Validation failed");
-        }
-        validatedData = result.data;
-      } else {
-        validatedData = data;
-      }
-
       const targetSocietyId =
-        userRole === "super_admin" ? validatedData.society_id! : adminSocietyId;
+        userRole === "super_admin"
+          ? "society_id" in data
+            ? data.society_id!
+            : adminSocietyId
+          : adminSocietyId;
 
+      // Create user with shop/flat/unit assignment
       return createUser(targetSocietyId, {
-        ...validatedData,
-        login_key: Number(validatedData.login_key),
+        ...data,
+        login_key: Number(data.login_key),
+        // Include assignment data for API
+        ...(societyType === "housing"
+          ? {
+              housing_unit_id:
+                "housing_unit_id" in data ? data.housing_unit_id : [],
+            }
+          : {
+              building_id: "building_id" in data ? data.building_id : "",
+              flat_id: "flat_id" in data ? data.flat_id : [],
+            }),
       } as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["vacantFlats"] });
+      queryClient.invalidateQueries({ queryKey: ["vacantUnits"] });
       reset();
       onClose();
+      toast.success(t("success.userCreated"));
     },
     onError: (error: any) => {
-      if (error.message === "Validation failed") return;
       const message = error?.message || t("errors.generic");
       toast.error(message);
       if (message.includes("login key")) {
@@ -150,15 +298,23 @@ export default function AddUserModal({
 
   const onSubmit = (data: FormValues) => mutation.mutate(data);
 
+  // Helper functions for labels and titles
+  const getUnitLabel = () => {
+    if (societyType === "housing") return t("housingUnit");
+    return societyType === "commercial" ? t("shop") : t("flat");
+  };
+
+  const getUserTypeLabel = () => {
+    if (societyType === "housing") return t("resident");
+    return societyType === "commercial" ? t("shopOwner") : t("resident");
+  };
+
   return (
     <>
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
         <DialogTitle>
           <Typography variant="h6" fontWeight="bold">
-            {t("title", {
-              type:
-                societyType === "commercial" ? t("shopOwner") : t("resident"),
-            })}
+            {t("title", { type: getUserTypeLabel() })}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {t("subtitle")}
@@ -217,13 +373,18 @@ export default function AddUserModal({
               )}
             />
 
-            {/* Society */}
+            {/* Society (Super Admin only) */}
             {userRole === "super_admin" && (
               <Controller
                 name="society_id"
                 control={control}
                 render={({ field }) => (
-                  <FormControl fullWidth error={!!errors.society_id}>
+                  <FormControl
+                    fullWidth
+                    error={
+                      !!("society_id" in errors ? errors.society_id : undefined)
+                    }
+                  >
                     <InputLabel>{t("society")}</InputLabel>
                     <Select
                       {...field}
@@ -245,9 +406,194 @@ export default function AddUserModal({
                         </MenuItem>
                       ))}
                     </Select>
-                    {errors.society_id && (
+                    {"society_id" in errors && errors.society_id && (
                       <Typography variant="caption" color="error">
                         {errors.society_id.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                )}
+              />
+            )}
+
+            {/* Building (Commercial/Residential only) */}
+            {societyType !== "housing" && (
+              <Controller
+                name="building_id"
+                control={control}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    disabled={!selectedSocietyId}
+                    error={
+                      !!("building_id" in errors
+                        ? errors.building_id
+                        : undefined)
+                    }
+                  >
+                    <InputLabel>{t("building")}</InputLabel>
+                    <Select
+                      {...field}
+                      label={t("building")}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            "& .MuiMenuItem-root": {
+                              fontSize: "0.875rem",
+                            },
+                          },
+                        },
+                      }}
+                    >
+                      {loadingBuildings ? (
+                        <MenuItem disabled>{t("loading")}</MenuItem>
+                      ) : (
+                        buildings.map((b: any) => (
+                          <MenuItem key={b.id} value={b.id}>
+                            {b.name}
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                    {"building_id" in errors && errors.building_id && (
+                      <Typography variant="caption" color="error">
+                        {errors.building_id.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                )}
+              />
+            )}
+
+            {/* Flats/Shops (Commercial/Residential only) */}
+            {societyType !== "housing" && (
+              <Controller
+                name="flat_id"
+                control={control}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    disabled={!selectedBuildingId}
+                    error={!!("flat_id" in errors ? errors.flat_id : undefined)}
+                  >
+                    <InputLabel>{getUnitLabel()}</InputLabel>
+                    <Select
+                      {...field}
+                      multiple
+                      input={<OutlinedInput label={getUnitLabel()} />}
+                      renderValue={(selected) => (
+                        <Box
+                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
+                        >
+                          {selected.map((value) => {
+                            const unit = vacantFlats.find(
+                              (f: any) => f.id === value
+                            );
+                            return (
+                              <Chip
+                                key={value}
+                                label={`${unit?.flat_number} - Floor ${unit?.floor_number}`}
+                                size="small"
+                              />
+                            );
+                          })}
+                        </Box>
+                      )}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            "& .MuiMenuItem-root": {
+                              fontSize: "0.875rem",
+                            },
+                          },
+                        },
+                      }}
+                    >
+                      {loadingFlats ? (
+                        <MenuItem disabled>{t("loading")}</MenuItem>
+                      ) : (
+                        vacantFlats.map((f: any) => (
+                          <MenuItem key={f.id} value={f.id}>
+                            {f.flat_number} - Floor {f.floor_number}
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                    {"flat_id" in errors && errors.flat_id && (
+                      <Typography variant="caption" color="error">
+                        {errors.flat_id.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                )}
+              />
+            )}
+
+            {/* Housing Units (Housing societies only) */}
+            {societyType === "housing" && (
+              <Controller
+                name="housing_unit_id"
+                control={control}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    disabled={!selectedSocietyId}
+                    error={
+                      !!("housing_unit_id" in errors
+                        ? errors.housing_unit_id
+                        : undefined)
+                    }
+                  >
+                    <InputLabel>{getUnitLabel()}</InputLabel>
+                    <Select
+                      {...field}
+                      multiple
+                      input={<OutlinedInput label={getUnitLabel()} />}
+                      renderValue={(selected) => (
+                        <Box
+                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
+                        >
+                          {selected.map((value) => {
+                            const unit = vacantUnits.find(
+                              (u: any) => u.id === value
+                            );
+                            return (
+                              <Chip
+                                key={value}
+                                label={`${unit?.unit_number} - ${unit?.unit_type}`}
+                                size="small"
+                              />
+                            );
+                          })}
+                        </Box>
+                      )}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            "& .MuiMenuItem-root": {
+                              fontSize: "0.875rem",
+                            },
+                          },
+                        },
+                      }}
+                    >
+                      {loadingUnits ? (
+                        <MenuItem disabled>{t("loading")}</MenuItem>
+                      ) : (
+                        vacantUnits.map((u: any) => (
+                          <MenuItem key={u.id} value={u.id}>
+                            {u.unit_number} - {u.unit_type} ({u.square_foot} sq
+                            ft)
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                    {"housing_unit_id" in errors && errors.housing_unit_id && (
+                      <Typography variant="caption" color="error">
+                        {errors.housing_unit_id.message}
                       </Typography>
                     )}
                   </FormControl>
@@ -334,10 +680,7 @@ export default function AddUserModal({
               loading={mutation.isPending}
               sx={{ bgcolor: "#1e1ee4" }}
             >
-              {t("save", {
-                type:
-                  societyType === "commercial" ? t("shopOwner") : t("resident"),
-              })}
+              {t("save", { type: getUserTypeLabel() })}
             </CommonButton>
           </DialogActions>
         </Box>

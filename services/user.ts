@@ -20,6 +20,7 @@ export async function fetchVacantUsersBySociety(societyId: string) {
   return json.data;
 }
 
+// services/user.ts
 export async function createUser(
   societyId: string,
   payload: {
@@ -39,11 +40,24 @@ export async function createUser(
     },
     body: JSON.stringify(payload),
   });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.message || "Failed to create user");
-  return json;
-}
 
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || "Failed to create user");
+  }
+
+  const userId = json?.data?.data?.id;
+
+  if (!userId) {
+    throw new Error("User created but no ID was returned from server");
+  }
+
+  return {
+    id: userId,
+    ...json.data.data,
+  };
+}
 export async function fetchAllUsers() {
   const token = getAccessToken();
   const res = await fetch(`/api/users`, {

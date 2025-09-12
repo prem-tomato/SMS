@@ -1,7 +1,7 @@
 "use client";
 
 import CommonDataGrid from "@/components/common/CommonDataGrid";
-import AddUserModal from "@/components/user/AddUserModal";
+import CreateAndAssignMemberModal from "@/components/user/CreateAndAssignMemberModal";
 import {
   getSocietyIdFromLocalStorage,
   getSocietyTypeFromLocalStorage,
@@ -11,11 +11,11 @@ import { fetchAllUsers, fetchUsersBySociety } from "@/services/user";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl"; // ✅ Added
 
 export default function UsersPage() {
-  const t = useTranslations("UsersPage"); // ✅ Namespace for translations
+  const t = useTranslations("UsersPage");
 
   const [role, setRole] = useState<string>("");
   const [open, setOpen] = useState(false);
@@ -83,11 +83,10 @@ export default function UsersPage() {
         pageSize={20}
       />
 
-      <AddUserModal
+      <CreateAndAssignMemberModal
         open={open}
         onClose={() => setOpen(false)}
-        societyId={selectedSociety}
-        societyType={societyType}
+        societyType={societyType as any}
       />
     </Box>
   );

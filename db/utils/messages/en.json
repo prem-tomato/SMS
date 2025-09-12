@@ -813,5 +813,67 @@
       "description": "Maintenance Payment",
       "multiDescription": "Maintenance Payment ({count} months)"
     }
+  },
+  "CreateAndAssignMemberModal": {
+    "title": "Add New Member",
+    "titles": {
+      "assignUnitToNewResident": "Assign Housing Unit to New Resident",
+      "assignShopToNewOwner": "Assign Shop to New Owner",
+      "assignFlatToNewResident": "Assign Flat to New Resident"
+    },
+    "subtitles": {
+      "createAndAssignUnit": "Create a new resident and assign them to a housing unit.",
+      "createAndAssignShop": "Create a new owner and assign them to a shop.",
+      "createAndAssignFlat": "Create a new resident and assign them to a flat."
+    },
+    "labels": {
+      "role": "Role",
+      "society": "Society",
+      "building": "Building",
+      "unit": "Unit",
+      "shop": "Shop",
+      "flat": "Flat",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "loginKey": "Login Key (6 digits)",
+      "moveInDate": "Move-in Date",
+      "resident": "Resident",
+      "owner": "Owner",
+      "member": "Member",
+      "admin": "Admin"
+    },
+    "validation": {
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "loginKeyRequired": "Login key is required",
+      "loginKeyDigits": "Login key must contain only digits",
+      "loginKeyMax6": "Login key must be max 6 digits",
+      "phoneRequired": "Phone number is required",
+      "invalidPhone": "Invalid phone number",
+      "selectSociety": "Please select a society",
+      "selectBuilding": "Please select a building",
+      "selectAtLeastOneFlat": "Please select at least one flat",
+      "selectAtLeastOneUnit": "Please select at least one unit",
+      "selectMoveInDate": "Please select a move-in date"
+    },
+    "common": {
+      "loading": "Loading...",
+      "noUnitsAvailable": "No available units",
+      "sqFt": "sq ft",
+      "floor": "Floor",
+      "selectedSociety": "Selected Society"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "assignUnit": "Assign Unit",
+      "assignShop": "Assign Shop",
+      "assignFlat": "Assign Flat"
+    },
+    "success": {
+      "createdAndAssigned": "Member created and assigned successfully!"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }
