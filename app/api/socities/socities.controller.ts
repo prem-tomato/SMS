@@ -45,6 +45,7 @@ import {
   getExpenseTracking,
   getFlatMaintenanceDetails,
   getFlats,
+  getHousingUnitsBySocietyIdModel,
   getIncomeTracking,
   getNotices,
   getRazorPayConfig,
@@ -200,6 +201,7 @@ export const addAdminController = async (
     const admin = await addAdmin(reqBody, societyId, userId);
 
     const responseData = {
+      id: admin.id,
       society_name: society.name,
       role: admin.role,
       first_name: admin.first_name,
@@ -1820,6 +1822,39 @@ export const deleteHousingUnitController = async (
 
     await rollbackTransaction(transaction);
 
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const getHousingUnitsBySocietyIdController = async (
+  societyId: string
+): Promise<Response<HousingUnits[]>> => {
+  try {
+    const society: Societies | undefined = await findSocietyById(societyId);
+    if (!society) {
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("SOCIETY_NOT_FOUND")
+      );
+    }
+
+    const housingUnits: HousingUnits[] | undefined =
+      await getHousingUnitsBySocietyIdModel(societyId);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("HOUSING_UNITS_RETRIEVED_SUCCESSFULLY"),
+      housingUnits
+    );
+  } catch (error: any) {
+    socitiesLogger.error(
+      "Error in getHousingUnitsBySocietyIdController:",
+      error
+    );
     return generateResponseJSON(
       StatusCodes.INTERNAL_SERVER_ERROR,
       error.message,

@@ -83,7 +83,7 @@ export type AddSocietyReqBody = z.infer<typeof addSocietyValidation.shape.body>;
 export type AddAdminReqBody = z.infer<typeof addAdminValidation.shape.body>;
 
 export type AdminResponse = {
-  data: Pick<User, "role" | "first_name" | "phone"> & {
+  data: Pick<User, "id" | "role" | "first_name" | "phone"> & {
     society_name: string;
   };
 };

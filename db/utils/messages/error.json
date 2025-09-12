@@ -67,5 +67,6 @@
   "MAINTENANCE_FETCHED_SUCCESSFULLY": "maintenance fetched successfully",
   "FLAT_DELETED_SUCCESSFULLY": "flat deleted successfully",
   "HOUSING_UNIT_UPDATED_SUCCESSFULLY": "Housing unit updated successfully",
-  "HOUSING_UNIT_DELETED_SUCCESSFULLY": "Housing unit deleted successfully"
+  "HOUSING_UNIT_DELETED_SUCCESSFULLY": "Housing unit deleted successfully",
+  "HOUSING_UNITS_RETRIEVED_SUCCESSFULLY": "Housing units retrieved successfully"
 }

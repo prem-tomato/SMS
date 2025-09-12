@@ -147,3 +147,15 @@ export const deleteHousingUnitService = async (
   if (!res.ok) throw new Error(json.message || "Failed to delete housing unit");
   return json;
 };
+
+export const getHousingUnitsBySocietyIdService = async (societyId: string) => {
+  const token = getAccessToken();
+  const res = await fetch(`/api/socities/${societyId}/housing`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to fetch housing units");
+  return json.data;
+};

@@ -1657,3 +1657,21 @@ export const deleteHousingUnit = async (
     throw new Error(`${error.message}`);
   }
 };
+
+export const getHousingUnitsBySocietyIdModel = async (
+  societyId: string
+): Promise<HousingUnits[] | undefined> => {
+  try {
+    const queryText = `
+      SELECT * FROM housing_units
+      WHERE society_id = $1 AND is_deleted = FALSE
+    `;
+    const rows: QueryResult<HousingUnits> = await query<HousingUnits>(
+      queryText,
+      [societyId]
+    );
+    return rows.rows;
+  } catch (error) {
+    throw new Error(`Error finding housing units: ${error}`);
+  }
+};

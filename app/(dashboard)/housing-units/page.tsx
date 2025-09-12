@@ -6,13 +6,12 @@ import { ViewHousingUnitModal } from "@/components/housing/ViewHousingUnitPenalt
 import { getSocietyIdFromLocalStorage, getUserRole } from "@/lib/auth";
 import {
   deleteHousingUnitService,
-  fetchAllHousingUnits,
+  getHousingUnitsBySocietyIdService,
   updateHousingUnit,
 } from "@/services/housing";
 import { addPenaltyForUnit } from "@/services/housing-unit-penalty";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   Alert,
@@ -143,7 +142,8 @@ export default function HousingUnitsPage() {
     isError,
   } = useQuery({
     queryKey: ["housing-units"],
-    queryFn: fetchAllHousingUnits,
+    queryFn: () => getHousingUnitsBySocietyIdService(societyId),
+    enabled: societyId !== "",
   });
 
   const { mutate: addPenalty, isPending } = useMutation({
