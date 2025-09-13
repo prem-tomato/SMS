@@ -43,8 +43,14 @@ export default function ProfilePage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (updatedData: Partial<User>) =>
-      updateMe(user.id, updatedData as User),
+    mutationFn: (updatedData: Partial<User>) => {
+      // Merge the updated data with the original user data to preserve all fields
+      const completeUserData = {
+        ...user, // Preserve all existing fields including societyId
+        ...updatedData, // Override only the fields being updated
+      };
+      return updateMe(user.id, completeUserData as User);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["me"] });
       setIsEditing(false);
@@ -52,11 +58,6 @@ export default function ProfilePage() {
         open: true,
         message: t("profileUpdated") || "Profile updated successfully!",
         severity: "success",
-      });
-
-      // Refresh the page after a short delay to show the success message
-      setTimeout(() => {
-        window.location.reload();
       });
     },
     onError: (error: Error) => {
