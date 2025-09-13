@@ -53,6 +53,11 @@ export default function ProfilePage() {
         message: t("profileUpdated") || "Profile updated successfully!",
         severity: "success",
       });
+
+      // Refresh the page after a short delay to show the success message
+      setTimeout(() => {
+        window.location.reload();
+      });
     },
     onError: (error: Error) => {
       setSnackbar({
