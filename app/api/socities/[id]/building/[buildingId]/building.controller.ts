@@ -204,7 +204,6 @@ export const deleteFlatController = async (
     id: string;
     buildingId: string;
     flatId: string;
-    assignMemberId: string;
   }
 ): Promise<Response<void>> => {
   const transaction: Transaction = await startTransaction();
@@ -226,7 +225,6 @@ export const deleteFlatController = async (
       params.flatId,
       params.buildingId,
       params.id,
-
       userId,
       client
     );
