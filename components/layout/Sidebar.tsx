@@ -151,21 +151,8 @@ export default function Sidebar() {
 
   const adminItems = getAdminItems();
 
-  const superAdminDuesItems = [
-    {
-      label: "Maintenance Dues",
-      icon: <MoreHorizIcon />,
-      path: "/member-monthly-dues",
-    },
-  ];
-
   // Dues items for dropdown
   const duesItems = [
-    {
-      label: "Maintenance Dues",
-      icon: <MoreHorizIcon />,
-      path: "/member-monthly-dues",
-    },
     {
       label: "Pay Dues",
       icon: <PaymentIcon />,
@@ -185,9 +172,7 @@ export default function Sidebar() {
 
   // Filter dues items based on role
   const getDuesItemsForRole = () => {
-    if (role === "super_admin") {
-      return superAdminDuesItems;
-    } else if (role === "admin") {
+    if (role === "admin") {
       return duesItems;
     } else if (role === "member") {
       return duesItems.filter((item) => item.path !== "/member-monthly-dues"); // Exclude maintenance dues
@@ -324,38 +309,40 @@ export default function Sidebar() {
         {navItems.map(renderNavItem)}
 
         {/* Dues Dropdown */}
-        <>
-          <ListItemButton
-            onClick={() => setOpenDues(!openDues)}
-            sx={{
-              borderRadius: 1,
-              border: "1px solid #e0e0e0",
-              mb: 1,
-              "&:hover": {
-                borderColor: "#1e1ee4",
-                bgcolor: "rgba(30, 30, 228, 0.04)",
-              },
-            }}
-          >
-            <ListItemIcon sx={{ color: "#1e1ee4", minWidth: 40 }}>
-              <PaymentIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary="Dues Management"
-              primaryTypographyProps={{
-                fontSize: "12px",
-                fontWeight: openDues ? 700 : 500,
-                textTransform: "uppercase",
+        {role !== "super_admin" && (
+          <>
+            <ListItemButton
+              onClick={() => setOpenDues(!openDues)}
+              sx={{
+                borderRadius: 1,
+                border: "1px solid #e0e0e0",
+                mb: 1,
+                "&:hover": {
+                  borderColor: "#1e1ee4",
+                  bgcolor: "rgba(30, 30, 228, 0.04)",
+                },
               }}
-            />
-            {openDues ? <ExpandLess /> : <ExpandMore />}
-          </ListItemButton>
-          <Collapse in={openDues} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding sx={{ pl: 3 }}>
-              {getDuesItemsForRole().map(renderNavItem)}
-            </List>
-          </Collapse>
-        </>
+            >
+              <ListItemIcon sx={{ color: "#1e1ee4", minWidth: 40 }}>
+                <PaymentIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="Dues Management"
+                primaryTypographyProps={{
+                  fontSize: "12px",
+                  fontWeight: openDues ? 700 : 500,
+                  textTransform: "uppercase",
+                }}
+              />
+              {openDues ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+            <Collapse in={openDues} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding sx={{ pl: 3 }}>
+                {getDuesItemsForRole().map(renderNavItem)}
+              </List>
+            </Collapse>
+          </>
+        )}
 
         {/* Transactions Dropdown */}
         {(role === "super_admin" || role === "admin") && (
