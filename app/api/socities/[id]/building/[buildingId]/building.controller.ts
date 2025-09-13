@@ -16,8 +16,10 @@ import {
 } from "../../../socities.model";
 import { Building, Societies } from "../../../socities.types";
 import {
+  deleteAssignMember,
   deleteBuildingModel,
   deleteFlat,
+  findAssignMemberById,
   updateBuildingModel,
   updateFlat,
   updateFlatMaintenance,
@@ -198,7 +200,12 @@ export const getFlatMaintenanceController = async (
 
 export const deleteFlatController = async (
   request: Request,
-  params: { id: string; buildingId: string; flatId: string }
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+    assignMemberId: string;
+  }
 ): Promise<Response<void>> => {
   const transaction: Transaction = await startTransaction();
   const { client } = transaction;
@@ -219,6 +226,7 @@ export const deleteFlatController = async (
       params.flatId,
       params.buildingId,
       params.id,
+
       userId,
       client
     );
@@ -231,6 +239,68 @@ export const deleteFlatController = async (
     );
   } catch (error: any) {
     socitiesLogger.error("Error in deleteFlatController:", error);
+
+    await rollbackTransaction(transaction);
+
+    return generateResponseJSON(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      error.message,
+      error
+    );
+  }
+};
+
+export const deleteAssignMemberController = async (
+  request: Request,
+  params: {
+    id: string;
+    buildingId: string;
+    flatId: string;
+    assignMemberId: string;
+  }
+): Promise<Response<void>> => {
+  const transaction: Transaction = await startTransaction();
+  const { client } = transaction;
+
+  try {
+    const userId: string = request.headers.get("userId")!;
+
+    const flat = await findFlatById(params.flatId);
+    if (!flat) {
+      await rollbackTransaction(transaction);
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("FLAT_NOT_FOUND")
+      );
+    }
+
+    // Check assign member
+    const assignMember = await findAssignMemberById(params.assignMemberId);
+    if (!assignMember) {
+      await rollbackTransaction(transaction);
+      return generateResponseJSON(
+        StatusCodes.NOT_FOUND,
+        getMessage("ASSIGN_MEMBER_NOT_FOUND")
+      );
+    }
+
+    await deleteAssignMember(
+      params.assignMemberId,
+      params.id,
+      params.buildingId,
+      params.flatId,
+      userId,
+      client
+    );
+
+    await commitTransaction(transaction);
+
+    return generateResponseJSON(
+      StatusCodes.OK,
+      getMessage("ASSIGN_MEMBER_DELETED_SUCCESSFULLY")
+    );
+  } catch (error: any) {
+    socitiesLogger.error("Error in deleteAssignMemberController:", error);
 
     await rollbackTransaction(transaction);
 

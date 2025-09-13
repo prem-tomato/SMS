@@ -408,21 +408,45 @@ import {
 import {
   assignMemberListForAdmin,
   assignMemberListForSuperAdmin,
+  deleteAssignMemberService,
+  deleteAssignUnitService,
 } from "@/services/assign-flats";
 
 import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
+  Alert,
   Avatar,
   Box,
   Button,
   Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
+  Menu,
+  MenuItem,
   Stack,
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+
+interface DeleteDialogState {
+  open: boolean;
+  memberData: any;
+  memberName: string;
+  selectedFlat: any | null; // 👈 New
+  selectedUnit: any | null; // 👈 New
+}
 
 export default function AssignFlatsPage() {
   const t = useTranslations("AssignFlatsPage");
@@ -431,7 +455,18 @@ export default function AssignFlatsPage() {
   const [role, setRole] = useState<string>("");
   const [adminSocietyId, setAdminSocietyId] = useState<string>("");
   const [societyType, setSocietyType] = useState<string | null>(null);
-
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedRow, setSelectedRow] = useState<any>(null);
+  const [deletingType, setDeletingType] = useState<"flat" | "unit" | null>(
+    null
+  ); // 👈 NEW
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
+    open: false,
+    memberData: null,
+    memberName: "",
+    selectedFlat: null,
+    selectedUnit: null,
+  });
   const queryClient = useQueryClient();
 
   // Get assigned members based on role
@@ -449,6 +484,124 @@ export default function AssignFlatsPage() {
       !!role &&
       (role === "super_admin" || (role === "admin" && !!adminSocietyId)),
   });
+
+  // Delete mutation
+  const deleteFlatMutation = useMutation({
+    mutationFn: ({
+      societyId,
+      buildingId,
+      flatId,
+      assignMemberId,
+    }: {
+      societyId: string;
+      buildingId: string;
+      flatId: string;
+      assignMemberId: string;
+    }) =>
+      deleteAssignMemberService(societyId, buildingId, flatId, assignMemberId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["assignedMembers", role, adminSocietyId],
+      });
+      setDeleteDialog({
+        open: false,
+        memberData: null,
+        memberName: "",
+        selectedFlat: null,
+        selectedUnit: null,
+      });
+      setAnchorEl(null);
+      setSelectedRow(null);
+    },
+    onError: (error: any) => {
+      console.error("Delete failed:", error);
+      // You can add toast notification here
+    },
+  });
+
+  // ✅ NEW: Mutation for HOUSING UNITS
+  const deleteUnitMutation = useMutation({
+    mutationFn: ({
+      societyId,
+      housingId,
+      assignUnitId,
+    }: {
+      societyId: string;
+      housingId: string;
+      assignUnitId: string;
+    }) => deleteAssignUnitService(societyId, housingId, assignUnitId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["assignedMembers", role, adminSocietyId],
+      });
+      setDeleteDialog({
+        open: false,
+        memberData: null,
+        memberName: "",
+        selectedFlat: null,
+        selectedUnit: null,
+      });
+      setAnchorEl(null);
+      setSelectedRow(null);
+    },
+    onError: (error: any) => {
+      console.error("Failed to delete unit:", error);
+    },
+  });
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, row: any) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedRow(row);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedRow(null);
+  };
+
+  const handleDeleteClick = () => {
+    if (selectedRow) {
+      setDeleteDialog({
+        open: true,
+        memberData: selectedRow,
+        memberName: selectedRow.member_name || "",
+        selectedFlat: null,
+        selectedUnit: null,
+      });
+    }
+    handleMenuClose();
+  };
+
+  const handleDeleteFlat = async (flat: any) => {
+    if (!flat?.flat_id || !flat?.assign_member_id) {
+      console.error("Invalid flat ", flat);
+      return;
+    }
+
+    setDeletingType("flat"); // 👈 Start loading indicator
+
+    await deleteFlatMutation.mutateAsync({
+      societyId: role === "admin" ? adminSocietyId : flat.society_id,
+      buildingId: flat.building_id,
+      flatId: flat.flat_id,
+      assignMemberId: flat.assign_member_id,
+    });
+  };
+
+  const handleDeleteUnit = async (unit: any) => {
+    if (!unit?.housing_id || !unit?.assign_unit_id) {
+      console.error("Invalid unit ", unit);
+      return;
+    }
+
+    setDeletingType("unit"); // 👈 Start loading indicator
+
+    await deleteUnitMutation.mutateAsync({
+      societyId: role === "admin" ? adminSocietyId : unit.society_id,
+      housingId: unit.housing_id,
+      assignUnitId: unit.assign_unit_id,
+    });
+  };
 
   const columns = useMemo(() => {
     const isSuperAdminViewingAll = role === "super_admin";
@@ -678,6 +831,23 @@ export default function AssignFlatsPage() {
           );
         },
       },
+      // Actions column
+      {
+        field: "actions",
+        headerName: "Actions",
+        flex: 0.5,
+        sortable: false,
+        disableColumnMenu: true,
+        renderCell: (params: any) => (
+          <IconButton
+            size="small"
+            onClick={(e) => handleMenuOpen(e, params.row)}
+            sx={{ color: "text.secondary" }}
+          >
+            <MoreVertIcon />
+          </IconButton>
+        ),
+      },
     ];
   }, [role, societyType]);
 
@@ -740,6 +910,144 @@ export default function AssignFlatsPage() {
         height="calc(100vh - 180px)"
         pageSize={20}
       />
+
+      {/* Actions Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: { minWidth: 120 },
+        }}
+      >
+        <MenuItem onClick={handleDeleteClick}>
+          <DeleteIcon fontSize="small" sx={{ mr: 1, color: "error.main" }} />
+          <Typography color="error.main">Delete</Typography>
+        </MenuItem>
+      </Menu>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() =>
+          setDeleteDialog({
+            open: false,
+            memberData: null,
+            memberName: "",
+            selectedFlat: null,
+            selectedUnit: null,
+          })
+        }
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Delete Assignments for {deleteDialog.memberName}
+        </DialogTitle>
+        <DialogContent>
+          {deletingType && (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+              <CircularProgress />
+              <Typography variant="body2" sx={{ ml: 1 }}>
+                Deleting {deletingType === "flat" ? "flat/shop" : "unit"}...
+              </Typography>
+            </Box>
+          )}
+
+          {!deletingType && deleteDialog.memberData && (
+            <>
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                Select which assignment to delete. This action cannot be undone.
+              </Alert>
+
+              {/* Show flats if available */}
+              {deleteDialog.memberData.flats &&
+                deleteDialog.memberData.flats.length > 0 && (
+                  <>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: 600, mb: 1 }}
+                    >
+                      {societyType === "commercial" ? "Shops" : "Flats"}:
+                    </Typography>
+                    <List>
+                      {deleteDialog.memberData.flats.map((flat: any) => (
+                        <ListItemButton
+                          key={flat.flat_id}
+                          onClick={() => handleDeleteFlat(flat)}
+                          sx={{
+                            border: 1,
+                            borderColor: "divider",
+                            borderRadius: 1,
+                            mb: 1,
+                          }}
+                        >
+                          <ListItemText
+                            primary={`${
+                              societyType === "commercial" ? "Shop" : "Flat"
+                            } ${flat.flat_number}`}
+                            secondary={`Floor ${
+                              flat.floor_number
+                            } - Building: ${flat.building_name || "N/A"}`}
+                          />
+                          <DeleteIcon color="error" />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </>
+                )}
+
+              {/* Show housing units if available */}
+              {deleteDialog.memberData.housing_units &&
+                deleteDialog.memberData.housing_units.length > 0 && (
+                  <>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ fontWeight: 600, mb: 1, mt: 2 }}
+                    >
+                      Housing Units:
+                    </Typography>
+                    <List>
+                      {deleteDialog.memberData.housing_units.map(
+                        (unit: any) => (
+                          <ListItemButton
+                            key={unit.housing_id}
+                            onClick={() => handleDeleteUnit(unit)}
+                            sx={{
+                              border: 1,
+                              borderColor: "divider",
+                              borderRadius: 1,
+                              mb: 1,
+                            }}
+                          >
+                            <ListItemText
+                              primary={`Unit ${unit.unit_number}`}
+                              secondary={`${unit.unit_type} - ${unit.square_foot} sq ft`}
+                            />
+                            <DeleteIcon color="error" />
+                          </ListItemButton>
+                        )
+                      )}
+                    </List>
+                  </>
+                )}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setDeleteDialog({
+                open: false,
+                memberData: null,
+                memberName: "",
+              } as any)
+            }
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Assign Modal */}
       <AssignMemberModal

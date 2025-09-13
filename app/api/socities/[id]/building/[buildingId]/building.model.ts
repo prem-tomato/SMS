@@ -1,6 +1,6 @@
 import { query, queryWithClient } from "@/db/database-connect";
 import { PoolClient, QueryResult } from "pg";
-import { Flat } from "../../../socities.types";
+import { AssignMemberResponse, Flat } from "../../../socities.types";
 import { UpdateBuildingReqBody, UpdateFlatReqBody } from "./building.types";
 
 export const updateBuildingModel = async (
@@ -403,5 +403,64 @@ export const deleteFlat = async (
     return { success: true, flatId };
   } catch (error: any) {
     throw new Error(`deleteFlat failed: ${error.message}`);
+  }
+};
+
+export const findAssignMemberById = async (
+  assignMemberId: string
+): Promise<AssignMemberResponse> => {
+  try {
+    const queryText = `
+      SELECT * FROM members
+      WHERE id = $1
+    `;
+
+    const result: QueryResult<AssignMemberResponse> = await query(queryText, [
+      assignMemberId,
+    ]);
+    return result.rows[0];
+  } catch (error: any) {
+    throw new Error(`findAssignMemberById failed: ${error.message}`);
+  }
+};
+
+export const deleteAssignMember = async (
+  assignMemberId: string,
+  societyId: string,
+  buildingId: string,
+  flatId: string,
+  userId: string,
+  client: PoolClient
+) => {
+  try {
+    const queryText = `
+      UPDATE members
+      SET is_deleted = true,
+          deleted_at = NOW(),
+          updated_by = $5,
+          updated_at = NOW(),
+          deleted_by = $5
+      WHERE id = $1 
+        AND society_id = $2
+        AND building_id = $3
+        AND flat_id = $4
+      RETURNING id
+    `;
+
+    const result = await queryWithClient(client, queryText, [
+      assignMemberId,
+      societyId,
+      buildingId,
+      flatId,
+      userId,
+    ]);
+
+    if (result.rowCount === 0) {
+      throw new Error("Assign member not found");
+    }
+
+    return { success: true, assignMemberId };
+  } catch (error: any) {
+    throw new Error(`deleteAssignMember failed: ${error.message}`);
   }
 };

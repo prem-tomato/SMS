@@ -1675,3 +1675,37 @@ export const getHousingUnitsBySocietyIdModel = async (
     throw new Error(`Error finding housing units: ${error}`);
   }
 };
+
+export const deleteAssignUnitModel = async (
+  societyId: string,
+  housingUnitId: string,
+  assignUnitId: string,
+  userId: string,
+  client: PoolClient
+): Promise<void> => {
+  try {
+    // 1. Soft delete the assign unit
+    const deleteAssignUnitQuery = `
+      UPDATE members
+      SET is_deleted = true,
+          deleted_at = NOW(),
+          deleted_by = $4,
+          updated_at = NOW(),
+          updated_by = $4
+      WHERE society_id = $1 AND housing_id = $2 AND id = $3
+      RETURNING id
+    `;
+
+    const assignUnitResult = await queryWithClient(
+      client,
+      deleteAssignUnitQuery,
+      [societyId, housingUnitId, assignUnitId, userId]
+    );
+
+    if (assignUnitResult.rowCount === 0) {
+      throw new Error("Assign unit not found.");
+    }
+  } catch (error: any) {
+    throw new Error(`${error.message}`);
+  }
+};
