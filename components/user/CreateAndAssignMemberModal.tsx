@@ -44,7 +44,7 @@ interface CreateAndAssignFormValues {
   // User creation fields
   role: "admin" | "member";
   first_name: string;
-  last_name: string;
+  last_name: string | null;
   login_key: string;
   phone: string;
 
@@ -84,7 +84,7 @@ const CreateAndAssignMemberModal = ({
     z.object({
       role: z.enum(["admin", "member"]),
       first_name: z.string().min(1, t("validation.firstNameRequired")),
-      last_name: z.string().min(1, t("validation.lastNameRequired")),
+      last_name: z.string().optional(),
       login_key: z
         .string()
         .min(1, t("validation.loginKeyRequired"))
@@ -192,7 +192,7 @@ const CreateAndAssignMemberModal = ({
       const newUserResponse = await createUser(targetSocietyId, {
         role: data.role,
         first_name: data.first_name,
-        last_name: data.last_name,
+        last_name: data.last_name as any,
         login_key: Number(data.login_key) as any,
         phone: data.phone,
       });

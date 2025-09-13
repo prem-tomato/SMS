@@ -41,9 +41,7 @@ export const addAdminValidation = object({
     first_name: string()
       .min(1, "First name is required")
       .max(50, "First name must be less than 50 characters"),
-    last_name: string()
-      .min(1, "Last name is required")
-      .max(50, "Last name must be less than 50 characters"),
+    last_name: string().optional(),
     login_key: number()
       .int("Login key must be an integer")
       .min(100000, "Login key must be at least 6 digits")
