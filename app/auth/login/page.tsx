@@ -15,6 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [login_key, setLoginKey] = useState("");
   const [societyKey, setSocietyKey] = useState("");
+  const [loginType, setLoginType] = useState<"key" | "phone">("key");
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -25,10 +26,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      // Send login_key as string to support both phone and key
       const { access_token, role, societyId, societyType, user } =
         await loginUser({
           society_key: societyKey || "SUPERA",
-          login_key: Number(login_key),
+          login_key: login_key.trim(),
         });
       console.log(access_token, role, societyId, societyType, user.id);
 
@@ -43,6 +45,25 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLoginKeyChange = (value: string) => {
+    if (loginType === "key") {
+      // Only allow digits and max 6 characters for access key
+      if (/^\d{0,6}$/.test(value)) {
+        setLoginKey(value);
+      }
+    } else {
+      // Allow phone number format
+      const cleaned = value.replace(/[^\d+\s\-\(\)]/g, "");
+      setLoginKey(cleaned);
+    }
+  };
+
+  const switchLoginType = (type: "key" | "phone") => {
+    setLoginType(type);
+    setLoginKey("");
+    setError("");
   };
 
   return (
@@ -189,51 +210,111 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Access Key Input */}
+          {/* Login Type Toggle */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Login Method
+            </label>
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => switchLoginType("key")}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                  loginType === "key"
+                    ? "bg-white text-[#1e1ee4] shadow-sm"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+                disabled={isLoading}
+              >
+                Access Key
+              </button>
+              <button
+                type="button"
+                onClick={() => switchLoginType("phone")}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                  loginType === "phone"
+                    ? "bg-white text-[#1e1ee4] shadow-sm"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+                disabled={isLoading}
+              >
+                Phone Number
+              </button>
+            </div>
+          </div>
+
+          {/* Dynamic Login Input */}
           <div className="space-y-2">
             <label
               htmlFor="login_key"
               className="block text-sm font-medium text-gray-700"
             >
-              Access Key
+              {loginType === "key" ? "Access Key" : "Phone Number"}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7 5.955c-.36-.227-.696-.473-1.021-.735A2 2 0 0112 12a2 2 0 01-1.979 1.22c-.325.262-.66.508-1.021.735A6 6 0 012 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m0 0V7a2 2 0 012-2h2a2 2 0 012 2v2"
-                  />
-                </svg>
+                {loginType === "key" ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7 5.955c-.36-.227-.696-.473-1.021-.735A2 2 0 0112 12a2 2 0 01-1.979 1.22c-.325.262-.66.508-1.021.735A6 6 0 012 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m0 0V7a2 2 0 012-2h2a2 2 0 012 2v2"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                )}
               </div>
               <input
                 id="login_key"
                 type="text"
-                inputMode="numeric"
-                pattern="\d{6}"
-                maxLength={6}
                 value={login_key}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  // Only allow digits and max 6 characters
-                  if (/^\d{0,6}$/.test(val)) {
-                    setLoginKey(val);
-                  }
-                }}
-                placeholder="Enter your access key"
+                onChange={(e) => handleLoginKeyChange(e.target.value)}
+                placeholder={
+                  loginType === "key"
+                    ? "Enter your 6-digit access key"
+                    : "Enter your phone number"
+                }
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1e1ee4] focus:border-transparent transition duration-300 bg-gray-50"
                 required
                 disabled={isLoading}
+                {...(loginType === "key" && {
+                  inputMode: "numeric",
+                  pattern: "\\d{6}",
+                  maxLength: 6,
+                })}
+                {...(loginType === "phone" && {
+                  inputMode: "tel",
+                  maxLength: 15,
+                })}
               />
             </div>
+            {loginType === "phone" && (
+              <p className="text-xs text-gray-500 mt-1">
+                Enter your registered phone number (with or without country
+                code)
+              </p>
+            )}
           </div>
 
           {error && (

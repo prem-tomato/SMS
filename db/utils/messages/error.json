@@ -71,5 +71,6 @@
   "HOUSING_UNITS_RETRIEVED_SUCCESSFULLY": "Housing units retrieved successfully",
   "ASSIGN_MEMBER_DELETED_SUCCESSFULLY": "Assign member deleted successfully",
   "ASSIGN_MEMBER_NOT_FOUND": "Assign member not found",
-  "ASSIGN_UNIT_DELETED_SUCCESSFULLY": "Assign unit deleted successfully"
+  "ASSIGN_UNIT_DELETED_SUCCESSFULLY": "Assign unit deleted successfully",
+  "PHONE_NOT_FOUND": "Phone not found"
 }

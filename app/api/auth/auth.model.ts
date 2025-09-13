@@ -121,7 +121,7 @@ export const findSocietyBySocietyKey = async (
 };
 
 export const findUserByLoginKeyAndSociety = async (
-  loginKey: number,
+  loginKey: string,
   societyId: string | null | undefined
 ): Promise<User | undefined> => {
   try {
@@ -157,7 +157,7 @@ export const findUserByLoginKeyAndSociety = async (
 };
 
 export const findSuperAdminByLoginKey = async (
-  loginKey: number
+  loginKey: string
 ): Promise<User | undefined> => {
   try {
     console.log("loginKey", loginKey);
@@ -204,5 +204,48 @@ export const updateUser = async (
     ]);
   } catch (error) {
     throw new Error(`Error updating user: ${error}`);
+  }
+};
+
+export const findSuperAdminByPhone = async (
+  phone: string
+): Promise<User | undefined> => {
+  try {
+    const queryText = `
+        SELECT * FROM users
+        WHERE phone = $1 
+        AND role = 'super_admin'
+        AND society_id IS NULL
+        AND is_deleted = false
+    `;
+
+    const res: QueryResult<User> = await query<User>(queryText, [phone]);
+
+    return res.rows.length > 0 ? res.rows[0] : undefined;
+  } catch (error) {
+    throw new Error(`Error finding super admin by phone: ${error}`);
+  }
+};
+
+export const findUserByPhoneAndSociety = async (
+  phone: string,
+  societyId: string | null | undefined
+): Promise<User | undefined> => {
+  try {
+    const queryText = `
+        SELECT * FROM users
+        WHERE phone = $1 
+        AND society_id = $2
+        AND is_deleted = false
+    `;
+
+    const res: QueryResult<User> = await query<User>(queryText, [
+      phone,
+      societyId,
+    ]);
+
+    return res.rows.length > 0 ? res.rows[0] : undefined;
+  } catch (error) {
+    throw new Error(`Error finding user by phone and society: ${error}`);
   }
 };

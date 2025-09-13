@@ -17,8 +17,10 @@ import {
   addToken,
   findSocietyBySocietyKey,
   findSuperAdminByLoginKey,
+  findSuperAdminByPhone,
   findUserById,
   findUserByLoginKeyAndSociety,
+  findUserByPhoneAndSociety,
   removeOtherTokens,
   updateUser,
 } from "./auth.model";
@@ -166,18 +168,31 @@ export const loginController = async (
     // Check if this is a super admin login
     const isSuperAdminLogin = reqBody.society_key === "SUPERA";
 
+    // Determine if the login identifier is a phone number
+    // Phone numbers should be longer than 6 digits or contain formatting characters
+    const loginKeyTrimmed = reqBody.login_key.trim();
+    const isPhoneLogin =
+      /^\+?[\d\s\-\(\)]+$/.test(loginKeyTrimmed) &&
+      (loginKeyTrimmed.length > 6 || /[\s\-\(\)\+]/.test(loginKeyTrimmed));
+
     let society: Societies | undefined;
     let user: User | undefined;
     console.log("reqBody", reqBody);
+    console.log("isPhoneLogin", isPhoneLogin);
+
     if (isSuperAdminLogin) {
       // Handle super admin login
-      user = await findSuperAdminByLoginKey(reqBody.login_key);
+      if (isPhoneLogin) {
+        user = await findSuperAdminByPhone(reqBody.login_key);
+      } else {
+        user = await findSuperAdminByLoginKey(reqBody.login_key);
+      }
 
       if (!user) {
         await rollbackTransaction(transaction);
         return generateResponseJSON(
           StatusCodes.NOT_FOUND,
-          getMessage("LOGIN_KEY_NOT_FOUND")
+          getMessage(isPhoneLogin ? "PHONE_NOT_FOUND" : "LOGIN_KEY_NOT_FOUND")
         );
       }
 
@@ -212,51 +227,32 @@ export const loginController = async (
         );
       }
 
-      // Find user by login key within the found society
-      user = await findUserByLoginKeyAndSociety(reqBody.login_key, society.id);
+      // Find user by login key or phone number within the found society
+      if (isPhoneLogin) {
+        user = await findUserByPhoneAndSociety(reqBody.login_key, society.id);
+      } else {
+        user = await findUserByLoginKeyAndSociety(
+          reqBody.login_key,
+          society.id
+        );
+      }
 
       if (!user) {
         await rollbackTransaction(transaction);
         return generateResponseJSON(
           StatusCodes.NOT_FOUND,
-          getMessage("LOGIN_KEY_NOT_FOUND")
+          getMessage(isPhoneLogin ? "PHONE_NOT_FOUND" : "LOGIN_KEY_NOT_FOUND")
         );
       }
-    }
-
-    // Check if society subscription has ended
-    if (
-      society?.end_date &&
-      dayjs(society?.end_date).endOf("day").isBefore(dayjs())
-    ) {
-      await rollbackTransaction(transaction);
-      return generateResponseJSON(
-        StatusCodes.FORBIDDEN,
-        getMessage("SOCIETY_SUBSCRIPTION_ENDED")
-      );
-    }
-
-    // Find user by login key within the found society
-    const users: User | undefined = await findUserByLoginKeyAndSociety(
-      reqBody.login_key,
-      society?.id
-    );
-
-    if (!users) {
-      await rollbackTransaction(transaction);
-      return generateResponseJSON(
-        StatusCodes.NOT_FOUND,
-        getMessage("LOGIN_KEY_NOT_FOUND")
-      );
     }
 
     console.log("society?.society_key", society?.society_key);
 
     const tokenPayload = {
-      login_key: reqBody.login_key,
-      userId: users.id,
-      role: users.role,
-      societyId: users.society_id || null, // null for super_admin
+      login_key: user.login_key || reqBody.login_key, // Use actual login_key from user record
+      userId: user.id,
+      role: user.role,
+      societyId: user.society_id || null, // null for super_admin
       societyType: society?.society_type || null,
     };
 
