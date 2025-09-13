@@ -444,8 +444,8 @@ interface DeleteDialogState {
   open: boolean;
   memberData: any;
   memberName: string;
-  selectedFlat: any | null; // 👈 New
-  selectedUnit: any | null; // 👈 New
+  selectedFlat: any | null;
+  selectedUnit: any | null;
 }
 
 export default function AssignFlatsPage() {
@@ -459,7 +459,7 @@ export default function AssignFlatsPage() {
   const [selectedRow, setSelectedRow] = useState<any>(null);
   const [deletingType, setDeletingType] = useState<"flat" | "unit" | null>(
     null
-  ); // 👈 NEW
+  );
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
     open: false,
     memberData: null,
@@ -467,6 +467,7 @@ export default function AssignFlatsPage() {
     selectedFlat: null,
     selectedUnit: null,
   });
+
   const queryClient = useQueryClient();
 
   // Get assigned members based on role
@@ -485,7 +486,7 @@ export default function AssignFlatsPage() {
       (role === "super_admin" || (role === "admin" && !!adminSocietyId)),
   });
 
-  // Delete mutation
+  // Mutation for deleting FLATS/SHOPS
   const deleteFlatMutation = useMutation({
     mutationFn: ({
       societyId,
@@ -512,14 +513,15 @@ export default function AssignFlatsPage() {
       });
       setAnchorEl(null);
       setSelectedRow(null);
+      setDeletingType(null); // 👈 Clear loading state on success
     },
     onError: (error: any) => {
-      console.error("Delete failed:", error);
-      // You can add toast notification here
+      console.error("Failed to delete flat:", error);
+      setDeletingType(null); // 👈 Clear loading state on error
     },
   });
 
-  // ✅ NEW: Mutation for HOUSING UNITS
+  // Mutation for deleting HOUSING UNITS
   const deleteUnitMutation = useMutation({
     mutationFn: ({
       societyId,
@@ -543,9 +545,11 @@ export default function AssignFlatsPage() {
       });
       setAnchorEl(null);
       setSelectedRow(null);
+      setDeletingType(null); // 👈 Clear loading state on success
     },
     onError: (error: any) => {
       console.error("Failed to delete unit:", error);
+      setDeletingType(null); // 👈 Clear loading state on error
     },
   });
 
@@ -574,11 +578,11 @@ export default function AssignFlatsPage() {
 
   const handleDeleteFlat = async (flat: any) => {
     if (!flat?.flat_id || !flat?.assign_member_id) {
-      console.error("Invalid flat ", flat);
+      console.error("Invalid flat:", flat);
       return;
     }
 
-    setDeletingType("flat"); // 👈 Start loading indicator
+    setDeletingType("flat");
 
     await deleteFlatMutation.mutateAsync({
       societyId: role === "admin" ? adminSocietyId : flat.society_id,
@@ -590,11 +594,11 @@ export default function AssignFlatsPage() {
 
   const handleDeleteUnit = async (unit: any) => {
     if (!unit?.housing_id || !unit?.assign_unit_id) {
-      console.error("Invalid unit ", unit);
+      console.error("Invalid unit:", unit);
       return;
     }
 
-    setDeletingType("unit"); // 👈 Start loading indicator
+    setDeletingType("unit");
 
     await deleteUnitMutation.mutateAsync({
       societyId: role === "admin" ? adminSocietyId : unit.society_id,
@@ -612,7 +616,7 @@ export default function AssignFlatsPage() {
         headerName: societyType === "commercial" ? "Owner" : "Resident",
         flex: 2,
       },
-      // Housing unit fields - CLEAN VERSION
+      // Housing unit fields
       ...(societyType === "housing" || isSuperAdminViewingAll
         ? [
             {
@@ -691,7 +695,7 @@ export default function AssignFlatsPage() {
             },
           ]
         : []),
-      // Flat/Shop fields - CLEAN VERSION
+      // Flat/Shop fields
       ...(societyType !== "housing" || isSuperAdminViewingAll
         ? [
             {
@@ -796,7 +800,7 @@ export default function AssignFlatsPage() {
             },
           ]
         : []),
-      // Society field (always show for super admin)
+      // Society field (only for super admin)
       ...(role === "super_admin"
         ? [
             {
@@ -929,15 +933,16 @@ export default function AssignFlatsPage() {
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
-        onClose={() =>
+        onClose={() => {
           setDeleteDialog({
             open: false,
             memberData: null,
             memberName: "",
             selectedFlat: null,
             selectedUnit: null,
-          })
-        }
+          });
+          setDeletingType(null); // 👈 CRITICAL: Clear loading state on ANY close
+        }}
         maxWidth="sm"
         fullWidth
       >
@@ -981,6 +986,7 @@ export default function AssignFlatsPage() {
                             borderRadius: 1,
                             mb: 1,
                           }}
+                          disabled={deletingType !== null} // 👈 Prevent clicks during deletion
                         >
                           <ListItemText
                             primary={`${
@@ -1019,6 +1025,7 @@ export default function AssignFlatsPage() {
                               borderRadius: 1,
                               mb: 1,
                             }}
+                            disabled={deletingType !== null} // 👈 Prevent clicks during deletion
                           >
                             <ListItemText
                               primary={`Unit ${unit.unit_number}`}
@@ -1036,13 +1043,17 @@ export default function AssignFlatsPage() {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() =>
+            onClick={() => {
               setDeleteDialog({
                 open: false,
                 memberData: null,
                 memberName: "",
-              } as any)
-            }
+                selectedFlat: null,
+                selectedUnit: null,
+              });
+              setDeletingType(null); // 👈 Consistent cleanup
+            }}
+            color="inherit"
           >
             Cancel
           </Button>

@@ -1680,8 +1680,7 @@ export const deleteAssignUnitModel = async (
   societyId: string,
   housingUnitId: string,
   assignUnitId: string,
-  userId: string,
-  client: PoolClient
+  userId: string
 ): Promise<void> => {
   try {
     // 1. Soft delete the assign unit
@@ -1696,11 +1695,12 @@ export const deleteAssignUnitModel = async (
       RETURNING id
     `;
 
-    const assignUnitResult = await queryWithClient(
-      client,
-      deleteAssignUnitQuery,
-      [societyId, housingUnitId, assignUnitId, userId]
-    );
+    const assignUnitResult = await query(deleteAssignUnitQuery, [
+      societyId,
+      housingUnitId,
+      assignUnitId,
+      userId,
+    ]);
 
     if (assignUnitResult.rowCount === 0) {
       throw new Error("Assign unit not found.");
